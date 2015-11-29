@@ -5,6 +5,8 @@ import shelve
 from random import randint
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
+# uus kommentaar
+
 
 class Andmed:
     def __init__(self):
