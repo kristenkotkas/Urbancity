@@ -2,8 +2,10 @@ Project todo list
 
 ---Parem sahtel---
 kujundus korda
-nimed ja logod vaja välja mõelda
-funktsioonid ja sissetuleku algoritmid vaja välja mõelda
+nimed vaja välja mõelda
+X logod vaja välja mõelda
+funktsioonid vaja välja mõelda
+X sissetuleku algoritmid vaja välja mõelda
 
 ---Vasak sahtel---
 random events - eraldi nupp teha, raha eest korraldab ürituse vms et midagi juhtuks, vb ajutine boost sissetulekule vms
@@ -18,9 +20,9 @@ asetus jääb samaks?
 vahesid, kõrgusi kohandada vaja
 
 ---Metro---
-2 erinevat tausta et rong sõidaks maa alla peitu
+X 2 erinevat tausta et rong sõidaks maa alla peitu
 timeri järgi ajastada metroo sõitmine peatusega
-muud efektid aka kella liikumine, uste avamine jne
+muud efektid aka kella liikumine, uste avamine jne- vist mitte teha
 upgrades?
 
 ---Menüü ---
