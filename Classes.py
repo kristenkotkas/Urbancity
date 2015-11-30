@@ -127,7 +127,7 @@ class Images:
 
     @staticmethod
     def load_image(file):
-        file = os.path.join(main_dir, 'data\\test', file)
+        file = os.path.join(main_dir, 'data', file)
         try:
             loaded_image = pygame.image.load(file)
         except:
@@ -398,12 +398,12 @@ class Riba:
         self.income_time += andmed.tick
         if self.income_time > 100:
             self.income_time = 0
-            if self.income_data[-1] <= self.money:  # viimane raha oli v2iksem/v2rdne
-                self.income_data.append(self.money)  # lisame uue raha
-                if len(self.income_data) > 8:  # kui listis on v'hemalt 8 elementi ehk hoiame kinni kui osteti maja
-                    self.income_space = self.income_data[-1] - self.income_data[0]  # arvutame uue spacei income
-            elif self.income_data[-1] > self.money:  # viimane raha oli suurem ehk osteti maja vms
-                self.income_data = [self.money]  # loome listi uuesti ainult praeguse rahaga
+            if self.income_data[-1] <= self.money:
+                self.income_data.append(self.money)
+                if len(self.income_data) > 8:
+                    self.income_space = self.income_data[-1] - self.income_data[0] - self.income
+            elif self.income_data[-1] > self.money:
+                self.income_data = [self.money]
             if len(self.income_data) >= 10:
                 self.income_data.pop(0)
 
