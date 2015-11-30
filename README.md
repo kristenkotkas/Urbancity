@@ -4,7 +4,7 @@ Project todo list
 kujundus korda
 nimed vaja välja mõelda
 X logod vaja välja mõelda
-funktsioonid vaja välja mõelda
+X funktsioonid vaja välja mõelda
 X sissetuleku algoritmid vaja välja mõelda
 
 ---Vasak sahtel---
