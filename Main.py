@@ -17,6 +17,6 @@ while game.running:
     update_all(game)
     pygame.display.flip()
 
-# game.filesystem_do(game, "save_state")
+game.filesystem_do(game, "save_state")
 pygame.time.wait(50)
 pygame.quit()

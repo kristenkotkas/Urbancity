@@ -49,7 +49,7 @@ class Game:
 
     def initialize_all(self, game):
         self.images = Images()
-        # self.filesystem_do(game, "load_state")
+        self.filesystem_do(game, "load_state")
         self.cloud = Cloud(game)
         self.bar = Bar(game)
         self.right_drawer = RightDrawer(game)
@@ -93,6 +93,7 @@ class Game:
         for button in range(len(self.right_buttons)):
             self.right_button_amounts[button] = self.right_buttons[button].amount
             self.right_button_prices[button] = self.right_buttons[button].price
+            self.right_button_peopletotal[button] = self.right_buttons[button].peopletotal
         self.houses_states = [[], [], [], [], []]
         for sizetype in self.houses:
             for house in sizetype:
