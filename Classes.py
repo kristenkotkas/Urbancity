@@ -10,6 +10,11 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 # teise kasutaja kommentaar
 # teise kasutaja kommentaar
 
+# kommentaar
+# kommentaar
+# kommentaar
+# kommentaar
+
 
 class Andmed:
     def __init__(self):
