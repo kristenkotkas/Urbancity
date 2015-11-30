@@ -21,6 +21,8 @@ def update_all(andmed):
         nupp.draw(andmed, nupp.mouse_hover_check(x, y))
     andmed.riba.update(andmed)
     for event in pygame.event.get():
+        if event.type == pygame.USEREVENT+1:
+            andmed.riba.space_calc(andmed)
         if event.type == pygame.QUIT:
             andmed.running = False
         elif event.type == pygame.KEYDOWN:
@@ -28,7 +30,7 @@ def update_all(andmed):
                 andmed.running = False
             elif event.key == pygame.K_SPACE:
                 andmed.riba.money += 100 + (andmed.riba.income + andmed.riba.people) / 15
-                # andmed.riba.income_data.append(100 + (andmed.riba.income + andmed.riba.people) / 15)
+                andmed.riba.space_data.append((100 + (andmed.riba.income + andmed.riba.people) / 15, andmed.riba.income_time))
                 a = randint(1, 800)
                 if a == 1:
                     print("space event, cash / 50")

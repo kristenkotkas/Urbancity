@@ -383,20 +383,41 @@ class Riba:
         self.people = andmed.riba_amounts[0]
         self.money = andmed.riba_amounts[1]
         self.income = andmed.riba_amounts[2]
+
         # esialgsed muutujad
         self.income_space = 0
         self.income_data = [(self.money, 1)]
         self.income_time = 0
         self.temp_multiplier = 0
         self.temo_time2 = 0
+
+        # uus katse
+        self.space_data = []
+        pygame.time.set_timer(pygame.USEREVENT+1, 200)  # kontroll iga 200ms tagant
+
         self.objxy = ((19.591, 254.095, 488.6), 7.413)
         self.objwh = (148, 21.621)
         self.objh = 21.621
 
     def update(self, andmed):
         self.add_income(andmed)
-        self.arvuta_space(andmed)
+        # self.arvuta_space(andmed)
+        self.income_time += andmed.tick
         self.draw(andmed)
+
+    def space_calc(self, andmed):
+        if len(self.space_data) > 0:  # et meil oleks v2hemalt 1 element listis
+            self.income_space = 0  # nullime v22rtuse
+            temp_list = []  # ajutine list
+            for i in range(len(self.space_data)):
+                if not self.income_time - self.space_data[i][1] > 1000:  # kui element on olnud listis v2hem kui 1sec
+                    temp_list.append(self.space_data[i])  # lisame ajutisse listi
+            self.space_data = temp_list  # asendame päris listi temp listiga, yle 1sec olnud elemendid ei eksisteeri enam
+            for value in self.space_data:  # liidame kokku k2ik elemendid listis
+                self.income_space += value[0]
+        else:  # polnud yhtegi, j2relikult spaceist saadud tulu on 0
+            self.income_space = 0
+        print("Tulu: " + str(self.income_space), "Aeg: " + str(self.income_time), self.space_data)
 
     def arvuta_space(self, andmed):
         self.income_time += andmed.tick  # liidame aja lugejale eelmise framei aja
@@ -412,9 +433,9 @@ class Riba:
                 self.income_data = [(self.money * self.temp_multiplier, self.temo_time2)]  # teeme uue listi uue rahaga, anname kaasa lugeja2 aja
 
             if self.income_data[-1][1] - self.income_data[0][1] > 1000:  # kui eelmise raha aeg - praeguse aja vahele jäi vähemalt 1sec
-                print(self.temo_time2, self.income_data)
+                print(self.temo_time2, self.income_data[0][1] % 1000, self.income_data)
                 # lahutame uuest vana raha ja majade fixed sissetuleku ja korrutame selle lugeja2-st tingitud multiplierist
-                self.income_space = (self.income_data[-1][0] - self.income_data[0][0] - self.income) * (self.income_data[0][1] / 1000)
+                self.income_space = (self.income_data[-1][0] - self.income_data[0][0] - self.income) * ((self.income_data[0][1] % 1000) / 1000)
                 self.income_data.pop(0)  # eemaldame esimese elemendi
 
             # if len(self.income_data) >= 10:
