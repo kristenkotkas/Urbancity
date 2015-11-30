@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 import pygame
 from Methods import update_all
-from Classes import Andmed
+from Classes import Game
 
 pygame.init()
-andmed = Andmed()
-andmed.init_all(andmed)
+game = Game()
+game.initialize_all(game)
 
 clock = pygame.time.Clock()
-update_all(andmed)
+update_all(game)
 pygame.display.flip()
 
-while andmed.running:
-    andmed.tick = clock.tick(andmed.fps_cap)
+while game.running:
+    game.tick = clock.tick(game.fps_cap)
     pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
-    update_all(andmed)
+    update_all(game)
     pygame.display.flip()
 
-# andmed.filesystem_do(andmed, "save_state")
+# game.filesystem_do(game, "save_state")
 pygame.time.wait(50)
 pygame.quit()

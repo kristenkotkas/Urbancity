@@ -34,3 +34,6 @@ eraldi aken?, peaasi et mängu taga samalajal ei joonistataks
 ---Optimizing---
 uuendada ainult osi mis on muutunud
 opengl?
+
+---Klaviatuur---
+upgrade, et mitut klahvi vajutades saab veel rohkem pappi
