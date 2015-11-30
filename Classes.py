@@ -370,6 +370,7 @@ class ParemNupp:
 
 
 class Riba:
+    # """ :type income_data list"""
     def __init__(self, andmed):
         self.surface = andmed.screen
         self.image = andmed.pildid.riba
@@ -382,9 +383,12 @@ class Riba:
         self.people = andmed.riba_amounts[0]
         self.money = andmed.riba_amounts[1]
         self.income = andmed.riba_amounts[2]
+        # esialgsed muutujad
         self.income_space = 0
-        self.income_data = [self.money]
+        self.income_data = [(self.money, 1)]
         self.income_time = 0
+        self.temp_multiplier = 0
+        self.temo_time2 = 0
         self.objxy = ((19.591, 254.095, 488.6), 7.413)
         self.objwh = (148, 21.621)
         self.objh = 21.621
@@ -395,17 +399,28 @@ class Riba:
         self.draw(andmed)
 
     def arvuta_space(self, andmed):
-        self.income_time += andmed.tick
-        if self.income_time > 100:
-            self.income_time = 0
-            if self.income_data[-1] <= self.money:
-                self.income_data.append(self.money)
-                if len(self.income_data) > 8:
-                    self.income_space = self.income_data[-1] - self.income_data[0] - self.income
-            elif self.income_data[-1] > self.money:
-                self.income_data = [self.money]
-            if len(self.income_data) >= 10:
-                self.income_data.pop(0)
+        self.income_time += andmed.tick  # liidame aja lugejale eelmise framei aja
+        if self.income_time > 100:  # kui 100ms on täis
+            self.temo_time2 += self.income_time  # liidame lugeja väärtuse lugeja2-le
+            self.temp_multiplier = (self.income_time / 100)  # kui palju on vaja spacei sissetulekut korrutada et see vastaks 100ms-le
+
+            if self.income_data[-1][0] <= self.money * self.temp_multiplier:  # kui eelmine raha oli väiksem kui praegune raha * ajast tingitud multiplier
+                self.income_data.append((self.money * self.temp_multiplier, self.temo_time2))  # lisame uue rahasumma listi, paneme kaasa lugeja2 aja
+                # if len(self.income_data) > 7:
+                # self.income_space = self.income_data[-1][0] - self.income_data[0][0] - self.income
+            elif self.income_data[-1][0] > self.money * self.temp_multiplier:  # kui uus raha (korda multiplier) oli suurem kui vana raha
+                self.income_data = [(self.money * self.temp_multiplier, self.temo_time2)]  # teeme uue listi uue rahaga, anname kaasa lugeja2 aja
+
+            if self.income_data[-1][1] - self.income_data[0][1] > 1000:  # kui eelmise raha aeg - praeguse aja vahele jäi vähemalt 1sec
+                print(self.temo_time2, self.income_data)
+                # lahutame uuest vana raha ja majade fixed sissetuleku ja korrutame selle lugeja2-st tingitud multiplierist
+                self.income_space = (self.income_data[-1][0] - self.income_data[0][0] - self.income) * (self.income_data[0][1] / 1000)
+                self.income_data.pop(0)  # eemaldame esimese elemendi
+
+            # if len(self.income_data) >= 10:
+            #     self.income_data.pop(0)
+
+            self.income_time = 0  # nullime aja lugeja
 
     @staticmethod
     def sissetulek(andmed, sizetype, people, tax, special):
@@ -418,10 +433,12 @@ class Riba:
 
     def add_income(self, andmed):
         self.time_from_beginning += andmed.tick
-        if self.time_from_beginning < 10:  # 1-9 fps
+        if self.time_from_beginning < 10:  # less than 10ms per frame
             andmed.riba.money += andmed.riba.income / 1000 * self.time_from_beginning / 1
-        elif self.time_from_beginning < 100:  # 10-99 fps
+        elif self.time_from_beginning < 100:  # less than 100ms per frame
             andmed.riba.money += andmed.riba.income / 100 * self.time_from_beginning / 10
+        elif self.time_from_beginning < 1000:  # less than 1000ms per frame
+            andmed.riba.money += andmed.riba.income / 10 * self.time_from_beginning / 100
         self.time_from_beginning = 0
 
     def draw(self, andmed):
