@@ -9,10 +9,11 @@ def update_all(game):
     x, y = pygame.mouse.get_pos()
     game.metro.draw()
     game.screen.blit(game.images.current_background, (0, 0))
-    game.cloud.draw()
     for sizetype in reversed(game.houses):
         for house in sizetype:
             house.draw(game)
+        if sizetype[0].sizetype == 4:
+            game.cloud.draw()
     pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
     pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.right_drawer.mouse_hover_check(game, x, y)
