@@ -3,7 +3,7 @@ import os.path
 from random import randint
 from Classes import House
 main_dir = os.path.split(os.path.abspath(__file__))[0]
-
+# testing
 
 def update_all(game):
     x, y = pygame.mouse.get_pos()
