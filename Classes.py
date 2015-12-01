@@ -211,6 +211,7 @@ class Cloud:
         self.y = 60
         self.minx = -self.w
         self.maxx = game.resolution[0]
+        self.drawable = True
 
     def draw(self):
         if self.x < self.maxx:
