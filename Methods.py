@@ -3,12 +3,25 @@ import os.path
 from random import randint
 from Classes import House
 main_dir = os.path.split(os.path.abspath(__file__))[0]
-# testing
+
+
+def update_modified(game):
+    x, y = pygame.mouse.get_pos()
+
+
+
+
+
+
+
+    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
+    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+
 
 def update_all(game):
     x, y = pygame.mouse.get_pos()
     game.cloud.drawable = True
-    game.metro.draw()
+    game.metro.draw(game)
     game.screen.blit(game.images.current_background, (0, 0))
     for sizetype in reversed(game.houses):
         for house in sizetype:

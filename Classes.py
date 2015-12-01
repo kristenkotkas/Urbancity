@@ -3,6 +3,7 @@ import Methods
 import os.path
 import shelve
 from random import randint
+
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -12,6 +13,7 @@ class Game:
         self.resolution = (1280, 720)
         self.screen = pygame.display.set_mode(self.resolution)
         # self.screen = pygame.Surface(self.resolution)
+        self.updatelist = []
         self.running = True
         self.tick = 0
         self.left_buttons = []
@@ -150,24 +152,38 @@ class Metro:
         self.trainy = self.metroy + 50
         self.trainw = self.image_train.get_rect().w
         self.trainh = self.image_train.get_rect().h
-        self.trainminx = 0
-        self.trainmaxx = game.resolution[0] * 2
+        self.trainrect = pygame.Rect(self.metrox, self.metroy + 50, self.trainw, self.trainh)
+        # self.xcounter = self.metrox
+        self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
         game.images.current_background = game.images.backgrounds[1]
+        self.counter = 0
+        self.draw_metro_background()
 
-    def draw(self):
-        self.draw_image()
-        self.draw_moving_metro()
+    def draw_metro_background(self):
+        self.surface.blit(self.image_metro, self.metrorect)
 
-    def draw_image(self):
-        self.surface.blit(self.image_metro, (self.metrox, self.metroy))
-
-    def draw_moving_metro(self):
-        if self.trainx < self.trainmaxx:
-            self.trainx += 5
+    def draw_moving_metro(self, game):
+        # kui rongi parem pool pole metro paremast poolest möödunud
+        if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
+            # kui rong pole välja joonistatud
+            if self.arearect.x > 0:
+                self.arearect.x -= 2  # joonistab rongi
+            else:
+                self.trainrect.x += 2  # liigutab tervet rongi edasi
+        # kui rong on välja joonistatud
+        elif self.arearect.x > -self.trainw:
+            self.arearect.x -= 2  # kustutab rongi
+        # kui rongi pole enam
         else:
-            self.trainx = 0
-        if self.trainx + self.trainw > self.metrox and self.trainx < self.metrox + self.metrow:
-            self.surface.blit(self.image_train, (self.trainx, self.trainy))
+            self.counter += 1
+            print(self.counter)
+            if self.counter > 300:
+                self.trainrect.x = self.metrox
+                self.arearect.x = self.trainw
+                self.arearect.w = self.trainw
+                self.counter = 0
+        game.updatelist.append(self.surface.blit(self.image_metro, self.metrorect))
+        game.updatelist.append(self.surface.blit(self.image_train, self.trainrect, self.arearect))
 
 
 class House:
@@ -385,7 +401,7 @@ class Bar:
         self.income_manual = 0
         self.income_manual_time = 0
         self.income_manual_data = []
-        pygame.time.set_timer(pygame.USEREVENT+1, 100)
+        pygame.time.set_timer(pygame.USEREVENT + 1, 100)
         self.objxy = ((19.591, 254.095, 488.6), 7.413)
         self.objwh = (148, 21.621)
         self.objh = 21.621
