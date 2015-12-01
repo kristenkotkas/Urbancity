@@ -34,7 +34,7 @@ class Game:
                              ([5, [90, 96, 0]], [340, 335, 0], 30, 3, 18000, 40),
                              ([-30, [103, 96, 0]], [255, 255, 0], 80, 8, 80000, 160),
                              ([-10, [130, 0, 0]], [115, 0, 0], 180, 18, 972000, 540),  # todo paika timmida kõik
-                             ([80, [100, 100, 100]], [170, 170, 170], 450, 45, 5062500, 1200)]  # todo 5 muuta
+                             ([5, [180, 0, 0]], [15, 0, 0], 450, 45, 5062500, 1200)]  # todo 5 muuta
         self.bar_amounts = [0, 100, 0]
         self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
@@ -122,7 +122,7 @@ class Images:
             [Images.load_image("Maja_21.png"), Images.load_image("Maja_22.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_31.png"), Images.load_image("Maja_32.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_41.png"), Images.load_image("kell.png"), Images.load_image("kell.png")],
-            [Images.load_image("kell.png"), Images.load_image("kell.png"), Images.load_image("kell.png")]]
+            [Images.load_image("Maja_51.png"), Images.load_image("kell.png"), Images.load_image("kell.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png"),
                       Images.load_image("Metro_overlay.png")]
 
@@ -180,12 +180,10 @@ class House:
             game.bar.calculate_houses_income(game, self.sizetype, game.houses_types[self.sizetype][2], 0, 0)
             game.bar.people += self.people
             # ajutine randtype määramine
-            if self.sizetype == 3:  # 4 tüüpi on 2 puudu
+            if self.sizetype == 3 or self.sizetype == 4:  # 4,5 tüüpi on 2 puudu
                 self.randtype = 0
             elif self.sizetype == 2 or self.sizetype == 1:  # 2 ja 3 tüüpi maju on 1 puudu
                 self.randtype = randint(0, 1)
-            elif self.sizetype == 4:  # 5 tüüpi maju pole, asenduseks kell.png
-                self.randtype = 0
         else:
             self.randtype = randtype
         self.surface = game.screen
