@@ -87,8 +87,8 @@ class Game:
             d = shelve.open(file)
             keylist = d.keys()
             if len(keylist) != 0:
-                for a in keylist:
-                    print("key: " + a + ", data: " + str(d[a]))
+                # for a in keylist:
+                #    print("key: " + a + ", data: " + str(d[a]))
                 self.difficulty = d["difficulty"]
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
@@ -221,8 +221,6 @@ class House:
                 if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
                     self.last_randtype = game.houses[sizetype][-1].randtype
                     self.last2_randtype = game.houses[sizetype][-2].randtype
-                    print(self.last_randtype)
-                    print(self.last2_randtype)
                     if self.randtype == self.last_randtype and self.randtype == self.last2_randtype:
                         if self.randtype == 0:
                             self.randtype = 1
