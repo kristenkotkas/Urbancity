@@ -10,9 +10,11 @@ class Game:
     def __init__(self):
         self.fps_cap = 60
         self.resolution = (1280, 720)
-        self.screen = pygame.display.set_mode(self.resolution)
-        # self.screen = pygame.Surface(self.resolution)
+        self.screen_final = pygame.display.set_mode(self.resolution)
+        # noinspection PyArgumentList
+        self.screen = pygame.Surface(self.resolution)
         self.running = True
+        self.menu_running = True
         self.tick = 0
         self.left_buttons = []
         self.right_buttons = []
@@ -22,13 +24,6 @@ class Game:
         """ houses_types struktuur [([a, [b, c, d]], [e, f, g], h, i, j, k), (sama), (sama), (sama), (sama)]
         sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y], people, per people modifier, start price,
                                                                                                             minpeople)
-        a = xbase ehk x kaugus vasakust ekraani servast
-        b,c,d = (erinevad random tüübid) = randtype[x laius/+vahe] ehk maja laius + vahe järgmise majaga
-        e,f,g = (erinevad random tüübid) = randtype[y] ehk maja ülemine serv (pilt kuvatakse xy alla paremale)
-        h = people ehk maja elanike arv
-        i = per people modifier ehk palju raha saab ühe elaniku kohta selles tüübis
-        j = start price ehk selle maja tüübi alghind
-        k = minpeople ehk vajalik rahvaarv, et seda maja tüübi nuppu kuvataks
         """
         self.houses_types = [([-15, [190, 125, 240]], [432, 347, 427], 10, 1, 1500, 0),
                              ([5, [90, 96, 0]], [340, 335, 0], 30, 3, 18000, 40),
@@ -46,6 +41,7 @@ class Game:
         self.right_drawer = None
         self.left_drawer = None
         self.metro = None
+        self.menu = None
 
     def initialize_all(self, game):
         self.images = Images()
@@ -55,6 +51,7 @@ class Game:
         self.right_drawer = RightDrawer(game)
         # self.left_drawer = LeftDrawer(game)
         self.metro = Metro(game)
+        self.menu = Menu(game)
         for sizetype in range(5):
             self.right_buttons.append(RightButton(game, sizetype))
             # self.left_buttons.append(LeftButton(game, sizetype))
@@ -125,6 +122,7 @@ class Images:
             [Images.load_image("Maja_51.png"), Images.load_image("kell.png"), Images.load_image("kell.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png"),
                       Images.load_image("Metro_overlay.png")]
+        self.menu = [Images.load_image("kell.png"), Images.load_image("kell.png")]
 
     @staticmethod
     def load_image(file):
@@ -367,6 +365,40 @@ class RightButton:
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if self.rect.collidepoint(x, y):
             return True
+
+
+class Menu:
+    def __init__(self, game):
+        self.button_amount = 5
+        self.x = [450, 650, 480, 595, 710]
+        self.y = [200, 200, 300, 300, 300]
+        self.w = [170, 170, 80, 80, 80]
+        self.h = [80, 80, 50, 50, 50]
+        self.rects = []
+        self.buttons = []
+        for i in range(self.button_amount):
+            self.rects.append(pygame.Rect(self.x[i], self.y[i], self.w[i], self.h[i]))
+            self.buttons.append(MenuButton(game, self.rects[i]))
+
+
+class MenuButton:
+    def __init__(self, game, rect):
+        self.surface = game.screen
+        self.rect = rect
+
+    def draw(self, is_highlighted):
+        if is_highlighted:
+            self.surface.fill((255, 204, 0), self.rect)
+        else:
+            self.surface.fill((255, 153, 0), self.rect)
+
+    def mouse_hover_check(self, x, y):
+        if self.rect.collidepoint(x, y):
+            return True
+
+    def mouse_click_check(self, game, x, y):
+        if self.rect.collidepoint(x, y):
+            game.menu_running = False
 
 
 class Bar:

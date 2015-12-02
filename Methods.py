@@ -5,6 +5,40 @@ from Classes import House
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
+def update_menu(game):
+    x, y = pygame.mouse.get_pos()
+    game.cloud.drawable = True
+    game.metro.draw()
+    game.screen.blit(game.images.current_background, (0, 0))
+    for sizetype in reversed(game.houses):
+        for house in sizetype:
+            house.draw(game)
+        if game.cloud.drawable:
+            if len(sizetype) != 0:
+                if sizetype[0].sizetype == 4:
+                    game.cloud.draw()
+                    game.cloud.drawable = False
+            else:
+                game.cloud.draw()
+                game.cloud.drawable = False
+    blursurface(game, 3.0)
+    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
+    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+    for button in game.menu.buttons:
+        button.draw(button.mouse_hover_check(x, y))
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game.running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                game.running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            print((x, y))
+            for button in game.menu.buttons:
+                button.mouse_click_check(game, x, y)
+    game.screen_final.blit(game.screen, (0, 0))
+
+
 def update_all(game):
     x, y = pygame.mouse.get_pos()
     game.cloud.drawable = True
@@ -55,16 +89,16 @@ def update_all(game):
             print((x, y))
             for button in game.right_buttons + game.left_buttons:
                 button.mouse_click_check(game, x, y)
-    # blursurface(andmed, 3.0)
+    game.screen_final.blit(game.screen, (0, 0))
 
 
-def blursurface(game, amount):
+def blursurface(game, amount):  # amount > 1.0
     scale = 1.0 / float(amount)
     screen_size = game.screen.get_size()
     scale_size = (int(screen_size[0] * scale), int(screen_size[1] * scale))
     screen = pygame.transform.smoothscale(game.screen, scale_size)
     screen = pygame.transform.smoothscale(screen, screen_size)
-    game.surface.blit(screen, (0, 0))
+    game.screen.blit(screen, (0, 0))
 
 
 def create_house(game, sizetype, randtype):
