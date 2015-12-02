@@ -28,8 +28,8 @@ class Game:
         self.houses_types = [([-15, [190, 125, 240]], [432, 347, 427], 10, 1, 0),
                              ([5, [90, 96, 0]], [340, 335, 0], 30, 3, 40),
                              ([-30, [103, 96, 0]], [255, 255, 0], 80, 8, 160),
-                             ([-10, [130, 0, 0]], [115, 0, 0], 180, 18, 540),  # todo paika timmida kõik
-                             ([-40, [180, 0, 0]], [73, 0, 0], 450, 45, 1200)]  # todo 5 muuta
+                             ([-10, [130, 0, 0]], [115, 0, 0], 180, 18, 540),
+                             ([-40, [170, 0, 0]], [73, 0, 0], 450, 45, 1200)]
         self.bar_amounts = [0, 100, 0]
         self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
@@ -104,8 +104,7 @@ class Game:
 
 class Images:
     def __init__(self):
-        self.backgrounds = [Images.load_image("Background.png"), Images.load_image("Background_metro.png")]
-        self.current_background = self.backgrounds[0]
+        self.background = Images.load_image("Background.png")
         self.right_button = [Images.load_image("Button_available.png"), Images.load_image("Button_available_hover.png"),
                              Images.load_image("Button_unavailable.png")]
         self.right_button_logos = [Images.load_image("Maja_1_logo.png"), Images.load_image("Maja_2_logo.png"),
@@ -134,7 +133,7 @@ class Images:
             raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
         return loaded_image.convert_alpha()
 
-
+"""
 class Metro:
     def __init__(self, game):
         self.surface = game.screen
@@ -167,6 +166,55 @@ class Metro:
             self.trainx = 0
         if self.trainx + self.trainw > self.metrox and self.trainx < self.metrox + self.metrow:
             self.surface.blit(self.image_train, (self.trainx, self.trainy))
+"""
+
+
+class Metro:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image_metro = game.images.metro[0]
+        self.image_train = game.images.metro[1]
+        self.metrox = 413
+        self.metroy = 576
+        self.metrow = self.image_metro.get_rect().w
+        self.metroh = self.image_metro.get_rect().h
+        self.metrorect = pygame.Rect(self.metrox, self.metroy, self.metrow, self.metroh)
+        self.trainx = self.metrox
+        self.trainy = self.metroy + 50
+        self.trainw = self.image_train.get_rect().w
+        self.trainh = self.image_train.get_rect().h
+        self.trainrect = pygame.Rect(self.metrox, self.metroy + 50, self.trainw, self.trainh)
+        self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
+        self.counter = 0
+        self.speed = 4
+
+    def draw(self):
+        self.draw_metro_background()
+        self.draw_moving_metro()
+
+    def draw_metro_background(self):
+        self.surface.blit(self.image_metro, self.metrorect)
+
+    def draw_moving_metro(self):
+        # kui rongi parem pool pole metro paremast poolest möödunud
+        if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
+            # kui rong pole välja joonistatud
+            if self.arearect.x > 0:
+                self.arearect.x -= self.speed  # joonistab rongi
+            else:
+                self.trainrect.x += self.speed  # liigutab tervet rongi edasi
+        # kui rong on välja joonistatud
+        elif self.arearect.x > -self.trainw:
+            self.arearect.x -= self.speed  # kustutab rongi
+        # kui rongi pole enam
+        else:
+            self.counter += 1
+            if self.counter > 300:
+                self.trainrect.x = self.metrox
+                self.arearect.x = self.trainw
+                self.arearect.w = self.trainw
+                self.counter = 0
+        self.surface.blit(self.image_train, self.trainrect, self.arearect)
 
 
 class House:
@@ -382,11 +430,11 @@ class Menu:
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
         for i in range(self.button_amount):
-            self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], i, self.names[i]))
+            self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], self.names[i]))
 
 
 class MenuButton:
-    def __init__(self, game, xy, sizetype, stype, name):
+    def __init__(self, game, xy, sizetype, name):
         self.surface = game.screen
         self.sizetype = sizetype
         self.drawdata = []
@@ -394,19 +442,20 @@ class MenuButton:
             self.drawdata.append((0, 0, 0))
         else:
             self.drawdata.append((255, 255, 255))
-        self.drawdata.append(26)
-        self.specialtype = stype
+        self.drawdata.append(30)
         self.name = name
         self.image = game.images.menu[self.sizetype]
         self.image_highlighted = game.images.menu[self.sizetype + 1]
-        self.rect = pygame.Rect(xy[0], xy[1], self.image.get_rect().w, self.image.get_rect().h)
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.rect = pygame.Rect(xy[0], xy[1], self.w, self.h)
 
     def draw(self, game, is_highlighted):
         if is_highlighted:
             self.surface.blit(self.image_highlighted, self.rect)
         else:
             self.surface.blit(self.image, self.rect)
-        Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y), 0, (47.25, 47.603), self.drawdata)
+        Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y), 0, (self.w, self.h), self.drawdata)
 
     def mouse_hover_check(self, x, y):
         if self.rect.collidepoint(x, y):

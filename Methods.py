@@ -7,9 +7,9 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 def update_menu(game):
     x, y = pygame.mouse.get_pos()
-    game.cloud.drawable = True
+    game.screen.blit(game.images.background, (0, 0))
     game.metro.draw()
-    game.screen.blit(game.images.current_background, (0, 0))
+    game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
             house.draw(game)
@@ -41,9 +41,9 @@ def update_menu(game):
 
 def update_all(game):
     x, y = pygame.mouse.get_pos()
-    game.cloud.drawable = True
+    game.screen.blit(game.images.background, (0, 0))
     game.metro.draw()
-    game.screen.blit(game.images.current_background, (0, 0))
+    game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
             house.draw(game)
