@@ -28,8 +28,9 @@ class Game:
         self.houses_types = [([-15, [190, 125, 240]], [432, 347, 427]), ([5, [90, 96, 0]], [340, 335, 0]),
                              ([-30, [103, 96, 0]], [255, 255, 0]), ([-10, [130, 0, 0]], [115, 0, 0]),
                              ([-40, [170, 0, 0]], [73, 0, 0])]
-        self.right_button_prices = [1500, 18000, 80000, 972000, 5062500]
         self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
+        self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
+        self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
         self.bar_amounts = [0, 0, 0]
@@ -44,8 +45,7 @@ class Game:
     def initialize_all(self, game):
         self.images = Images()
         self.filesystem_do(game, "load_state")
-        print(self.difficulty, self.houses_properties, self.right_button_prices)
-        print(self.bar_amounts, self.right_button_peopletotal, self.right_button_amounts)
+        self.set_difficulty(self.difficulty)
         self.cloud = Cloud(game)
         self.bar = Bar(game)
         self.right_drawer = RightDrawer(game)
@@ -73,13 +73,13 @@ class Game:
     def set_difficulty(self, difficulty):
         if difficulty == 0:  # easy
             self.houses_properties = [(20, 2, 0), (90, 4, 40), (256, 10, 256), (720, 18, 1080), (1350, 60, 1800)]
-            self.right_button_prices = [750, 9000, 40000, 486000, 2531250]
+            self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
             self.houses_properties = [(10, 1, 0), (45, 2, 60), (128, 5, 256), (360, 9, 1080), (675, 30, 1800)]
-            self.right_button_prices = [1500, 18000, 80000, 972000, 5062500]
+            self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
         elif difficulty == 2:  # insane
             self.houses_properties = [(5, 1, 0), (22, 2, 20), (64, 3, 70), (180, 5, 300), (330, 15, 460)]
-            self.right_button_prices = [3000, 36000, 160000, 1944000, 10125000]
+            self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
 
     def filesystem_do(self, game, action):
         file = os.path.join(main_dir, 'data', "save_game")
@@ -90,7 +90,6 @@ class Game:
                 for a in keylist:
                     print("key: " + a + ", data: " + str(d[a]))
                 self.difficulty = d["difficulty"]
-                self.set_difficulty(self.difficulty)
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
                 self.right_button_prices = d["right_button_prices"]
@@ -400,9 +399,7 @@ class RightButton:
                     game.bar.money -= self.price
                     self.amount += 1
                     self.peopletotal += self.people
-                    print(game.right_button_prices[self.sizetype], game.house_multiplier, self.amount)
-                    print(self.sizetype)
-                    self.price = game.right_button_prices[self.sizetype] * game.house_multiplier ** self.amount
+                    self.price = game.right_button_prices_fixed[self.sizetype] * game.house_multiplier ** self.amount
                     Methods.create_house(game, self.sizetype, None)
 
     def mouse_hover_check(self, x, y):
