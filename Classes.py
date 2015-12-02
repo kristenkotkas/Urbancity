@@ -218,6 +218,16 @@ class House:
                 self.randtype = 0
             elif self.sizetype == 2 or self.sizetype == 1:  # 2 ja 3 tüüpi maju on 1 puudu
                 self.randtype = randint(0, 1)
+                if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
+                    self.last_randtype = game.houses[sizetype][-1].randtype
+                    self.last2_randtype = game.houses[sizetype][-2].randtype
+                    print(self.last_randtype)
+                    print(self.last2_randtype)
+                    if self.randtype == self.last_randtype and self.randtype == self.last2_randtype:
+                        if self.randtype == 0:
+                            self.randtype = 1
+                        else:
+                            self.randtype = 0
         else:
             self.randtype = randtype
         self.surface = game.screen

@@ -33,7 +33,7 @@ def update_menu(game):
             if event.key == pygame.K_ESCAPE:
                 game.running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            print((x, y))
+            # print((x, y))
             for button in game.menu.buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))
@@ -86,7 +86,7 @@ def update_all(game):
             elif event.key == pygame.K_l:  # cheating
                 game.bar.money = 0
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            print((x, y))
+            # print((x, y))
             for button in game.right_buttons + game.left_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))
@@ -115,7 +115,7 @@ def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, dra
         return
     if isinstance(obj, str) or isinstance(obj, int):
         if isinstance(obj, int):
-                obj = str(format(obj, ",d"))
+            obj = str(format(obj, ",d"))
         txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
         final_obj = txt_font.render(obj, True, drawdata[0])
         final_obj_size = txt_font.size(obj)
