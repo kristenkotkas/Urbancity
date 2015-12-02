@@ -27,9 +27,8 @@ upgrades?
 
 ---Menüü ---
 achievements
-start nupp
-seaded? - raskusaste?
-eraldi aken?, peaasi et mängu taga samalajal ei joonistataks
+V start nupp
+X seaded? - raskusaste?
 
 ---Optimizing---
 uuendada ainult osi mis on muutunud
