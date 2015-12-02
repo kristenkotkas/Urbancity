@@ -21,9 +21,9 @@ def update_menu(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
-    blursurface(game, 2.0)
-    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
-    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+    blursurface(game, 2.2)
+    # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
+    # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     for button in game.menu.buttons:
         button.draw(game, button.mouse_hover_check(x, y))
     for event in pygame.event.get():
@@ -55,8 +55,8 @@ def update_all(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
-    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
-    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+    # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
+    # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.right_drawer.mouse_hover_check(game, x, y)
     # andmed.left_drawer.mouse_hover_check(game, x, y)
     for button in game.right_buttons + game.left_buttons:

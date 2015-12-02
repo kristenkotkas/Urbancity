@@ -15,26 +15,24 @@ class Game:
         self.screen = pygame.Surface(self.resolution)
         self.running = True
         self.menu_running = True
-        self.new_game = False
+        self.difficulty = 1
         self.tick = 0
+        self.house_multiplier = 1.15
         self.left_buttons = []
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
-        self.house_multiplier = 1.15
-        """ houses_types struktuur [([a, [b, c, d]], [e, f, g], h, i, j, k), (sama), (sama), (sama)]
-        sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y], people, per people modifier, minpeople)
-        """
-        self.houses_types = [([-15, [190, 125, 240]], [432, 347, 427], 10, 1, 0),
-                             ([5, [90, 96, 0]], [340, 335, 0], 30, 3, 40),
-                             ([-30, [103, 96, 0]], [255, 255, 0], 80, 8, 160),
-                             ([-10, [130, 0, 0]], [115, 0, 0], 180, 18, 540),
-                             ([-40, [170, 0, 0]], [73, 0, 0], 450, 45, 1200)]
-        self.bar_amounts = [0, 100, 0]
+        """ houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y])
+            houses_properties = sizetype(people, per people modifier, minpeople) """
+        self.houses_properties = [(10, 1, 0), (45, 2, 60), (128, 5, 256), (360, 9, 1080), (675, 30, 1800)]
+        self.houses_types = [([-15, [190, 125, 240]], [432, 347, 427]), ([5, [90, 96, 0]], [340, 335, 0]),
+                             ([-30, [103, 96, 0]], [255, 255, 0]), ([-10, [130, 0, 0]], [115, 0, 0]),
+                             ([-40, [170, 0, 0]], [73, 0, 0])]
+        self.right_button_prices = [1500, 18000, 80000, 972000, 5062500]
         self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
-        self.right_button_prices = [1500, 18000, 80000, 972000, 5062500]
+        self.bar_amounts = [0, 0, 0]
         self.images = None
         self.cloud = None
         self.bar = None
@@ -56,6 +54,31 @@ class Game:
             self.right_buttons.append(RightButton(game, sizetype))
             # self.left_buttons.append(LeftButton(game, sizetype))
 
+    def reinitialize(self, game):
+        self.set_difficulty(self.difficulty)
+        self.right_buttons = []
+        # self.left_buttons = []
+        self.houses = [[], [], [], [], []]
+        self.houses_states = [[], [], [], [], []]
+        self.right_button_peopletotal = [0, 0, 0, 0, 0]
+        self.right_button_amounts = [0, 0, 0, 0, 0]
+        self.bar_amounts = [0, 0, 0]
+        self.bar = Bar(game)
+        for sizetype in range(5):
+            self.right_buttons.append(RightButton(game, sizetype))
+            # self.left_buttons.append(LeftButton(game, sizetype))
+
+    def set_difficulty(self, difficulty):
+        if difficulty == 0:  # easy
+            self.houses_properties = [(20, 2, 0), (90, 4, 40), (256, 10, 256), (720, 18, 1080), (1350, 60, 1800)]
+            self.right_button_prices = [750, 9000, 40000, 486000, 2531250]
+        elif difficulty == 1:  # normal
+            self.houses_properties = [(10, 1, 0), (45, 2, 60), (128, 5, 256), (360, 9, 1080), (675, 30, 1800)]
+            self.right_button_prices = [1500, 18000, 80000, 972000, 5062500]
+        elif difficulty == 2:  # insane
+            self.houses_properties = [(5, 1, 0), (22, 2, 20), (64, 3, 70), (180, 5, 300), (330, 15, 460)]
+            self.right_button_prices = [3000, 36000, 160000, 1944000, 10125000]
+
     def filesystem_do(self, game, action):
         file = os.path.join(main_dir, 'data', "save_game")
         if action == "load_state":
@@ -69,6 +92,7 @@ class Game:
                 self.right_button_prices = d["right_button_prices"]
                 self.right_button_peopletotal = d["right_button_peopletotal"]
                 self.bar_amounts = [d["people"], d["money"], d["income"]]
+                self.difficulty = d["difficulty"]
             d.close()
             self.set_loaded_states(game)
         elif action == "save_state":
@@ -81,6 +105,7 @@ class Game:
             d["people"] = self.bar.people
             d["money"] = self.bar.money
             d["income"] = self.bar.income
+            d["difficulty"] = self.difficulty
             d.close()
 
     def get_current_states(self):
@@ -97,9 +122,6 @@ class Game:
         for sizetype in self.houses_states:
             for house in sizetype:
                 Methods.create_house(game, house[0], house[1])
-        if self.bar_amounts[0] == 0 and self.bar_amounts[1] == 100:
-            print("hei new game")
-            self.new_game = True
 
 
 class Images:
@@ -132,41 +154,6 @@ class Images:
         except:
             raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
         return loaded_image.convert_alpha()
-
-"""
-class Metro:
-    def __init__(self, game):
-        self.surface = game.screen
-        self.image_metro = game.images.metro[0]
-        self.image_train = game.images.metro[1]
-        self.metrox = 413
-        self.metroy = 576
-        self.metrow = self.image_metro.get_rect().w
-        self.metroh = self.image_metro.get_rect().h
-        self.metrorect = pygame.Rect(self.metrox, self.metroy, self.metrow, self.metroh)
-        self.trainx = self.metrox
-        self.trainy = self.metroy + 50
-        self.trainw = self.image_train.get_rect().w
-        self.trainh = self.image_train.get_rect().h
-        self.trainminx = 0
-        self.trainmaxx = game.resolution[0] * 2
-        game.images.current_background = game.images.backgrounds[1]
-
-    def draw(self):
-        self.draw_image()
-        self.draw_moving_metro()
-
-    def draw_image(self):
-        self.surface.blit(self.image_metro, (self.metrox, self.metroy))
-
-    def draw_moving_metro(self):
-        if self.trainx < self.trainmaxx:
-            self.trainx += 5
-        else:
-            self.trainx = 0
-        if self.trainx + self.trainw > self.metrox and self.trainx < self.metrox + self.metrow:
-            self.surface.blit(self.image_train, (self.trainx, self.trainy))
-"""
 
 
 class Metro:
@@ -206,7 +193,6 @@ class Metro:
         # kui rong on välja joonistatud
         elif self.arearect.x > -self.trainw:
             self.arearect.x -= self.speed  # kustutab rongi
-        # kui rongi pole enam
         else:
             self.counter += 1
             if self.counter > 300:
@@ -222,9 +208,8 @@ class House:
         self.sizetype = sizetype
         if randtype is None:
             self.randtype = randint(0, 2)
-            # kui esimene maja luuakse siis võetakse siit info
-            self.people = game.houses_types[self.sizetype][2]
-            game.bar.calculate_houses_income(game, self.sizetype, game.houses_types[self.sizetype][2], 0, 0)
+            self.people = game.houses_properties[self.sizetype][0]
+            game.bar.calculate_houses_income(game, self.sizetype, game.houses_properties[self.sizetype][0], 0, 0)
             game.bar.people += self.people
             # ajutine randtype määramine
             if self.sizetype == 3 or self.sizetype == 4:  # 4,5 tüüpi on 2 puudu
@@ -381,7 +366,7 @@ class RightButton:
         self.amount = game.right_button_amounts[self.sizetype]
         self.peopletotal = game.right_button_peopletotal[self.sizetype]
         self.price = game.right_button_prices[self.sizetype]
-        self.people = game.houses_types[self.sizetype][2]
+        self.people = game.houses_properties[self.sizetype][0]
 
     def draw(self, game, is_highlighted):
         if not self.hidden:
@@ -401,7 +386,7 @@ class RightButton:
             Methods.draw_obj_middle(game, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256),
                                     self.drawdata)
         else:
-            if game.bar.people >= game.houses_types[self.sizetype][4]:
+            if game.bar.people >= game.houses_properties[self.sizetype][2]:
                 self.hidden = False
 
     def mouse_click_check(self, game, x, y):
@@ -425,24 +410,26 @@ class Menu:
     def __init__(self, game):
         self.button_amount = 5
         self.names = ["new game", "continue", "easy", "normal", "insane"]
+        self.actions = []
         self.x = [390, 660, 393, 563, 733]
         self.y = [200, 200, 300, 300, 300]
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
         for i in range(self.button_amount):
-            self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], self.names[i]))
+            self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], i, self.names[i]))
 
 
 class MenuButton:
-    def __init__(self, game, xy, sizetype, name):
+    def __init__(self, game, xy, sizetype, stype, name):
         self.surface = game.screen
         self.sizetype = sizetype
+        self.stype = stype
         self.drawdata = []
         if self.sizetype == 0:
             self.drawdata.append((0, 0, 0))
         else:
             self.drawdata.append((255, 255, 255))
-        self.drawdata.append(30)
+        self.drawdata.append(26)
         self.name = name
         self.image = game.images.menu[self.sizetype]
         self.image_highlighted = game.images.menu[self.sizetype + 1]
@@ -463,7 +450,17 @@ class MenuButton:
 
     def mouse_click_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
-            game.menu_running = False
+            if self.stype == 0:
+                game.reinitialize(game)
+                game.menu_running = False
+            elif self.stype == 1:
+                if game.bar_amounts[0] == 0 and game.bar_amounts[0] == 0:
+                    pass
+                else:
+                    game.menu_running = False
+            else:
+                print(self.stype - 2)
+                game.difficulty = self.stype - 2
 
 
 class Bar:
@@ -508,7 +505,7 @@ class Bar:
 
     @staticmethod
     def calculate_houses_income(game, sizetype, people, tax, special):
-        per_people = 1.15 * game.houses_types[sizetype][3]
+        per_people = 1.15 * game.houses_properties[sizetype][1]
         from_people = people * per_people
         per_special = 1
         from_special = special * per_special
