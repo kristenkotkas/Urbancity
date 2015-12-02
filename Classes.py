@@ -170,7 +170,7 @@ class Metro:
         self.metrorect = pygame.Rect(self.metrox, self.metroy, self.metrow, self.metroh)
         self.trainx = self.metrox
         self.trainy = self.metroy + 50
-        self.trainw = self.image_train.get_rect().w
+        self.trainw = self.image_train.get_rect().w - 2
         self.trainh = self.image_train.get_rect().h
         self.trainrect = pygame.Rect(self.metrox, self.metroy + 50, self.trainw, self.trainh)
         self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
@@ -367,7 +367,10 @@ class RightButton:
         self.name = game.right_button_names[self.sizetype]
         self.amount = game.right_button_amounts[self.sizetype]
         self.peopletotal = game.right_button_peopletotal[self.sizetype]
-        self.price = game.right_button_prices[self.sizetype]
+        if self.amount > 0:
+            self.price = game.right_button_prices[self.sizetype]
+        else:
+            self.price = game.right_button_prices_fixed[self.sizetype]
         self.people = game.houses_properties[self.sizetype][0]
 
     def draw(self, game, is_highlighted):
@@ -417,6 +420,7 @@ class Menu:
         self.y = [200, 200, 300, 300, 300]
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
+        self.is_highlighted_button = 3
         for i in range(self.button_amount):
             self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], i, self.names[i]))
 
@@ -440,7 +444,7 @@ class MenuButton:
         self.rect = pygame.Rect(xy[0], xy[1], self.w, self.h)
 
     def draw(self, game, is_highlighted):
-        if is_highlighted:
+        if is_highlighted or self.stype == game.menu.is_highlighted_button:
             self.surface.blit(self.image_highlighted, self.rect)
         else:
             self.surface.blit(self.image, self.rect)
@@ -462,6 +466,7 @@ class MenuButton:
                     game.menu_running = False
             else:
                 game.difficulty = self.stype - 2
+                game.menu.is_highlighted_button = self.stype
 
 
 class Bar:
