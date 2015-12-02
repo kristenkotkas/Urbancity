@@ -1,1 +1,1 @@
-pngcrush -ow -rem allb -reduce "Pilt.png"
+pngcrush -ow -rem allb -reduce "Menu_big_button.png"
