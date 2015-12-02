@@ -44,6 +44,8 @@ class Game:
     def initialize_all(self, game):
         self.images = Images()
         self.filesystem_do(game, "load_state")
+        print(self.difficulty, self.houses_properties, self.right_button_prices)
+        print(self.bar_amounts, self.right_button_peopletotal, self.right_button_amounts)
         self.cloud = Cloud(game)
         self.bar = Bar(game)
         self.right_drawer = RightDrawer(game)
@@ -87,12 +89,13 @@ class Game:
             if len(keylist) != 0:
                 for a in keylist:
                     print("key: " + a + ", data: " + str(d[a]))
+                self.difficulty = d["difficulty"]
+                self.set_difficulty(self.difficulty)
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
                 self.right_button_prices = d["right_button_prices"]
                 self.right_button_peopletotal = d["right_button_peopletotal"]
                 self.bar_amounts = [d["people"], d["money"], d["income"]]
-                self.difficulty = d["difficulty"]
             d.close()
             self.set_loaded_states(game)
         elif action == "save_state":
@@ -397,6 +400,8 @@ class RightButton:
                     game.bar.money -= self.price
                     self.amount += 1
                     self.peopletotal += self.people
+                    print(game.right_button_prices[self.sizetype], game.house_multiplier, self.amount)
+                    print(self.sizetype)
                     self.price = game.right_button_prices[self.sizetype] * game.house_multiplier ** self.amount
                     Methods.create_house(game, self.sizetype, None)
 
@@ -459,7 +464,6 @@ class MenuButton:
                 else:
                     game.menu_running = False
             else:
-                print(self.stype - 2)
                 game.difficulty = self.stype - 2
 
 
