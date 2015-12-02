@@ -15,6 +15,7 @@ class Game:
         self.screen = pygame.Surface(self.resolution)
         self.running = True
         self.menu_running = True
+        self.new_game = False
         self.tick = 0
         self.left_buttons = []
         self.right_buttons = []
@@ -29,7 +30,7 @@ class Game:
                              ([5, [90, 96, 0]], [340, 335, 0], 30, 3, 18000, 40),
                              ([-30, [103, 96, 0]], [255, 255, 0], 80, 8, 80000, 160),
                              ([-10, [130, 0, 0]], [115, 0, 0], 180, 18, 972000, 540),  # todo paika timmida kõik
-                             ([-40, [180, 0, 0]], [15, 0, 0], 450, 45, 5062500, 1200)]  # todo 5 muuta
+                             ([-40, [180, 0, 0]], [73, 0, 0], 450, 45, 5062500, 1200)]  # todo 5 muuta
         self.bar_amounts = [0, 100, 0]
         self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
@@ -100,6 +101,9 @@ class Game:
         for sizetype in self.houses_states:
             for house in sizetype:
                 Methods.create_house(game, house[0], house[1])
+        if self.bar_amounts[0] == 0 and self.bar_amounts[1] == 100:
+            print("hei new game")
+            self.new_game = True
 
 
 class Images:
@@ -122,7 +126,8 @@ class Images:
             [Images.load_image("Maja_51.png"), Images.load_image("kell.png"), Images.load_image("kell.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png"),
                       Images.load_image("Metro_overlay.png")]
-        self.menu = [Images.load_image("kell.png"), Images.load_image("kell.png")]
+        self.menu = [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
+                     Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]
 
     @staticmethod
     def load_image(file):
@@ -343,7 +348,7 @@ class RightButton:
             Methods.draw_obj_middle(game, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603))
             Methods.draw_obj_middle(game, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256))
             Methods.draw_obj_middle(game, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256))
-            Methods.draw_obj_middle(game, self.people, (self.x, self.y), (69, 35), (47.25, 19.256))
+            Methods.draw_obj_middle(game, self.people, (self.x, self.y), (71, 35), (47.25, 19.256))
             Methods.draw_obj_middle(game, self.peopletotal, (self.x, self.y), (119, 34.394), (76, 19.256))
             Methods.draw_obj_middle(game, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256))
         else:
@@ -370,27 +375,36 @@ class RightButton:
 class Menu:
     def __init__(self, game):
         self.button_amount = 5
-        self.x = [450, 650, 480, 595, 710]
+        self.names = [["new game", "load"], "continue", "easy", "normal", "insane"]
+        self.x = [390, 660, 393, 563, 733]
         self.y = [200, 200, 300, 300, 300]
-        self.w = [170, 170, 80, 80, 80]
-        self.h = [80, 80, 50, 50, 50]
-        self.rects = []
+        self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
         for i in range(self.button_amount):
-            self.rects.append(pygame.Rect(self.x[i], self.y[i], self.w[i], self.h[i]))
-            self.buttons.append(MenuButton(game, self.rects[i]))
+            self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], i, self.names[i]))
 
 
 class MenuButton:
-    def __init__(self, game, rect):
+    def __init__(self, game, xy, sizetype, stype, name):
         self.surface = game.screen
-        self.rect = rect
-
-    def draw(self, is_highlighted):
-        if is_highlighted:
-            self.surface.fill((255, 204, 0), self.rect)
+        self.specialtype = stype
+        if self.specialtype == 0:
+            if game.new_game:
+                self.name = name[0]
+            else:
+                self.name = name[1]
         else:
-            self.surface.fill((255, 153, 0), self.rect)
+            self.name = name
+        self.image = game.images.menu[sizetype]
+        self.image_highlighted = game.images.menu[sizetype + 1]
+        self.rect = pygame.Rect(xy[0], xy[1], self.image.get_rect().w, self.image.get_rect().h)
+
+    def draw(self, game, is_highlighted):
+        if is_highlighted:
+            self.surface.blit(self.image_highlighted, self.rect)
+        else:
+            self.surface.blit(self.image, self.rect)
+        Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y), (7, 6.653), (47.25, 47.603))
 
     def mouse_hover_check(self, x, y):
         if self.rect.collidepoint(x, y):

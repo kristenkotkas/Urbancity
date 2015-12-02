@@ -21,11 +21,11 @@ def update_menu(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
-    blursurface(game, 3.0)
+    blursurface(game, 2.0)
     pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
     pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     for button in game.menu.buttons:
-        button.draw(button.mouse_hover_check(x, y))
+        button.draw(game, button.mouse_hover_check(x, y))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game.running = False
