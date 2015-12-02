@@ -105,8 +105,8 @@ def create_house(game, sizetype, randtype):
     game.houses[sizetype].append(House(game, sizetype, randtype))
 
 
-def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh):
-    # tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh
+def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata):
+    # tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, omadused
     if inner_relative_xy == 0:
         inner_obj_xy = main_obj_xy
     else:
@@ -116,8 +116,8 @@ def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh):
     if isinstance(obj, str) or isinstance(obj, int):
         if isinstance(obj, int):
                 obj = str(format(obj, ",d"))
-        txt_font = pygame.font.SysFont("centurygothic", 14, True)
-        final_obj = txt_font.render(obj, True, (255, 255, 255))
+        txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
+        final_obj = txt_font.render(obj, True, drawdata[0])
         final_obj_size = txt_font.size(obj)
     else:
         final_obj = obj
