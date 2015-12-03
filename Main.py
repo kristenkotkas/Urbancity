@@ -8,7 +8,7 @@ def main():
     pygame.init()
     game = Game()
     game.initialize_all(game)
-    pygame.display.set_caption("Super Mäng 3000")
+    # pygame.display.set_caption("Super Mäng 3000")
 
     clock = pygame.time.Clock()
     # update_all(game)
@@ -16,7 +16,7 @@ def main():
 
     while game.running:
         game.tick = clock.tick(game.fps_cap)
-        # pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
+        pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
         if game.menu_running:
             update_menu(game)
         else:

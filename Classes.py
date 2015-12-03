@@ -456,7 +456,7 @@ class MenuButton:
             self.surface.blit(self.image_highlighted, self.rect)
         else:
             self.surface.blit(self.image, self.rect)
-        Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y), 0, (self.w, self.h), self.drawdata)
+        Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y - 3), 0, (self.w, self.h), self.drawdata)
 
     def mouse_hover_check(self, x, y):
         if self.rect.collidepoint(x, y):
