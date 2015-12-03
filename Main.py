@@ -8,7 +8,6 @@ def main():
     pygame.init()
     game = Game()
     game.initialize_all(game)
-    # pygame.display.set_caption("Super Mäng 3000")
 
     clock = pygame.time.Clock()
     # update_all(game)

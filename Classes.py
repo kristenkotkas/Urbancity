@@ -49,17 +49,17 @@ class Game:
         self.cloud = Cloud(game)
         self.bar = Bar(game)
         self.right_drawer = RightDrawer(game)
-        # self.left_drawer = LeftDrawer(game)
+        self.left_drawer = LeftDrawer(game)
         self.metro = Metro(game)
         self.menu = Menu(game)
         for sizetype in range(5):
             self.right_buttons.append(RightButton(game, sizetype))
-            # self.left_buttons.append(LeftButton(game, sizetype))
+            self.left_buttons.append(LeftButton(game, sizetype))
 
     def reinitialize(self, game):
         self.set_difficulty(self.difficulty)
         self.right_buttons = []
-        # self.left_buttons = []
+        self.left_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
@@ -68,7 +68,7 @@ class Game:
         self.bar = Bar(game)
         for sizetype in range(5):
             self.right_buttons.append(RightButton(game, sizetype))
-            # self.left_buttons.append(LeftButton(game, sizetype))
+            self.left_buttons.append(LeftButton(game, sizetype))
 
     def set_difficulty(self, difficulty):
         if difficulty == 0:  # easy
@@ -134,7 +134,7 @@ class Images:
         self.right_button_logos = [Images.load_image("Maja_1_logo.png"), Images.load_image("Maja_2_logo.png"),
                                    Images.load_image("Maja_3_logo.png"), Images.load_image("Maja_4_logo.png"),
                                    Images.load_image("Maja_5_logo.png")]
-        self.left_button = []
+        self.left_button = [Images.load_image("Upgrade.png"), Images.load_image("Upgrade_hover.png")]
         self.bar = Images.load_image("riba.png")
         self.cloud = Images.load_image("pilv.png")
         self.houses = [
@@ -268,10 +268,10 @@ class LeftDrawer:
     def __init__(self, game):
         self.surface = game.screen
         self.minx = 20
-        self.maxx = 220
+        self.maxx = 160
         self.x = self.minx
         self.y = 0
-        self.w = 220
+        self.w = 170
         self.h = game.resolution[1]
         self.rect = pygame.Rect(0, self.y, self.w, self.h)
 
@@ -312,44 +312,29 @@ class RightDrawer:
                     button.x += 20
 
 
-class LeftButton:  # right buttoni järgi tehtud, osad asjad puudu
+class LeftButton:
     def __init__(self, game, sizetype):
         self.surface = game.screen
         self.sizetype = sizetype
-        self.image_regular = game.images.right_button[0]
-        self.image_highlighted = game.images.right_button[1]
+        self.image_regular = game.images.left_button[0]
+        self.image_highlighted = game.images.left_button[1]
         self.drawdata = [(255, 255, 255), 14]
         self.w = self.image_regular.get_rect().w
         self.h = self.image_regular.get_rect().h
         self.x = 20 - self.w
-        self.y = 15 + 100 * self.sizetype
+        self.y = 15 + 75 * self.sizetype
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.logo = game.images.right_button_logos[self.sizetype]
-        self.name = game.right_button_names[self.sizetype]
-        self.amount = game.right_button_amounts[self.sizetype]
-        self.price = game.right_button_prices[self.sizetype]
-        self.desc1 = game.right_button_desc1[self.sizetype]
-        self.desc2 = game.right_button_desc2[self.sizetype]
 
     def draw(self, game, is_highlighted):
         if is_highlighted:
             self.surface.blit(self.image_highlighted, (self.x, self.y))
         else:
             self.surface.blit(self.image_regular, (self.x, self.y))
-        Methods.draw_obj_middle(game, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata)
-        Methods.draw_obj_middle(game, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata)
-        Methods.draw_obj_middle(game, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256), self.drawdata)
-        Methods.draw_obj_middle(game, self.desc1, (self.x, self.y), (62.013, 34.394), (47.25, 19.256), self.drawdata)
-        Methods.draw_obj_middle(game, self.desc2, (self.x, self.y), (119, 34.394), (76, 19.256), self.drawdata)
-        Methods.draw_obj_middle(game, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256),
-                                self.drawdata)
 
     def mouse_click_check(self, game, x, y):
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if self.rect.collidepoint(x, y):
-            self.amount += 1
-            self.price = game.right_button_prices[self.sizetype] * game.house_multiplier ** self.amount
-            Methods.create_house(game, self.sizetype, None)
+            print("left button clicked", self.sizetype, self.w)
 
     def mouse_hover_check(self, x, y):
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)

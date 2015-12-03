@@ -58,7 +58,7 @@ def update_all(game):
     # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
     # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.right_drawer.mouse_hover_check(game, x, y)
-    # andmed.left_drawer.mouse_hover_check(game, x, y)
+    game.left_drawer.mouse_hover_check(game, x, y)
     for button in game.right_buttons + game.left_buttons:
         button.draw(game, button.mouse_hover_check(x, y))
     game.bar.update(game)
@@ -82,7 +82,7 @@ def update_all(game):
                     print("space event, cash * 10")
                     game.bar.money *= 10
             elif event.key == pygame.K_k:  # cheating
-                game.bar.money += (game.bar.income + 100) * 1337
+                game.bar.money += game.bar.money * 133700
             elif event.key == pygame.K_l:  # cheating
                 game.bar.money = 0
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
