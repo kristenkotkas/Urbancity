@@ -7,8 +7,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 def update_menu(game):
     x, y = pygame.mouse.get_pos()
-    game.screen.blit(game.images.background, (0, 0))
-    game.metro.draw()
+    game.updatelist.append(game.screen.blit(game.images.background, (0, 0)))
+    game.metro.draw(game)
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -16,10 +16,10 @@ def update_menu(game):
         if game.cloud.drawable:
             if len(sizetype) != 0:
                 if sizetype[0].sizetype == 4:
-                    game.cloud.draw()
+                    game.cloud.draw(game)
                     game.cloud.drawable = False
             else:
-                game.cloud.draw()
+                game.cloud.draw(game)
                 game.cloud.drawable = False
     blursurface(game, 2.2)
     # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
@@ -36,13 +36,13 @@ def update_menu(game):
             # print((x, y))
             for button in game.menu.buttons:
                 button.mouse_click_check(game, x, y)
-    game.screen_final.blit(game.screen, (0, 0))
+    game.updatelist.append(game.screen_final.blit(game.screen, (0, 0)))
 
 
 def update_all(game):
     x, y = pygame.mouse.get_pos()
-    game.screen.blit(game.images.background, (0, 0))
-    game.metro.draw()
+    game.updatelist.append(game.screen.blit(game.images.background, (0, 0)))
+    game.metro.draw(game)
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -50,10 +50,10 @@ def update_all(game):
         if game.cloud.drawable:
             if len(sizetype) != 0:
                 if sizetype[0].sizetype == 4:
-                    game.cloud.draw()
+                    game.cloud.draw(game)
                     game.cloud.drawable = False
             else:
-                game.cloud.draw()
+                game.cloud.draw(game)
                 game.cloud.drawable = False
     # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
     # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
@@ -89,7 +89,7 @@ def update_all(game):
             # print((x, y))
             for button in game.right_buttons + game.left_buttons:
                 button.mouse_click_check(game, x, y)
-    game.screen_final.blit(game.screen, (0, 0))
+    game.updatelist.append(game.screen_final.blit(game.screen, (0, 0)))
 
 
 def blursurface(game, amount):  # amount > 1.0
@@ -98,7 +98,7 @@ def blursurface(game, amount):  # amount > 1.0
     scale_size = (int(screen_size[0] * scale), int(screen_size[1] * scale))
     screen = pygame.transform.smoothscale(game.screen, scale_size)
     screen = pygame.transform.smoothscale(screen, screen_size)
-    game.screen.blit(screen, (0, 0))
+    game.updatelist.append(game.screen.blit(screen, (0, 0)))
 
 
 def create_house(game, sizetype, randtype):
@@ -124,4 +124,4 @@ def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, dra
         final_obj_size = final_obj.get_rect().size
     final_obj_xy = (inner_obj_xy[0] + (inner_obj_wh[0] - final_obj_size[0]) / 2, inner_obj_xy[1] +
                     (inner_obj_wh[1] - final_obj_size[1]) / 2)
-    game.screen.blit(final_obj, final_obj_xy)
+    game.updatelist.append(game.screen.blit(final_obj, final_obj_xy))

@@ -8,8 +8,9 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 class Game:
     def __init__(self):
-        self.fps_cap = 60
+        self.fps_cap = 300
         self.resolution = (1280, 720)
+        self.updatelist = []
         self.screen_final = pygame.display.set_mode(self.resolution)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -177,14 +178,14 @@ class Metro:
         self.counter = 0
         self.speed = 4
 
-    def draw(self):
-        self.draw_metro_background()
-        self.draw_moving_metro()
+    def draw(self, game):
+        self.draw_metro_background(game)
+        self.draw_moving_metro(game)
 
-    def draw_metro_background(self):
-        self.surface.blit(self.image_metro, self.metrorect)
+    def draw_metro_background(self, game):
+        game.updatelist.append(self.surface.blit(self.image_metro, self.metrorect))
 
-    def draw_moving_metro(self):
+    def draw_moving_metro(self, game):
         # kui rongi parem pool pole metro paremast poolest möödunud
         if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
             # kui rong pole välja joonistatud
@@ -202,7 +203,7 @@ class Metro:
                 self.arearect.x = self.trainw
                 self.arearect.w = self.trainw
                 self.counter = 0
-        self.surface.blit(self.image_train, self.trainrect, self.arearect)
+        game.updatelist.append(self.surface.blit(self.image_train, self.trainrect, self.arearect))
 
 
 class House:
@@ -240,7 +241,7 @@ class House:
 
     def draw(self, game):
         if self.x < game.resolution[0]:
-            self.surface.blit(self.image, (self.x, self.y))
+            game.updatelist.append(self.surface.blit(self.image, (self.x, self.y)))
 
 
 class Cloud:
@@ -255,13 +256,13 @@ class Cloud:
         self.maxx = game.resolution[0]
         self.drawable = True
 
-    def draw(self):
+    def draw(self, game):
         if self.x < self.maxx:
             self.x += 1
         else:
             self.x = self.minx
         if self.minx < self.x < self.maxx:
-            self.surface.blit(self.image, (self.x, self.y))
+            game.updatelist.append(self.surface.blit(self.image, (self.x, self.y)))
 
 
 class LeftDrawer:
@@ -333,9 +334,9 @@ class LeftButton:  # right buttoni järgi tehtud, osad asjad puudu
 
     def draw(self, game, is_highlighted):
         if is_highlighted:
-            self.surface.blit(self.image_highlighted, (self.x, self.y))
+            game.updatelist.append(self.surface.blit(self.image_highlighted, (self.x, self.y)))
         else:
-            self.surface.blit(self.image_regular, (self.x, self.y))
+            game.updatelist.append(self.surface.blit(self.image_regular, (self.x, self.y)))
         Methods.draw_obj_middle(game, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata)
         Methods.draw_obj_middle(game, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata)
         Methods.draw_obj_middle(game, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256), self.drawdata)
@@ -385,11 +386,11 @@ class RightButton:
         if not self.hidden:
             if game.bar.money >= self.price:
                 if is_highlighted:
-                    self.surface.blit(self.image_available_highlighted, (self.x, self.y))
+                    game.updatelist.append(self.surface.blit(self.image_available_highlighted, (self.x, self.y)))
                 else:
-                    self.surface.blit(self.image_available, (self.x, self.y))
+                    game.updatelist.append(self.surface.blit(self.image_available, (self.x, self.y)))
             else:
-                self.surface.blit(self.image_unavailable, (self.x, self.y))
+                game.updatelist.append(self.surface.blit(self.image_unavailable, (self.x, self.y)))
             Methods.draw_obj_middle(game, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata)
             Methods.draw_obj_middle(game, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata)
             Methods.draw_obj_middle(game, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256), self.drawdata)
@@ -453,9 +454,9 @@ class MenuButton:
 
     def draw(self, game, is_highlighted):
         if is_highlighted or self.stype == game.menu.is_highlighted_button:
-            self.surface.blit(self.image_highlighted, self.rect)
+            game.updatelist.append(self.surface.blit(self.image_highlighted, self.rect))
         else:
-            self.surface.blit(self.image, self.rect)
+            game.updatelist.append(self.surface.blit(self.image, self.rect))
         Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y - 3), 0, (self.w, self.h), self.drawdata)
 
     def mouse_hover_check(self, x, y):
@@ -537,7 +538,7 @@ class Bar:
         self.time_from_beginning = 0
 
     def draw(self, game):
-        self.surface.blit(self.image, (self.x, self.y))
+        game.updatelist.append(self.surface.blit(self.image, (self.x, self.y)))
         Methods.draw_obj_middle(game, self.people, (self.x, self.y),
                                 (self.objxy[0][0], self.objxy[1]), self.objwh, self.drawdata)
         Methods.draw_obj_middle(game, round(self.money), (self.x, self.y),

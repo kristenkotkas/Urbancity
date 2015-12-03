@@ -21,7 +21,8 @@ def main():
             update_menu(game)
         else:
             update_all(game)
-        pygame.display.flip()
+        pygame.display.update(game.updatelist)
+        game.updatelist = []
 
     game.filesystem_do(game, "save_state")
     pygame.time.wait(50)
