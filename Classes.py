@@ -9,7 +9,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 60
-        self.resolution = (1280, 720)
+        self.resolution = (1600, 720)
         self.screen_final = pygame.display.set_mode(self.resolution)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -37,6 +37,7 @@ class Game:
         self.right_button_amounts = [0, 0, 0, 0, 0]
         self.bar_amounts = [0, 0, 0]
         self.images = None
+        self.background = None
         self.cloud = None
         self.bar = None
         self.right_drawer = None
@@ -48,6 +49,7 @@ class Game:
         self.images = Images()
         self.filesystem_do(game, "load_state")
         self.set_difficulty(self.difficulty)
+        self.background = Background(game)
         self.cloud = Cloud(game)
         self.bar = Bar(game)
         self.right_drawer = RightDrawer(game)
@@ -89,8 +91,8 @@ class Game:
             d = shelve.open(file)
             keylist = d.keys()
             if len(keylist) != 0:
-                # for a in keylist:
-                #    print("key: " + a + ", data: " + str(d[a]))
+                for a in keylist:
+                    print("key: " + a + ", data: " + str(d[a]))
                 self.difficulty = d["difficulty"]
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
@@ -162,15 +164,32 @@ class Images:
         return loaded_image.convert_alpha()
 
 
+class Background:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.background
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.rect = pygame.Rect(0, 0, self.w, self.h)
+        self.areaw = game.resolution[0] - self.w
+        self.rect2 = pygame.Rect(self.w, 0, self.areaw, self.h)
+        self.arearect = pygame.Rect(0, 0, self.areaw, self.h)
+
+    def draw(self, game):
+        self.surface.blit(self.image, self.rect)
+        if game.resolution[0] > 1280:
+            self.surface.blit(self.image, self.rect2, self.arearect)
+
+
 class Metro:
     def __init__(self, game):
         self.surface = game.screen
         self.image_metro = game.images.metro[0]
         self.image_train = game.images.metro[1]
-        self.metrox = 413
-        self.metroy = 576
         self.metrow = self.image_metro.get_rect().w
         self.metroh = self.image_metro.get_rect().h
+        self.metrox = (game.resolution[0] - self.metrow) / 2
+        self.metroy = 576
         self.metrorect = pygame.Rect(self.metrox, self.metroy, self.metrow, self.metroh)
         self.trainx = self.metrox
         self.trainy = self.metroy + 50
@@ -296,7 +315,7 @@ class LeftDrawer:
 class RightDrawer:
     def __init__(self, game):
         self.surface = game.screen
-        self.minx = 1060
+        self.minx = game.resolution[0] - 220
         self.maxx = game.resolution[0] - 20
         self.x = self.maxx
         self.y = 0
@@ -415,13 +434,14 @@ class Menu:
         self.button_amount = 5
         self.names = ["new game", "continue", "easy", "normal", "insane"]
         self.actions = []
-        self.x = [390, 660, 393, 563, 733]
+        self.x = [390, 660, 393, 563, 733]  # []
         self.y = [200, 200, 300, 300, 300]
+        self.correction = [-20, 20, -92, 0, 93]
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
         self.is_highlighted_button = 3
         for i in range(self.button_amount):
-            self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], i, self.names[i]))
+            self.buttons.append(MenuButton(game, (self.correction[i], self.y[i]), self.sizetype[i], i, self.names[i]))
         self.image = game.images.menu[0][0]
         self.imagew = self.image.get_rect().w
         self.imageh = self.image.get_rect().h
@@ -440,7 +460,7 @@ class MenuButton:
         self.stype = stype
         self.drawdata = []
         if self.sizetype == 0:
-            self.drawdata.append((0, 0, 0))
+            self.drawdata.append((61, 61, 61))
         else:
             self.drawdata.append((255, 255, 255))
         self.drawdata.append(26)
@@ -449,7 +469,14 @@ class MenuButton:
         self.image_highlighted = game.images.menu[1][self.sizetype + 1]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
-        self.rect = pygame.Rect(xy[0], xy[1], self.w, self.h)
+        if xy[0] > 0:
+            self.position = (game.resolution[0] / 2) + xy[0]
+        elif xy[0] < 0:
+            self.position = (game.resolution[0] / 2) - self.w + xy[0]
+        else:
+            self.position = (game.resolution[0] - self.w) / 2
+        self.x = self.position
+        self.rect = pygame.Rect(self.x, xy[1], self.w, self.h)
 
     def draw(self, game, is_highlighted):
         if is_highlighted or self.stype == game.menu.is_highlighted_button:
@@ -485,7 +512,7 @@ class Bar:
         self.drawdata = [(255, 255, 255), 14]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
-        self.x = 300
+        self.x = (game.resolution[0] - self.w) / 2
         self.y = 6
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.people = game.bar_amounts[0]

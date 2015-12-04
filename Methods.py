@@ -7,7 +7,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 def update_menu(game):
     x, y = pygame.mouse.get_pos()
-    game.screen.blit(game.images.background, (0, 0))
+    game.background.draw(game)
     game.metro.draw()
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
@@ -22,8 +22,8 @@ def update_menu(game):
                 game.cloud.draw()
                 game.cloud.drawable = False
     blursurface(game, 2.2)
-    # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
-    # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
+    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.menu.draw()
     for button in game.menu.buttons:
         button.draw(game, button.mouse_hover_check(x, y))
@@ -42,7 +42,7 @@ def update_menu(game):
 
 def update_all(game):
     x, y = pygame.mouse.get_pos()
-    game.screen.blit(game.images.background, (0, 0))
+    game.background.draw(game)
     game.metro.draw()
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
@@ -56,8 +56,8 @@ def update_all(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
-    # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
-    # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
+    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.right_drawer.mouse_hover_check(game, x, y)
     game.left_drawer.mouse_hover_check(game, x, y)
     for button in game.right_buttons + game.left_buttons:
