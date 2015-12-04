@@ -25,8 +25,10 @@ class Game:
         """ houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y])
             houses_properties = sizetype(people, per people modifier, minpeople) """
         self.houses_properties = [(10, 1, 0), (45, 2, 60), (128, 5, 256), (360, 9, 1080), (675, 30, 1800)]
-        self.houses_types = [([-15, [190, 125, 240]], [432, 347, 427]), ([5, [90, 96, 0]], [340, 335, 0]),
-                             ([-30, [103, 96, 0]], [255, 255, 0]), ([-10, [130, 0, 0]], [115, 0, 0]),
+        self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
+                             ([5, [90, 96, 0]], [340, 335, 0]),
+                             ([-30, [103, 96, 0]], [255, 255, 0]),
+                             ([-10, [130, 0, 0]], [115, 0, 0]),
                              ([-40, [170, 0, 0]], [73, 0, 0])]
         self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
         self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
@@ -138,15 +140,17 @@ class Images:
         self.bar = Images.load_image("riba.png")
         self.cloud = Images.load_image("pilv.png")
         self.houses = [
-            [Images.load_image("Maja_11.png"), Images.load_image("Maja_12.png"), Images.load_image("Maja_13.png")],
+            [Images.load_image("Maja_11.png"), Images.load_image("Maja_12.png"), Images.load_image("Maja_13.png"),
+             Images.load_image("Maja_14.png")],
             [Images.load_image("Maja_21.png"), Images.load_image("Maja_22.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_31.png"), Images.load_image("Maja_32.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_41.png"), Images.load_image("kell.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_51.png"), Images.load_image("kell.png"), Images.load_image("kell.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png"),
                       Images.load_image("Metro_overlay.png")]
-        self.menu = [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
-                     Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]
+        self.menu = [[Images.load_image("urbancity_logo.png")],
+                     [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
+                     Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
 
     @staticmethod
     def load_image(file):
@@ -209,12 +213,13 @@ class House:
     def __init__(self, game, sizetype, randtype):
         self.sizetype = sizetype
         if randtype is None:
-            self.randtype = randint(0, 2)
             self.people = game.houses_properties[self.sizetype][0]
             game.bar.calculate_houses_income(game, self.sizetype, game.houses_properties[self.sizetype][0], 0, 0)
             game.bar.people += self.people
             # ajutine randtype määramine
-            if self.sizetype == 3 or self.sizetype == 4:  # 4,5 tüüpi on 2 puudu
+            if self.sizetype == 0:  # 1 tüüpi on 4 maja
+                self.randtype = randint(0, 3)
+            elif self.sizetype == 3 or self.sizetype == 4:  # 4,5 tüüpi on 2 puudu
                 self.randtype = 0
             elif self.sizetype == 2 or self.sizetype == 1:  # 2 ja 3 tüüpi maju on 1 puudu
                 self.randtype = randint(0, 1)
@@ -406,6 +411,7 @@ class RightButton:
 
 class Menu:
     def __init__(self, game):
+        self.surface = game.screen
         self.button_amount = 5
         self.names = ["new game", "continue", "easy", "normal", "insane"]
         self.actions = []
@@ -416,6 +422,15 @@ class Menu:
         self.is_highlighted_button = 3
         for i in range(self.button_amount):
             self.buttons.append(MenuButton(game, (self.x[i], self.y[i]), self.sizetype[i], i, self.names[i]))
+        self.image = game.images.menu[0][0]
+        self.imagew = self.image.get_rect().w
+        self.imageh = self.image.get_rect().h
+        self.imagex = (game.resolution[0] - self.imagew) / 2
+        self.imagey = 75
+        self.rect = pygame.Rect(self.imagex, self.imagey, self.imagew, self.imageh)
+
+    def draw(self):
+        self.surface.blit(self.image, self.rect)
 
 
 class MenuButton:
@@ -430,8 +445,8 @@ class MenuButton:
             self.drawdata.append((255, 255, 255))
         self.drawdata.append(26)
         self.name = name
-        self.image = game.images.menu[self.sizetype]
-        self.image_highlighted = game.images.menu[self.sizetype + 1]
+        self.image = game.images.menu[1][self.sizetype]
+        self.image_highlighted = game.images.menu[1][self.sizetype + 1]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.rect = pygame.Rect(xy[0], xy[1], self.w, self.h)

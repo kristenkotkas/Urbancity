@@ -24,6 +24,7 @@ def update_menu(game):
     blursurface(game, 2.2)
     # pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
     # pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
+    game.menu.draw()
     for button in game.menu.buttons:
         button.draw(game, button.mouse_hover_check(x, y))
     for event in pygame.event.get():
