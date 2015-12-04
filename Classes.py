@@ -434,14 +434,13 @@ class Menu:
         self.button_amount = 5
         self.names = ["new game", "continue", "easy", "normal", "insane"]
         self.actions = []
-        self.x = [390, 660, 393, 563, 733]  # []
+        self.xmodifier = [-20, 20, -92, 0, 92]
         self.y = [200, 200, 300, 300, 300]
-        self.correction = [-20, 20, -92, 0, 93]
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
         self.is_highlighted_button = 3
         for i in range(self.button_amount):
-            self.buttons.append(MenuButton(game, (self.correction[i], self.y[i]), self.sizetype[i], i, self.names[i]))
+            self.buttons.append(MenuButton(game, (self.xmodifier[i], self.y[i]), self.sizetype[i], i, self.names[i]))
         self.image = game.images.menu[0][0]
         self.imagew = self.image.get_rect().w
         self.imageh = self.image.get_rect().h
@@ -470,12 +469,11 @@ class MenuButton:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         if xy[0] > 0:
-            self.position = (game.resolution[0] / 2) + xy[0]
+            self.x = (game.resolution[0] / 2) + xy[0]
         elif xy[0] < 0:
-            self.position = (game.resolution[0] / 2) - self.w + xy[0]
+            self.x = (game.resolution[0] / 2) - self.w + xy[0]
         else:
-            self.position = (game.resolution[0] - self.w) / 2
-        self.x = self.position
+            self.x = (game.resolution[0] - self.w) / 2
         self.rect = pygame.Rect(self.x, xy[1], self.w, self.h)
 
     def draw(self, game, is_highlighted):
