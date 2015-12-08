@@ -7,11 +7,8 @@ from Classes import Game
 def main():
     pygame.init()
     game = Game()
-    game.initialize_all(game)
-
+    game.initialize_menu(game)
     clock = pygame.time.Clock()
-    # update_all(game)
-    # pygame.display.flip()
 
     while game.running:
         game.tick = clock.tick(game.fps_cap)

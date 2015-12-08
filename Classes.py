@@ -22,16 +22,14 @@ class Game:
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
-        """ houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y])
-            houses_properties = sizetype(people, per people modifier, minpeople) """
-        self.houses_properties = [(10, 1, 0), (45, 2, 60), (128, 5, 256), (360, 9, 1080), (675, 30, 1800)]
+        self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
                              ([5, [90, 96, 0]], [340, 335, 0]),
                              ([-30, [103, 96, 0]], [255, 255, 0]),
                              ([-10, [130, 0, 0]], [115, 0, 0]),
                              ([-40, [170, 0, 0]], [73, 0, 0])]
-        self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
-        self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
+        self.houses_properties = None
+        self.right_button_prices_fixed = None
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
@@ -45,7 +43,7 @@ class Game:
         self.metro = None
         self.menu = None
 
-    def initialize_all(self, game):
+    def initialize_menu(self, game):
         self.images = Images()
         self.filesystem_do(game, "load_state")
         self.set_difficulty(self.difficulty)
@@ -60,7 +58,7 @@ class Game:
             self.right_buttons.append(RightButton(game, sizetype))
             self.left_buttons.append(LeftButton(game, sizetype))
 
-    def reinitialize(self, game):
+    def initialize_game(self, game):
         self.set_difficulty(self.difficulty)
         self.right_buttons = []
         self.left_buttons = []
@@ -75,14 +73,19 @@ class Game:
             self.left_buttons.append(LeftButton(game, sizetype))
 
     def set_difficulty(self, difficulty):
+        """ houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y])
+            houses_properties = sizetype(people, per people modifier, minpeople) """
         if difficulty == 0:  # easy
-            self.houses_properties = [(20, 2, 0), (90, 4, 40), (256, 10, 256), (720, 18, 1080), (1350, 60, 1800)]
+            self.houses_properties = [
+                (200, 0.2, 0), (900, 0.4, 400), (2560, 1, 25600), (7200, 1.8, 108000), (13500, 6, 180000)]
             self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
-            self.houses_properties = [(10, 1, 0), (45, 2, 60), (128, 5, 256), (360, 9, 1080), (675, 30, 1800)]
+            self.houses_properties = [
+                (100, 0.1, 0), (450, 0.2, 600), (1280, 0.5, 2560), (3600, 0.9, 108000), (6750, 3, 180000)]
             self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
         elif difficulty == 2:  # insane
-            self.houses_properties = [(5, 1, 0), (22, 2, 20), (64, 3, 70), (180, 5, 300), (330, 15, 460)]
+            self.houses_properties = [
+                (50, 0.1, 0), (220, 0.2, 2000), (640, 0.3, 7000), (1800, 0.5, 30000), (3300, 1.5, 46000)]
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
 
     def filesystem_do(self, game, action):
@@ -490,7 +493,7 @@ class MenuButton:
     def mouse_click_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
             if self.stype == 0:
-                game.reinitialize(game)
+                game.initialize_game(game)
                 game.menu_running = False
             elif self.stype == 1:
                 if game.bar_amounts[0] == 0 and game.bar_amounts[0] == 0:
