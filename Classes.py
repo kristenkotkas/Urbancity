@@ -73,8 +73,8 @@ class Game:
             self.left_buttons.append(LeftButton(game, sizetype))
 
     def set_difficulty(self, difficulty):
-        """ houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y])
-            houses_properties = sizetype(people, per people modifier, minpeople) """
+        # houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y])
+        # houses_properties = sizetype(people, per people modifier, minpeople)
         if difficulty == 0:  # easy
             self.houses_properties = [
                 (200, 0.2, 0), (900, 0.4, 400), (2560, 1, 25600), (7200, 1.8, 108000), (13500, 6, 180000)]
