@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pygame
-from Methods import update_all, update_menu
+from Methods import update_game, update_menu
 from Classes import Game
 
 
@@ -16,7 +16,7 @@ def main():
         if game.menu_running:
             update_menu(game)
         else:
-            update_all(game)
+            update_game(game)
         pygame.display.flip()
 
     game.filesystem_do(game, "save_state")
