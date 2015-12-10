@@ -8,7 +8,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 def update_menu(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
-    game.metro.draw()
+    game.metro.draw(game)
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -40,10 +40,10 @@ def update_menu(game):
     game.screen_final.blit(game.screen, (0, 0))
 
 
-def update_all(game):
+def update_game(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
-    game.metro.draw()
+    game.metro.draw(game)
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -87,7 +87,7 @@ def update_all(game):
             elif event.key == pygame.K_l:  # cheating
                 game.bar.money = 0
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # print((x, y))
+            print((x, y))
             for button in game.right_buttons + game.left_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))

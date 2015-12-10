@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 import pygame
-from Methods import update_all, update_menu
+from Methods import update_game, update_menu
 from Classes import Game
 
 
 def main():
     pygame.init()
     game = Game()
-    game.initialize_all(game)
-
+    game.initialize_menu(game)
     clock = pygame.time.Clock()
-    # update_all(game)
-    # pygame.display.flip()
 
     while game.running:
         game.tick = clock.tick(game.fps_cap)
@@ -19,7 +16,7 @@ def main():
         if game.menu_running:
             update_menu(game)
         else:
-            update_all(game)
+            update_game(game)
         pygame.display.flip()
 
     game.filesystem_do(game, "save_state")
