@@ -22,8 +22,6 @@ def update_menu(game):
                 game.cloud.draw()
                 game.cloud.drawable = False
     blursurface(game, 2.2)
-    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
-    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.menu.draw()
     for button in game.menu.buttons:
         button.draw(game, button.mouse_hover_check(x, y))
@@ -34,7 +32,6 @@ def update_menu(game):
             if event.key == pygame.K_ESCAPE:
                 game.running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # print((x, y))
             for button in game.menu.buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))
@@ -56,8 +53,6 @@ def update_game(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
-    pygame.draw.line(game.screen, (255, 255, 255), (x, 0), (x, game.resolution[1] - 1))  # ülevalt alla
-    pygame.draw.line(game.screen, (255, 255, 255), (0, y), (game.resolution[0] - 1, y))  # vasakult paremale
     game.right_drawer.mouse_hover_check(game, x, y)
     game.left_drawer.mouse_hover_check(game, x, y)
     for button in game.right_buttons + game.left_buttons:
@@ -89,8 +84,13 @@ def update_game(game):
                 game.bar.money += game.bar.money * 133700
             elif event.key == pygame.K_l:  # cheating
                 game.bar.money = 0
+            elif event.key == pygame.K_n:  # cheating
+                game.bar.money /= 50
+                game.news.present("bad")
+            elif event.key == pygame.K_m:  # cheating
+                game.bar.money *= 10
+                game.news.present("good")
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            print((x, y))
             for button in game.right_buttons + game.left_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))

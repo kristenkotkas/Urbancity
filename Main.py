@@ -19,7 +19,8 @@ def main():
             update_game(game)
         pygame.display.flip()
 
-    game.filesystem_do(game, "save_state")
+    if not game.menu_running:
+        game.filesystem_do(game, "save_state")
     pygame.time.wait(50)
     pygame.quit()
 

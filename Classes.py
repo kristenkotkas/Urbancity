@@ -28,8 +28,8 @@ class Game:
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
                              ([5, [90, 96, 0]], [340, 335, 0]),
                              ([-30, [103, 96, 0]], [255, 255, 0]),
-                             ([-10, [130, 0, 0]], [115, 0, 0]),
-                             ([-40, [170, 0, 0]], [73, 0, 0])]
+                             ([-10, [130, 180, 0]], [115, 130, 0]),
+                             ([-40, [170, 135, 0]], [73, 59, 0])]
         self.houses_properties = None
         self.right_button_prices_fixed = None
         self.right_button_prices = [0, 0, 0, 0, 0]
@@ -49,24 +49,24 @@ class Game:
     def initialize_menu(self, game):
         self.images = Images()
         self.filesystem_do(game, "load_state")
-        self.set_difficulty(self.difficulty)
         self.background = Background(game)
         self.cloud = Cloud(game)
-        self.bar = Bar(game)
-        self.right_drawer = RightDrawer(game)
-        self.left_drawer = LeftDrawer(game)
         self.metro = Metro(game)
         self.menu = Menu(game)
 
-    def initialize_game(self, game):
+    def initialize_game(self, game, state):
+        if state == "new":
+            self.difficulty = game.menu.is_highlighted_button - 2
+            self.right_buttons = []
+            self.left_buttons = []
+            self.houses = [[], [], [], [], []]
+            self.houses_states = [[], [], [], [], []]
+            self.right_button_peopletotal = [0, 0, 0, 0, 0]
+            self.right_button_amounts = [0, 0, 0, 0, 0]
+            self.bar_amounts = [0, 0, 0]
         self.set_difficulty(self.difficulty)
-        self.right_buttons = []
-        self.left_buttons = []
-        self.houses = [[], [], [], [], []]
-        self.houses_states = [[], [], [], [], []]
-        self.right_button_peopletotal = [0, 0, 0, 0, 0]
-        self.right_button_amounts = [0, 0, 0, 0, 0]
-        self.bar_amounts = [0, 0, 0]
+        self.right_drawer = RightDrawer(game)
+        self.left_drawer = LeftDrawer(game)
         self.bar = Bar(game)
         self.news = News(game)
         for sizetype in range(5):
@@ -77,11 +77,11 @@ class Game:
         # houses_properties = sizetype(people, per people modifier, minpeople)
         if difficulty == 0:  # easy
             self.houses_properties = [
-                (200, 0.2, 0), (900, 0.4, 1200), (2560, 1, 7680), (7200, 1.8, 32400), (13500, 6, 90000)]
+                (200, 0.2, 0), (900, 0.4, 1200), (2560, 1, 7680), (7200, 1.8, 10800), (13500, 6, 24000)]
             self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
             self.houses_properties = [
-                (100, 0.1, 0), (450, 0.2, 600), (1280, 0.5, 2560), (3600, 0.9, 108000), (6750, 3, 180000)]
+                (100, 0.1, 0), (450, 0.2, 600), (1280, 0.5, 10000), (3600, 0.9, 20000), (6750, 3, 35000)]
             self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
         elif difficulty == 2:  # insane
             self.houses_properties = [
@@ -94,8 +94,8 @@ class Game:
             d = shelve.open(file)
             keylist = d.keys()
             if len(keylist) != 0:
-                for a in keylist:
-                    print("key: " + a + ", data: " + str(d[a]))
+                # for a in keylist:
+                #     print("key: " + a + ", data: " + str(d[a]))
                 self.difficulty = d["difficulty"]
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
@@ -151,14 +151,14 @@ class Images:
              Images.load_image("Maja_14.png")],
             [Images.load_image("Maja_21.png"), Images.load_image("Maja_22.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_31.png"), Images.load_image("Maja_32.png"), Images.load_image("kell.png")],
-            [Images.load_image("Maja_41.png"), Images.load_image("kell.png"), Images.load_image("kell.png")],
-            [Images.load_image("Maja_51.png"), Images.load_image("kell.png"), Images.load_image("kell.png")]]
+            [Images.load_image("Maja_41.png"), Images.load_image("Maja_42.png"), Images.load_image("kell.png")],
+            [Images.load_image("Maja_51.png"), Images.load_image("Maja_52.png"), Images.load_image("kell.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png"),
                       Images.load_image("Metro_overlay.png")]
         self.menu = [[Images.load_image("urbancity_logo.png")],
                      [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
                      Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
-        self.news = [Images.load_image("Metro_train.png")]
+        self.news = [Images.load_image("Breaking_news.png")]
 
     @staticmethod
     def load_image(file):
@@ -272,27 +272,23 @@ class News:
         self.y = game.resolution[1] - game.resolution[1] / 3
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.presenttxt = "General txt"
-        self.drawdata = [(255, 255, 255), 16]
+        self.drawdata = [(0, 0, 0), 20]
         self.drawing = False
-        self.counter = 500
-        self.speed = 5
-        # illustraatori andmed
-        # w = 812
-        # h = 112
-        # y = 528
+        self.counter = 1800
+        self.speed = 10
 
     def present(self, eventtype):
         pygame.time.set_timer(pygame.USEREVENT+2, 25)
         if eventtype == "bad":
-            self.presenttxt = "Terrorists have blown up your money reserves!"
+            self.presenttxt = "Terrorists have blown up the city's money reserves!"
         elif eventtype == "good":
-            self.presenttxt = "A raindeer has been spotted by the local bank!"
+            self.presenttxt = "A reindeer has been spotted by the local bank!"
         self.drawing = True
-        self.counter = 500
+        self.counter = 1800
 
     def update(self):
         if self.drawing:
-            if self.x + self.w < self.w:
+            if self.x + self.w < self.w - 5:
                 self.x += self.speed
             else:
                 self.drawing = False
@@ -302,16 +298,15 @@ class News:
                     self.x -= self.speed
                 else:
                     pygame.time.set_timer(pygame.USEREVENT+2, 0)
-                    self.counter = 500
+                    self.counter = 1800
             else:
                 self.counter -= self.speed
 
     def draw(self, game):
         if self.x + self.w > 0:
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-            pygame.draw.rect(self.surface, (204, 0, 0), self.rect)
-            # self.surface.blit(self.image, self.rect)
-            Methods.draw_obj_middle(game, self.presenttxt, (self.x, self.y), 0, (self.w, self.h), self.drawdata)
+            self.surface.blit(self.image, self.rect)
+            Methods.draw_obj_middle(game, self.presenttxt, (self.x, self.y), (0, 50), (791, 42), self.drawdata)
 
 
 class House:
@@ -324,18 +319,16 @@ class House:
             # ajutine randtype määramine
             if self.sizetype == 0:  # 1 tüüpi on 4 maja
                 self.randtype = randint(0, 3)
-            elif self.sizetype == 3 or self.sizetype == 4:  # 4,5 tüüpi on 2 puudu
-                self.randtype = 0
-            elif self.sizetype == 2 or self.sizetype == 1:  # 2 ja 3 tüüpi maju on 1 puudu
+            elif 0 < self.sizetype <= 4:  # 2,3,4,5 tüüpi on 1 puudu
                 self.randtype = randint(0, 1)
-                if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
-                    self.last_randtype = game.houses[sizetype][-1].randtype
-                    self.last2_randtype = game.houses[sizetype][-2].randtype
-                    if self.randtype == self.last_randtype and self.randtype == self.last2_randtype:
-                        if self.randtype == 0:
-                            self.randtype = 1
-                        else:
-                            self.randtype = 0
+            if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
+                self.last_randtype = game.houses[sizetype][-1].randtype
+                self.last2_randtype = game.houses[sizetype][-2].randtype
+                if self.randtype == self.last_randtype == self.last2_randtype:
+                    if self.sizetype == 0:  # 1 tüüpi on 4 maja
+                        self.randtype = randint(0, 3)
+                    elif 0 < self.sizetype <= 4:  # 2,3,4,5 tüüpi on 1 puudu
+                        self.randtype = randint(0, 1)
         else:
             self.randtype = randtype
         self.surface = game.screen
@@ -347,7 +340,6 @@ class House:
             self.x += game.houses_types[house.sizetype][0][1][house.randtype]
         self.y = game.houses_types[self.sizetype][1][self.randtype] + game.resolution[1] - 720
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        print(self.randtype, self.y)
 
     def draw(self, game):
         if self.x < game.resolution[0]:
@@ -550,7 +542,7 @@ class Menu:
         self.y = [200, 200, 280, 280, 280]
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
-        self.is_highlighted_button = 3
+        self.is_highlighted_button = game.difficulty + 2
         for i in range(self.button_amount):
             self.buttons.append(MenuButton(
                 game, (self.xmodifier[i], game.resolution[1] * self.y[i] / 720), self.sizetype[i], i, self.names[i]))
@@ -603,12 +595,13 @@ class MenuButton:
     def mouse_click_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
             if self.stype == 0:
-                game.initialize_game(game)
+                game.initialize_game(game, "new")
                 game.menu_running = False
             elif self.stype == 1:
                 if game.bar_amounts[0] == 0 and game.bar_amounts[0] == 0:
                     pass
                 else:
+                    game.initialize_game(game, "load")
                     game.menu_running = False
             else:
                 game.difficulty = self.stype - 2
