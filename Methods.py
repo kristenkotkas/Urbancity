@@ -63,10 +63,13 @@ def update_game(game):
     for button in game.right_buttons + game.left_buttons:
         button.draw(game, button.mouse_hover_check(x, y))
     game.bar.update(game)
+    game.news.draw(game)
     for event in pygame.event.get():
         if event.type == pygame.USEREVENT+1:
             game.bar.calculate_manual_income()
-        if event.type == pygame.QUIT:
+        elif event.type == pygame.USEREVENT+2:
+            game.news.update()
+        elif event.type == pygame.QUIT:
             game.running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -77,11 +80,11 @@ def update_game(game):
                 game.bar.income_manual_data.append((manual_income, game.bar.income_manual_time))
                 a = randint(1, 800)
                 if a == 1:
-                    print("space event, cash / 50")
                     game.bar.money /= 50
+                    game.news.present("bad")
                 elif a == 800:
-                    print("space event, cash * 10")
                     game.bar.money *= 10
+                    game.news.present("good")
             elif event.key == pygame.K_k:  # cheating
                 game.bar.money += game.bar.money * 133700
             elif event.key == pygame.K_l:  # cheating
@@ -107,7 +110,7 @@ def create_house(game, sizetype, randtype):
 
 
 def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata):
-    # tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, omadused
+    # "game obj", tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused
     if inner_relative_xy == 0:
         inner_obj_xy = main_obj_xy
     else:

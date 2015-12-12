@@ -44,6 +44,7 @@ class Game:
         self.left_drawer = None
         self.metro = None
         self.menu = None
+        self.news = None
 
     def initialize_menu(self, game):
         self.images = Images()
@@ -67,6 +68,7 @@ class Game:
         self.right_button_amounts = [0, 0, 0, 0, 0]
         self.bar_amounts = [0, 0, 0]
         self.bar = Bar(game)
+        self.news = News(game)
         for sizetype in range(5):
             self.right_buttons.append(RightButton(game, sizetype))
             self.left_buttons.append(LeftButton(game, sizetype))
@@ -156,6 +158,7 @@ class Images:
         self.menu = [[Images.load_image("urbancity_logo.png")],
                      [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
                      Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
+        self.news = [Images.load_image("Metro_train.png")]
 
     @staticmethod
     def load_image(file):
@@ -231,8 +234,9 @@ class Metro:
 
     # näiteks 1000ms jooksul peab edasi liikuma 100px ehk 1ms jooksul 0.1px
     # frame ajad 60 50 110 20 80 90 230 70 290
-    # konstantselt peab edasi liikuma, kui eelmise frame peale l2ks kauem aega siis j2rgmine frame peab selle v2rra rohkem liikuma
-    #
+    # konstantselt peab edasi liikuma,
+    # kui eelmise frame peale l2ks kauem aega siis j2rgmine frame peab selle v2rra rohkem liikuma
+
     def calculate_speed(self, game):
         self.speed = 0.1 * game.tick
         # print(game.tick)
@@ -256,6 +260,58 @@ class Metro:
                 self.arearect.w = self.trainw
                 self.counter = 0
         self.surface.blit(self.image_train, self.trainrect, self.arearect)
+
+
+class News:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.news[0]
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.x = -self.w
+        self.y = game.resolution[1] - game.resolution[1] / 3
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.presenttxt = "General txt"
+        self.drawdata = [(255, 255, 255), 16]
+        self.drawing = False
+        self.counter = 500
+        self.speed = 5
+        # illustraatori andmed
+        # w = 812
+        # h = 112
+        # y = 528
+
+    def present(self, eventtype):
+        pygame.time.set_timer(pygame.USEREVENT+2, 25)
+        if eventtype == "bad":
+            self.presenttxt = "Terrorists have blown up your money reserves!"
+        elif eventtype == "good":
+            self.presenttxt = "A raindeer has been spotted by the local bank!"
+        self.drawing = True
+        self.counter = 500
+
+    def update(self):
+        if self.drawing:
+            if self.x + self.w < self.w:
+                self.x += self.speed
+            else:
+                self.drawing = False
+        else:
+            if self.counter < 0:
+                if self.x + self.w > 0:
+                    self.x -= self.speed
+                else:
+                    pygame.time.set_timer(pygame.USEREVENT+2, 0)
+                    self.counter = 500
+            else:
+                self.counter -= self.speed
+
+    def draw(self, game):
+        if self.x + self.w > 0:
+            self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+            pygame.draw.rect(self.surface, (204, 0, 0), self.rect)
+            # self.surface.blit(self.image, self.rect)
+            Methods.draw_obj_middle(game, self.presenttxt, (self.x, self.y), 0, (self.w, self.h), self.drawdata)
 
 
 class House:
