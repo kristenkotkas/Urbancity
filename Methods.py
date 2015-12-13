@@ -1,7 +1,6 @@
 import pygame
 import os.path
 from random import randint
-from Classes import House
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -57,7 +56,6 @@ def update_game(game):
     game.left_drawer.mouse_hover_check(game, x, y)
     for button in game.right_buttons + game.left_buttons:
         button.draw(game, button.mouse_hover_check(x, y))
-    game.bar.calculate_auto_income(game)
     game.bar.update(game)
     game.news.draw(game)
     for event in pygame.event.get():
@@ -107,12 +105,8 @@ def blursurface(game, amount):  # amount > 1.0
     game.screen.blit(screen, (0, 0))
 
 
-def create_house(game, sizetype, randtype, people):
-    game.houses[sizetype].append(House(game, sizetype, randtype, people))
-
-
 def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
-    # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused
+    # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
     if inner_relative_xy == 0:
         inner_obj_xy = main_obj_xy
     else:
