@@ -112,7 +112,7 @@ def create_house(game, sizetype, randtype, people):
 
 
 def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
-    # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused
+    # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
     if inner_relative_xy == 0:
         inner_obj_xy = main_obj_xy
     else:
