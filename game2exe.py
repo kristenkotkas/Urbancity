@@ -1,9 +1,14 @@
-import cx_Freeze
+from cx_Freeze import setup, Executable
 
-cx_Freeze.setup(
-    name = "Urbancity",
-    options = {"build_exe":
-                   {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
-                    "include_files": ["data/", "Classes.py", "Methods.py"]}},
-    executables = [cx_Freeze.Executable("Main.py")]
+target = Executable(
+    script="Main.py"
+)
+
+options = {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
+           "include_files": ["data/", "Classes.py", "Methods.py"]}
+
+setup(
+    name="Urbancity",
+    options={"build_exe": options},
+    executables=[target]
 )
