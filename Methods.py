@@ -8,7 +8,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 def update_menu(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
-    game.metro.draw(game)
+    game.metro.draw()
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -40,7 +40,7 @@ def update_menu(game):
 def update_game(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
-    game.metro.draw(game)
+    game.metro.draw()
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -57,6 +57,7 @@ def update_game(game):
     game.left_drawer.mouse_hover_check(game, x, y)
     for button in game.right_buttons + game.left_buttons:
         button.draw(game, button.mouse_hover_check(x, y))
+    game.bar.calculate_auto_income(game)
     game.bar.update(game)
     game.news.draw(game)
     for event in pygame.event.get():
@@ -91,6 +92,7 @@ def update_game(game):
                 game.bar.money *= 10
                 game.news.present("good")
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            print(x, y)
             for button in game.right_buttons + game.left_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))
@@ -105,12 +107,12 @@ def blursurface(game, amount):  # amount > 1.0
     game.screen.blit(screen, (0, 0))
 
 
-def create_house(game, sizetype, randtype):
-    game.houses[sizetype].append(House(game, sizetype, randtype))
+def create_house(game, sizetype, randtype, people):
+    game.houses[sizetype].append(House(game, sizetype, randtype, people))
 
 
-def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata):
-    # "game obj", tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused
+def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
+    # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused
     if inner_relative_xy == 0:
         inner_obj_xy = main_obj_xy
     else:
@@ -120,12 +122,19 @@ def draw_obj_middle(game, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, dra
     if isinstance(obj, str) or isinstance(obj, int):
         if isinstance(obj, int):
             obj = str(format(obj, ",d"))
+            if end == 1:
+                obj += " €"
+            elif end == 2:
+                obj += " €/s"
         txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
         final_obj = txt_font.render(obj, True, drawdata[0])
         final_obj_size = txt_font.size(obj)
     else:
         final_obj = obj
         final_obj_size = final_obj.get_rect().size
-    final_obj_xy = (inner_obj_xy[0] + (inner_obj_wh[0] - final_obj_size[0]) / 2, inner_obj_xy[1] +
-                    (inner_obj_wh[1] - final_obj_size[1]) / 2)
+    if middle:
+        final_obj_xy = (inner_obj_xy[0] + (inner_obj_wh[0] - final_obj_size[0]) / 2, inner_obj_xy[1] +
+                        (inner_obj_wh[1] - final_obj_size[1]) / 2)
+    else:
+        final_obj_xy = (inner_obj_xy[0], inner_obj_xy[1])
     game.screen.blit(final_obj, final_obj_xy)

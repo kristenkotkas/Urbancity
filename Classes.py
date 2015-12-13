@@ -3,6 +3,7 @@ import Methods
 import os.path
 import shelve
 from random import randint
+
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -18,20 +19,19 @@ class Game:
         self.menu_running = True
         self.difficulty = 1
         self.tick = 0
-        self.house_multiplier = 1.15
         self.left_buttons = []
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
-        self.right_button_names = ["Tüüp 1", "Tüüp 2", "Tüüp 3", "Tüüp 4", "Tüüp 5"]
+        self.right_button_names = ["Dwelling", "Low-end", "Luxury", "High-end", "Skyscraper"]
         # houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y from bottom])
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
-                             ([5, [90, 96, 0]], [340, 335, 0]),
-                             ([-30, [103, 96, 0]], [255, 255, 0]),
+                             ([5, [90, 96, 242]], [340, 335, 328]),
+                             ([-30, [103, 96, 170]], [255, 255, 250]),
                              ([-10, [130, 180, 0]], [115, 130, 0]),
                              ([-40, [170, 135, 0]], [73, 59, 0])]
-        self.houses_properties = None
-        self.right_button_prices_fixed = None
+        self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
+        self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
@@ -77,7 +77,7 @@ class Game:
         # houses_properties = sizetype(people, per people modifier, minpeople)
         if difficulty == 0:  # easy
             self.houses_properties = [
-                (200, 0.2, 0), (900, 0.4, 1200), (2560, 1, 7680), (7200, 1.8, 10800), (13500, 6, 24000)]
+                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 4000), (7200, 1.8, 10800), (13500, 6, 24000)]
             self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
             self.houses_properties = [
@@ -125,12 +125,12 @@ class Game:
         self.houses_states = [[], [], [], [], []]
         for sizetype in self.houses:
             for house in sizetype:
-                self.houses_states[house.sizetype].append([house.sizetype, house.randtype])
+                self.houses_states[house.sizetype].append([house.sizetype, house.randtype, house.people])
 
     def set_loaded_states(self, game):
         for sizetype in self.houses_states:
             for house in sizetype:
-                Methods.create_house(game, house[0], house[1])
+                Methods.create_house(game, house[0], house[1], house[2])
 
 
 class Images:
@@ -149,15 +149,15 @@ class Images:
         self.houses = [
             [Images.load_image("Maja_11.png"), Images.load_image("Maja_12.png"), Images.load_image("Maja_13.png"),
              Images.load_image("Maja_14.png")],
-            [Images.load_image("Maja_21.png"), Images.load_image("Maja_22.png"), Images.load_image("kell.png")],
-            [Images.load_image("Maja_31.png"), Images.load_image("Maja_32.png"), Images.load_image("kell.png")],
+            [Images.load_image("Maja_21.png"), Images.load_image("Maja_22.png"), Images.load_image("Maja_23.png")],
+            [Images.load_image("Maja_31.png"), Images.load_image("Maja_32.png"), Images.load_image("Maja_33.png")],
             [Images.load_image("Maja_41.png"), Images.load_image("Maja_42.png"), Images.load_image("kell.png")],
             [Images.load_image("Maja_51.png"), Images.load_image("Maja_52.png"), Images.load_image("kell.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png"),
                       Images.load_image("Metro_overlay.png")]
         self.menu = [[Images.load_image("urbancity_logo.png")],
                      [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
-                     Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
+                      Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
         self.news = [Images.load_image("Breaking_news.png")]
 
     @staticmethod
@@ -221,27 +221,19 @@ class Metro:
         self.trainrect = pygame.Rect(self.metrox, self.metroy + 50, self.trainw, self.trainh)
         self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
         self.counter = 0
-        self.speed = 0  # 4
+        self.speed = 4  # 4
         self.time_from_beginning = 0
+        pygame.time.set_timer(pygame.USEREVENT + 3, 100)
 
-    def draw(self, game):
+    def draw(self):
         self.draw_metro_background()
-        self.calculate_speed(game)
+        self.update_metro()
         self.draw_moving_metro()
 
     def draw_metro_background(self):
         self.surface.blit(self.image_metro, self.metrorect)
 
-    # näiteks 1000ms jooksul peab edasi liikuma 100px ehk 1ms jooksul 0.1px
-    # frame ajad 60 50 110 20 80 90 230 70 290
-    # konstantselt peab edasi liikuma,
-    # kui eelmise frame peale l2ks kauem aega siis j2rgmine frame peab selle v2rra rohkem liikuma
-
-    def calculate_speed(self, game):
-        self.speed = 0.1 * game.tick
-        # print(game.tick)
-
-    def draw_moving_metro(self):
+    def update_metro(self):
         # kui rongi parem pool pole metro paremast poolest möödunud
         if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
             # kui rong pole välja joonistatud
@@ -259,6 +251,8 @@ class Metro:
                 self.arearect.x = self.trainw
                 self.arearect.w = self.trainw
                 self.counter = 0
+
+    def draw_moving_metro(self):
         self.surface.blit(self.image_train, self.trainrect, self.arearect)
 
 
@@ -278,11 +272,11 @@ class News:
         self.speed = 10
 
     def present(self, eventtype):
-        pygame.time.set_timer(pygame.USEREVENT+2, 25)
+        pygame.time.set_timer(pygame.USEREVENT + 2, 10)
         if eventtype == "bad":
-            self.presenttxt = "Terrorists have blown up the city's money reserves!"
+            self.presenttxt = "Terrorists have blown up the city's money reserves!".upper()
         elif eventtype == "good":
-            self.presenttxt = "A reindeer has been spotted by the local bank!"
+            self.presenttxt = "A reindeer has been spotted by the local bank!".upper()
         self.drawing = True
         self.counter = 1800
 
@@ -297,7 +291,7 @@ class News:
                 if self.x + self.w > 0:
                     self.x -= self.speed
                 else:
-                    pygame.time.set_timer(pygame.USEREVENT+2, 0)
+                    pygame.time.set_timer(pygame.USEREVENT + 2, 0)
                     self.counter = 1800
             else:
                 self.counter -= self.speed
@@ -306,29 +300,33 @@ class News:
         if self.x + self.w > 0:
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
             self.surface.blit(self.image, self.rect)
-            Methods.draw_obj_middle(game, self.presenttxt, (self.x, self.y), (0, 50), (791, 42), self.drawdata)
+            Methods.draw_obj(game, False, self.presenttxt, (self.x, self.y), (135, 60), 0, self.drawdata, 0)
 
 
 class House:
-    def __init__(self, game, sizetype, randtype):
+    def __init__(self, game, sizetype, randtype, people):
         self.sizetype = sizetype
+        self.peoplemax = game.houses_properties[self.sizetype][0]
+        self.people = people
         if randtype is None:
-            self.people = game.houses_properties[self.sizetype][0]
-            game.bar.calculate_houses_income(game, self.sizetype, game.houses_properties[self.sizetype][0], 0, 0)
             game.bar.people += self.people
             # ajutine randtype määramine
             if self.sizetype == 0:  # 1 tüüpi on 4 maja
                 self.randtype = randint(0, 3)
-            elif 0 < self.sizetype <= 4:  # 2,3,4,5 tüüpi on 1 puudu
+            elif 2 < self.sizetype:  # 2,4,5 tüüpi on 1 puudu
                 self.randtype = randint(0, 1)
+            else:  # tüüp 2,3
+                self.randtype = randint(0, 2)
             if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
                 self.last_randtype = game.houses[sizetype][-1].randtype
                 self.last2_randtype = game.houses[sizetype][-2].randtype
                 if self.randtype == self.last_randtype == self.last2_randtype:
                     if self.sizetype == 0:  # 1 tüüpi on 4 maja
                         self.randtype = randint(0, 3)
-                    elif 0 < self.sizetype <= 4:  # 2,3,4,5 tüüpi on 1 puudu
+                    elif 2 < self.sizetype:  # 4,5 tüüpi on 1 puudu
                         self.randtype = randint(0, 1)
+                    else:  # tüüp 2,3
+                        self.randtype = randint(0, 2)
         else:
             self.randtype = randtype
         self.surface = game.screen
@@ -370,24 +368,20 @@ class Cloud:
 class LeftDrawer:
     def __init__(self, game):
         self.surface = game.screen
-        self.minx = 20
-        self.maxx = 160
-        self.x = self.minx
+        self.x = 0
         self.y = 0
-        self.w = 170
+        self.w = 280
         self.h = game.resolution[1]
-        self.rect = pygame.Rect(0, self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     def mouse_hover_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
-            if self.x < self.maxx:
-                self.x += 20
-                for button in game.left_buttons:
+            for button in game.left_buttons:
+                if button.x < button.maxx:
                     button.x += 20
         else:
-            if self.x > self.minx:
-                self.x -= 20
-                for button in game.left_buttons:
+            for button in game.left_buttons:
+                if button.x > button.minx:
                     button.x -= 20
 
 
@@ -420,54 +414,81 @@ class LeftButton:
         self.surface = game.screen
         self.sizetype = sizetype
         self.drawdata = [(255, 255, 255), 14]
-        if self.sizetype == 0:
+        if self.sizetype < 3:
             self.image_regular = game.images.left_button[2]
             self.image_minus = game.images.left_button[3]
             self.image_plus = game.images.left_button[4]
+            self.y = 15 + 45 * self.sizetype
+            self.taxtxt = game.bar.taxes[self.sizetype][0]
         else:
             self.image_regular = game.images.left_button[0]
             self.image_highlighted = game.images.left_button[1]
+            self.y = 155 + 75 * (self.sizetype - 3)
         self.w = self.image_regular.get_rect().w
         self.h = self.image_regular.get_rect().h
         self.x = 20 - self.w
-        self.y = 15 + 75 * self.sizetype
-        if self.sizetype == 0:
-            self.minusrect = pygame.Rect(self.x + 30, self.y + 50, 20, 20)
-            self.plusrect = pygame.Rect(self.x + 90, self.y + 50, 20, 20)
-        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        if self.sizetype < 3:
+            self.x = 135 - self.w
+        else:
+            self.x = 20 - self.w
+        self.minx = self.x
+        self.maxx = 0
+        self.clickxminus = 206
+        self.clickxplus = 234
+        self.clicky = self.y + 7
+        self.clickw = 25
+        self.clickh = 20
 
     def draw(self, game, is_highlighted):
-        if self.sizetype != 0 and is_highlighted:
+        if self.sizetype >= 3 and is_highlighted:
             self.surface.blit(self.image_highlighted, (self.x, self.y))
-        elif self.sizetype == 0:
+        elif self.sizetype < 3:
             if is_highlighted == "minus":
                 self.surface.blit(self.image_minus, (self.x, self.y))
             elif is_highlighted == "plus":
                 self.surface.blit(self.image_plus, (self.x, self.y))
-            elif is_highlighted == 0:
+            else:
                 self.surface.blit(self.image_regular, (self.x, self.y))
+            Methods.draw_obj(game, True, self.taxtxt, (self.x, self.y), (10, 7), (132, 20), self.drawdata, 0)
+            Methods.draw_obj(game, True, str(game.bar.taxes[self.sizetype][1]) + "%",
+                             (self.x, self.y), (149, 7), (52, 20), self.drawdata, 0)
         else:
             self.surface.blit(self.image_regular, (self.x, self.y))
 
     def mouse_click_check(self, game, x, y):
-        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        if self.rect.collidepoint(x, y):
-            print("left button clicked", self.sizetype, self.w)
+        if self.sizetype < 3:
+            rects = [pygame.Rect(self.x + self.clickxminus, self.clicky, self.clickw, self.clickh),
+                     pygame.Rect(self.x + self.clickxplus, self.clicky, self.clickw, self.clickh)]
+        else:
+            rects = [pygame.Rect(self.x, self.y, self.w, self.h)]
+        for rect in rects:
+            if rect.collidepoint(x, y):
+                if self.sizetype < 3:
+                    if rects.index(rect) == 1:
+                        if game.bar.taxes[self.sizetype][1] < 100:
+                            game.bar.taxes[self.sizetype][1] += 5
+                    else:
+                        if game.bar.taxes[self.sizetype][1] > 0:
+                            game.bar.taxes[self.sizetype][1] -= 5
+                else:
+                    pass
+                    # buy upgrade here
 
     def mouse_hover_check(self, x, y):
-        if self.sizetype == 0:
-            self.minusrect = pygame.Rect(self.x + 30, self.y + 40, 38, 20)
-            self.plusrect = pygame.Rect(self.x + 90, self.y + 40, 38, 20)
-            if self.minusrect.collidepoint(x, y):
-                return "minus"
-            elif self.plusrect.collidepoint(x, y):
-                return "plus"
-            else:
-                return 0
+        if self.sizetype < 3:
+            rects = [pygame.Rect(self.x + self.clickxminus, self.clicky, self.clickw, self.clickh),
+                     pygame.Rect(self.x + self.clickxplus, self.clicky, self.clickw, self.clickh)]
         else:
-            self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-            if self.rect.collidepoint(x, y):
-                return True
+            rects = [pygame.Rect(self.x, self.y, self.w, self.h)]
+        for rect in rects:
+            if rect.collidepoint(x, y):
+                if self.sizetype < 3:
+                    if rects.index(rect) == 0:
+                        return "minus"
+                    elif rects.index(rect) == 1:
+                        return "plus"
+                else:
+                    return True
 
 
 class RightButton:
@@ -503,14 +524,16 @@ class RightButton:
                     self.surface.blit(self.image_available, (self.x, self.y))
             else:
                 self.surface.blit(self.image_unavailable, (self.x, self.y))
-            Methods.draw_obj_middle(game, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata)
-            Methods.draw_obj_middle(game, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata)
-            Methods.draw_obj_middle(game, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256), self.drawdata)
-            Methods.draw_obj_middle(game, self.people, (self.x, self.y), (71, 35), (47.25, 19.256), self.drawdata)
-            Methods.draw_obj_middle(game, self.peopletotal, (self.x, self.y), (119, 34.394), (76, 19.256),
-                                    self.drawdata)
-            Methods.draw_obj_middle(game, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256),
-                                    self.drawdata)
+            Methods.draw_obj(game, True, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata, 0)
+            Methods.draw_obj(
+                game, True, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata, 0)
+            Methods.draw_obj(
+                game, True, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256), self.drawdata, 0)
+            Methods.draw_obj(game, True, self.people, (self.x, self.y), (77, 35), (44, 19.256), self.drawdata, 0)
+            Methods.draw_obj(
+                game, True, self.peopletotal, (self.x, self.y), (132, 34.394), (63, 19.256), self.drawdata, 0)
+            Methods.draw_obj(game, True, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256),
+                             self.drawdata, 1)
         else:
             if game.bar.people >= game.houses_properties[self.sizetype][2]:
                 self.hidden = False
@@ -523,8 +546,9 @@ class RightButton:
                     game.bar.money -= self.price
                     self.amount += 1
                     self.peopletotal += self.people
-                    self.price = game.right_button_prices_fixed[self.sizetype] * game.house_multiplier ** self.amount
-                    Methods.create_house(game, self.sizetype, None)
+                    self.price = game.right_button_prices_fixed[
+                                     self.sizetype] * game.bar.house_multiplier ** self.amount
+                    Methods.create_house(game, self.sizetype, None, game.houses_properties[self.sizetype][0])
 
     def mouse_hover_check(self, x, y):
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
@@ -586,7 +610,8 @@ class MenuButton:
             self.surface.blit(self.image_highlighted, self.rect)
         else:
             self.surface.blit(self.image, self.rect)
-        Methods.draw_obj_middle(game, self.name, (self.rect.x, self.rect.y - 3), 0, (self.w, self.h), self.drawdata)
+        Methods.draw_obj(
+            game, True, self.name, (self.rect.x, self.rect.y - 3), 0, (self.w, self.h), self.drawdata, 0)
 
     def mouse_hover_check(self, x, y):
         if self.rect.collidepoint(x, y):
@@ -625,10 +650,11 @@ class Bar:
         self.income_manual = 0
         self.income_manual_time = 0
         self.income_manual_data = []
-        pygame.time.set_timer(pygame.USEREVENT+1, 100)
-        self.objxy = ((19.591, 254.095, 488.6), 7.413)
-        self.objwh = (148, 21.621)
-        self.objh = 21.621
+        self.house_multiplier = 1.15
+        self.taxes = [["Beard Tax", 0], ["Goat Tax", 0], ["Weed Tax", 0]]
+        pygame.time.set_timer(pygame.USEREVENT + 1, 100)
+        self.objxy = ([19, 204, 469], 7)
+        self.objwh = ([170, 249], 21.621)
 
     def update(self, game):
         self.calculate_money(game)
@@ -648,14 +674,19 @@ class Bar:
         else:
             self.income_manual = 0
 
-    @staticmethod
-    def calculate_houses_income(game, sizetype, people, tax, special):
-        per_people = 1.15 * game.houses_properties[sizetype][1]
-        from_people = people * per_people
+    def calculate_auto_income(self, game):
+        income = 0
+        tax = 0
+        special = 0
         per_special = 1
         from_special = special * per_special
-        taxed_income = (from_people + from_special) * (1 + tax / 100)
-        game.bar.income += taxed_income
+        for taxtype in game.bar.taxes:
+            tax += taxtype[1]
+        for sizetype in game.houses:
+            for house in sizetype:
+                income += house.people * game.bar.house_multiplier * game.houses_properties[house.sizetype][1]
+        taxed_income = (income + from_special) * (1 + tax / 100)
+        self.income = taxed_income
 
     def calculate_money(self, game):
         self.time_from_beginning += game.tick
@@ -669,9 +700,10 @@ class Bar:
 
     def draw(self, game):
         self.surface.blit(self.image, (self.x, self.y))
-        Methods.draw_obj_middle(game, self.people, (self.x, self.y),
-                                (self.objxy[0][0], self.objxy[1]), self.objwh, self.drawdata)
-        Methods.draw_obj_middle(game, round(self.money), (self.x, self.y),
-                                (self.objxy[0][1], self.objxy[1]), self.objwh, self.drawdata)
-        Methods.draw_obj_middle(game, round(self.income + self.income_manual), (self.x, self.y),
-                                (self.objxy[0][2], self.objxy[1]), self.objwh, self.drawdata)
+        Methods.draw_obj(game, True, self.people, (self.x, self.y),
+                         (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]), self.drawdata, 0)
+        Methods.draw_obj(game, True, round(self.money), (self.x, self.y),
+                         (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]), self.drawdata, 1)
+        Methods.draw_obj(game, True, round(self.income + self.income_manual),
+                         (self.x, self.y), (self.objxy[0][2], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
+                         self.drawdata, 2)
