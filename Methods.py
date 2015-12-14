@@ -99,6 +99,13 @@ def blursurface(game, amount):  # amount > 1.0
     game.screen.blit(screen, (0, 0))
 
 
+def calculate_percentage(game, price):
+    if game.bar.money == 0:
+        return 0
+    percentage = game.bar.money / price * 100
+    return percentage
+
+
 def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
     # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
     if inner_relative_xy == 0:
@@ -110,10 +117,8 @@ def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, dr
     if isinstance(obj, str) or isinstance(obj, int):
         if isinstance(obj, int):
             obj = str(format(obj, ",d"))
-            if end == 1:
-                obj += " €"
-            elif end == 2:
-                obj += " €/s"
+            if end != 0:
+                obj += end
         txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
         final_obj = txt_font.render(obj, True, drawdata[0])
         final_obj_size = txt_font.size(obj)

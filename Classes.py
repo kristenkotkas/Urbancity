@@ -172,7 +172,9 @@ class Images:
                                    Images.load_image("House_5_logo.png")]
         self.left_button = [Images.load_image("Tax.png"), Images.load_image("Tax_hover_minus.png"),
                             Images.load_image("Tax_hover_plus.png")]
-        self.upgrade_button = [Images.load_image("Upgrade.png"), Images.load_image("Upgrade_hover.png")]
+        self.upgrade_button = [Images.load_image("Upgrade_available.png"),
+                               Images.load_image("Upgrade_available_hover.png"),
+                               Images.load_image("Upgrade_available_hover.png")]
         self.bar = Images.load_image("Bar.png")
         self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
                      Images.load_image("Pipe.png")]
@@ -387,7 +389,7 @@ class House:
 
     def draw(self, game):
         if self.x < game.resolution[0]:
-            if self.drawnout or game.menu_running:
+            if self.drawnout:  # todo or game.menu_running
                 self.surface.blit(self.image, (self.x, self.y))
             else:
                 if self.arearect.y > 0:
@@ -442,12 +444,12 @@ class LeftDrawer:
     def mouse_hover_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
             for button in game.tax_buttons + game.upgrade_buttons:
-                if not button.animateout:
+                if not button.animateout and not button.animatein:
                     if button.x < button.maxx:
                         button.x += 20
         else:
             for button in game.tax_buttons + game.upgrade_buttons:
-                if not button.animateout:
+                if not button.animateout and not button.animatein:
                     if button.x > button.minx:
                         button.x -= 20
 
@@ -455,25 +457,23 @@ class LeftDrawer:
 class RightDrawer:
     def __init__(self, game):
         self.surface = game.screen
-        self.minx = game.resolution[0] - 220
-        self.maxx = game.resolution[0] - 20
-        self.x = self.maxx
+        self.x = game.resolution[0] - 220
         self.y = 0
-        self.w = game.resolution[0] - self.minx
+        self.w = game.resolution[0] - self.x
         self.h = game.resolution[1]
-        self.rect = pygame.Rect(self.minx, self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     def mouse_hover_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
-            if self.x > self.minx:
-                self.x -= 20
-                for button in game.right_buttons:
-                    button.x -= 20
+            for button in game.right_buttons:
+                if not button.animatein:
+                    if button.x > button.minx:
+                        button.x -= 20
         else:
-            if self.x < self.maxx:
-                self.x += 20
-                for button in game.right_buttons:
-                    button.x += 20
+            for button in game.right_buttons:
+                if not button.animatein:
+                    if button.x < button.maxx:
+                        button.x += 20
 
 
 class UpgradeButton:
@@ -481,19 +481,22 @@ class UpgradeButton:
         self.active = True
         self.index = index
         self.surface = game.screen
-        self.drawdata = [(255, 255, 255), 14]
-        self.image_regular = game.images.upgrade_button[0]
-        self.image_highlighted = game.images.upgrade_button[1]
+        self.drawdata = [(255, 255, 255), 14, " €"]
+        self.image_available = game.images.upgrade_button[0]
+        self.image_unavailable = game.images.upgrade_button[1]
+        self.image_highlighted = game.images.upgrade_button[2]
         self.miny = 155 + 75 * index
-        self.y = game.resolution[1]
-        self.w = self.image_regular.get_rect().w
-        self.h = self.image_regular.get_rect().h
-        self.x = 20 - self.w
-        self.minx = self.x
+        self.y = 155 + 75 * index
+        self.w = self.image_available.get_rect().w
+        self.h = self.image_available.get_rect().h
+        self.x = -self.w
+        self.minx = 20 - self.w
         self.maxx = 0
         self.animatein = True
+        self.animatemove = False
         self.animateout = False
-        self.animateoutx = -self.w
+        self.animateminx = -self.w
+        self.animatecounter = 150
         self.name = name
         for item in game.upgrades:
             if item[0] == self.name:
@@ -502,23 +505,44 @@ class UpgradeButton:
                 self.reward = item[2][1]
 
     def draw(self, game, is_highlighted):
-        if self.animatein:
+        if self.animatemove:
             if self.y > self.miny:
                 self.y -= 10
             else:
-                self.animatein = False
+                self.animatemove = False
+        elif self.animatein:
+            if game.bar.startcounter > 0:
+                if self.x < self.minx:
+                    self.x += 2
+                else:
+                    self.animatein = False
+            else:
+                if self.x < self.maxx:
+                    self.x += 10
+                elif self.animatecounter > 0:
+                    self.animatecounter -= 1
+                else:
+                    self.animatein = False
         elif self.animateout:
-            if self.x > self.animateoutx:
+            if self.x > self.animateminx:
                 self.x -= 10
             else:
                 self.animateout = False
                 self.active = False
-        if is_highlighted:
-            self.surface.blit(self.image_highlighted, (self.x, self.y))
+        if game.bar.money >= self.cost:
+            if is_highlighted:
+                self.surface.blit(self.image_highlighted, (self.x, self.y))
+            else:
+                self.surface.blit(self.image_available, (self.x, self.y))
         else:
-            self.surface.blit(self.image_regular, (self.x, self.y))
+            percentage = Methods.calculate_percentage(game, self.cost)
+            self.surface.blit(self.image_unavailable,
+                              pygame.Rect(self.x + self.w / 100 * percentage, self.y, self.w, self.h),
+                              pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
+            self.surface.blit(self.image_available, (self.x, self.y),
+                              pygame.Rect(0, 0, self.w / 100 * percentage, self.h))
         Methods.draw_obj(game, True, self.name, (self.x, self.y), (10, 7), (132, 20), self.drawdata, 0)
-        Methods.draw_obj(game, True, self.cost, (self.x, self.y), (12, 35), (77, 20), self.drawdata, 1)
+        Methods.draw_obj(game, True, self.cost, (self.x, self.y), (12, 35), (77, 20), self.drawdata, self.drawdata[2])
         Methods.draw_obj(game, True, self.reward, (self.x, self.y), (97, 35), (48, 20), self.drawdata, 0)
 
     def process_location(self, game):
@@ -527,13 +551,16 @@ class UpgradeButton:
                 if game.upgrade_buttons.index(upgrade) < self.index:
                     self.index -= 1
                     self.miny = 155 + 75 * self.index
-                    self.animatein = True
+                    self.animatemove = True
 
     def mouse_click_check(self, game, x, y):
         rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if rect.collidepoint(x, y):
-            self.process_rewards(game)
-            self.animateout = True
+            if game.bar.money >= self.cost:
+                game.bar.money -= self.cost
+                self.process_rewards(game)
+                self.animateout = True
+                self.animatecounter = 0
 
     def mouse_hover_check(self, x, y):
         rect = pygame.Rect(self.x, self.y, self.w, self.h)
@@ -561,18 +588,24 @@ class TaxButton:
         self.taxtxt = game.taxes[self.sizetype][0]
         self.w = self.image_regular.get_rect().w
         self.h = self.image_regular.get_rect().h
-        self.x = 135 - self.w
+        self.minx = 155 - self.w
+        self.x = -self.w
         self.clickxminus = 206
         self.clickxplus = 234
         self.clicky = self.y + 7
         self.clickw = 25
         self.clickh = 20
-        self.minx = self.x
         self.maxx = 0
         self.active = True
+        self.animatein = True
         self.animateout = False
 
     def draw(self, game, is_highlighted):
+        if self.animatein:
+            if self.x < self.minx - 20:
+                self.x += 4
+            else:
+                self.animatein = False
         if is_highlighted == "minus":
             self.surface.blit(self.image_minus, (self.x, self.y))
         elif is_highlighted == "plus":
@@ -614,10 +647,12 @@ class RightButton:
         self.image_available = game.images.right_button[0]
         self.image_available_highlighted = game.images.right_button[1]
         self.image_unavailable = game.images.right_button[2]
-        self.drawdata = [(255, 255, 255), 14]
+        self.drawdata = [(255, 255, 255), 14, " €"]
         self.w = self.image_available.get_rect().w
         self.h = self.image_available.get_rect().h
-        self.x = game.resolution[0] - 20
+        self.x = game.resolution[0]
+        self.minx = game.resolution[0] - 220
+        self.maxx = game.resolution[0] - 20
         self.y = 15 + 100 * self.sizetype
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.logo = game.images.right_button_logos[self.sizetype]
@@ -629,18 +664,26 @@ class RightButton:
         else:
             self.price = game.right_button_prices_fixed[self.sizetype]
         self.people = game.houses_properties[self.sizetype][0]
+        self.animatein = True
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     def draw(self, game, is_highlighted):
         if not self.hidden:
+            if self.animatein:
+                if self.x > self.maxx:
+                    self.x -= 2
+                else:
+                    self.animatein = False
             if game.bar.money >= self.price:
                 if is_highlighted:
                     self.surface.blit(self.image_available_highlighted, self.rect)
                 else:
                     self.surface.blit(self.image_available, self.rect)
             else:
-                percentage = self.calculate_area_percentage(game)
-                self.surface.blit(self.image_unavailable, pygame.Rect(self.x + self.w / 100 * percentage, self.y, self.w, self.h), pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
+                percentage = Methods.calculate_percentage(game, self.price)
+                self.surface.blit(self.image_unavailable,
+                                  pygame.Rect(self.x + self.w / 100 * percentage, self.y, self.w, self.h),
+                                  pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
                 self.surface.blit(self.image_available, self.rect, pygame.Rect(0, 0, self.w / 100 * percentage, self.h))
             Methods.draw_obj(game, True, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata, 0)
             Methods.draw_obj(
@@ -651,12 +694,12 @@ class RightButton:
             Methods.draw_obj(
                 game, True, self.peopletotal, (self.x, self.y), (132, 34.394), (63, 19.256), self.drawdata, 0)
             Methods.draw_obj(game, True, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256),
-                             self.drawdata, 1)
+                             self.drawdata, self.drawdata[2])
         else:
             if game.bar.people >= game.houses_properties[self.sizetype][2]:
                 self.hidden = False
 
-    def calculate_area_percentage(self, game):
+    def calculate_percentage(self, game):
         if game.bar.money == 0:
             return 0
         percentage = game.bar.money / self.price * 100
@@ -763,7 +806,7 @@ class Bar:
         self.surface = game.screen
         self.image = game.images.bar
         self.time_from_beginning = 0
-        self.drawdata = [(255, 255, 255), 14]
+        self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = (game.resolution[0] - self.w) / 2
@@ -784,6 +827,7 @@ class Bar:
             for upgrade in game.upgrades:
                 if upgrade[0] == name:
                     game.upgrades.remove(upgrade)
+        self.startcounter = 50
         pygame.time.set_timer(pygame.USEREVENT + 1, 100)
         self.objxy = ([19, 204, 469], 7)
         self.objwh = ([170, 249], 21.621)
@@ -831,6 +875,8 @@ class Bar:
         self.time_from_beginning = 0
 
     def process_upgrades(self, game):
+        if self.startcounter > 0:
+            self.startcounter -= 1
         game.left_drawer.process_upgrade_buttons(game)
         for upgrade in game.upgrades:
             if upgrade[3][0] == "people":
@@ -857,8 +903,8 @@ class Bar:
         self.surface.blit(self.image, (self.x, self.y))
         Methods.draw_obj(game, True, self.people, (self.x, self.y),
                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]), self.drawdata, 0)
-        Methods.draw_obj(game, True, round(self.money), (self.x, self.y),
-                         (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]), self.drawdata, 1)
+        Methods.draw_obj(game, True, round(self.money), (self.x, self.y), (self.objxy[0][1], self.objxy[1]),
+                         (self.objwh[0][1], self.objwh[1]), self.drawdata, self.drawdata[2][0])
         Methods.draw_obj(game, True, round(self.income + self.income_manual),
                          (self.x, self.y), (self.objxy[0][2], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
-                         self.drawdata, 2)
+                         self.drawdata, self.drawdata[2][1])
