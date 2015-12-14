@@ -34,14 +34,14 @@ class Game:
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
         self.upgrades = [("Google Fiber", 400000, ("perspecial", 100), ("peopletotal", 2000)),
                          ("Santa Claus", 800000, ("special", 666), ("houses", 20)),
-                         ("Metro", 200000, ("unlock", "Metro"), ("income", 3000)),
+                         ("Metro", 200000, ("unlock", "Metro"), ("incometotal", 3000)),
                          ("Plumbing", 20000, ("unlock", "Pipe"), ("houses", 10))]
         self.usedupgrades = []
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
-        self.bar_amounts = [0, 0, 0, 0, 0, 1]
+        self.bar_amounts = [0, 0, 0, 0, 0, 0, 1]
         self.images = None
         self.background = None
         self.cloud = None
@@ -74,7 +74,7 @@ class Game:
             self.houses = [[], [], [], [], []]
             self.houses_states = [[], [], [], [], []]
             self.right_button_amounts = [0, 0, 0, 0, 0]
-            self.bar_amounts = [0, 0, 0, 0, 0, 1]
+            self.bar_amounts = [0, 0, 0, 0, 0, 0, 1]
             self.taxes[0][1] = self.taxes[1][1] = self.taxes[2][1] = 0
             self.usedupgrades = []
             self.metro = None
@@ -120,8 +120,8 @@ class Game:
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
                 self.right_button_prices = d["right_button_prices"]
-                self.bar_amounts = \
-                    [d["people"], d["peopletotal"], d["money"], d["income"], d["special"], d["perspecial"]]
+                self.bar_amounts = [d["people"], d["peopletotal"], d["money"], d["income"], d["incometotal"],
+                                    d["special"], d["perspecial"]]
                 self.usedupgrades = d["usedupgrades"]
                 self.taxes = d["taxes"]
             d.close()
@@ -136,6 +136,7 @@ class Game:
             d["peopletotal"] = self.bar.peopletotal
             d["money"] = self.bar.money
             d["income"] = self.bar.income
+            d["incometotal"] = self.bar.incometotal
             d["special"] = self.bar.special
             d["perspecial"] = self.bar.perspecial
             d["difficulty"] = self.difficulty
@@ -350,11 +351,12 @@ class House:
         self.sizetype = sizetype
         self.peoplemax = people
         self.peoplecurrent = self.peoplemax
-        self.taxmax1 = randint(11, 71)
-        self.taxmax2 = randint(6, 51)
-        self.taxmax3 = randint(21, 61)
+        self.taxmax1 = randint(15, 70)
+        self.taxmax2 = randint(10, 60)
+        self.taxmax3 = randint(20, 80)
         if randtype is None:
-            game.bar.peopletotal += self.peoplemax
+            game.bar.calculate_peopletotal(game)
+            game.bar.calculate_incometotal(game)
             # ajutine randtype määramine
             if self.sizetype == 0:  # 1 tüüpi on 4 maja
                 self.randtype = randint(0, 3)
@@ -398,6 +400,11 @@ class House:
         elif self.peoplecurrent > self.peoplemax:
             self.peoplecurrent = self.peoplemax
         return self.peoplecurrent
+
+    def calculate_taxmax(self):
+        self.taxmax1 = randint(15, 70)
+        self.taxmax2 = randint(10, 60)
+        self.taxmax3 = randint(20, 80)
 
     def draw(self, game):
         if self.x < game.resolution[0]:
@@ -552,7 +559,7 @@ class UpgradeButton:
             else:
                 self.surface.blit(self.image_available, (self.x, self.y))
         else:
-            percentage = Methods.calculate_percentage(game, self.cost)
+            percentage = game.bar.calculate_percentage(game, self.cost)
             self.surface.blit(self.image_unavailable,
                               pygame.Rect(self.x + self.w / 100 * percentage, self.y, self.w, self.h),
                               pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
@@ -697,7 +704,7 @@ class RightButton:
                 else:
                     self.surface.blit(self.image_available, self.rect)
             else:
-                percentage = Methods.calculate_percentage(game, self.price)
+                percentage = game.bar.calculate_percentage(game, self.price)
                 self.surface.blit(self.image_unavailable,
                                   pygame.Rect(self.x + self.w / 100 * percentage, self.y, self.w, self.h),
                                   pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
@@ -840,8 +847,9 @@ class Bar:
         self.peopletotal = game.bar_amounts[1]
         self.money = game.bar_amounts[2]
         self.income = game.bar_amounts[3]
-        self.special = game.bar_amounts[4]
-        self.perspecial = game.bar_amounts[5]
+        self.incometotal = game.bar_amounts[4]
+        self.special = game.bar_amounts[5]
+        self.perspecial = game.bar_amounts[6]
         self.income_manual = 0
         self.income_manual_time = 0
         self.income_manual_data = []
@@ -852,7 +860,8 @@ class Bar:
                 if upgrade[0] == name:
                     game.upgrades.remove(upgrade)
         self.startcounter = 50
-        pygame.time.set_timer(pygame.USEREVENT + 1, 100)
+        pygame.time.set_timer(pygame.USEREVENT+1, 100)
+        pygame.time.set_timer(pygame.USEREVENT+3, 10000)
         self.objxy = ([19, 204, 469], 7)
         self.objwh = ([170, 249], 21.621)
 
@@ -888,6 +897,26 @@ class Bar:
         taxed_income = (income + special) * (1 + tax / 100)
         self.income = taxed_income
 
+    def calculate_peopletotal(self, game):
+        self.peopletotal = 0
+        for sizetype in game.houses:
+            for house in sizetype:
+                self.peopletotal += house.peoplemax
+
+    def calculate_incometotal(self, game):
+        self.incometotal = 0
+        for sizetype in game.houses:
+            for house in sizetype:
+                self.incometotal += \
+                    house.peoplecurrent * game.bar.house_multiplier * game.houses_properties[house.sizetype][1]
+
+    def calculate_peoplecurrent(self, game):
+        self.people = 0
+        for sizetype in game.houses:
+            for house in sizetype:
+                self.people += house.calculate_current_people(game)
+        return str(format(self.people, ",d")) + "/" + str(format(self.peopletotal, ",d"))
+
     def calculate_money(self, game):
         self.time_from_beginning += game.tick
         if self.time_from_beginning < 10:  # less than 10ms per frame
@@ -897,6 +926,13 @@ class Bar:
         elif self.time_from_beginning < 1000:  # less than 1000ms per frame
             game.bar.money += game.bar.income / 10 * self.time_from_beginning / 100
         self.time_from_beginning = 0
+
+    @staticmethod
+    def calculate_percentage(game, price):
+        if game.bar.money == 0:
+            return 0
+        percentage = game.bar.money / price * 100
+        return percentage
 
     def process_upgrades(self, game):
         if self.startcounter > 0:
@@ -914,7 +950,7 @@ class Bar:
                 if houses >= upgrade[3][1]:
                     game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
-            elif upgrade[3][0] == "income":
+            elif upgrade[3][0] == "incometotal":
                 if self.income >= upgrade[3][1]:
                     game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
@@ -924,16 +960,12 @@ class Bar:
     def draw(self, game):
         if self.y < self.maxy:
             self.y += 2
-        self.people = 0
-        for sizetype in game.houses:
-            for house in sizetype:
-                self.people += house.calculate_current_people(game)
-        people = str(format(self.people, ",d")) + "/" + str(format(self.peopletotal, ",d"))
         self.surface.blit(self.image, (self.x, self.y))
-        Methods.draw_obj(game, True, people, (self.x, self.y),
+        Methods.draw_obj(game, True, self.calculate_peoplecurrent(game), (self.x, self.y),
                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]), self.drawdata, 0)
         Methods.draw_obj(game, True, round(self.money), (self.x, self.y), (self.objxy[0][1], self.objxy[1]),
                          (self.objwh[0][1], self.objwh[1]), self.drawdata, self.drawdata[2][0])
-        Methods.draw_obj(game, True, round(self.income + self.income_manual),
-                         (self.x, self.y), (self.objxy[0][2], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
+        Methods.draw_obj(game, True, str(format(round(self.income + self.income_manual), ",d")) + " €/" +
+                         str(format(round(self.incometotal), ",d") + " €/s"), (self.x, self.y),
+                         (self.objxy[0][2], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
                          self.drawdata, self.drawdata[2][1])

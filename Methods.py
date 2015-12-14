@@ -57,6 +57,10 @@ def update_game(game):
             game.bar.calculate_manual_income()
         elif event.type == pygame.USEREVENT+2:
             game.news.update()
+        elif event.type == pygame.USEREVENT+3:
+            for sizetype in game.houses:
+                for house in sizetype:
+                    house.calculate_taxmax()
         elif event.type == pygame.QUIT:
             game.running = False
         elif event.type == pygame.KEYDOWN:
@@ -97,13 +101,6 @@ def blursurface(game, amount):  # amount > 1.0
     screen = pygame.transform.smoothscale(game.screen, scale_size)
     screen = pygame.transform.smoothscale(screen, screen_size)
     game.screen.blit(screen, (0, 0))
-
-
-def calculate_percentage(game, price):
-    if game.bar.money == 0:
-        return 0
-    percentage = game.bar.money / price * 100
-    return percentage
 
 
 def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
