@@ -40,7 +40,6 @@ class Game:
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
-        self.right_button_peopletotal = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
         self.bar_amounts = [0, 0, 0, 0, 0, 1]
         self.images = None
@@ -74,7 +73,6 @@ class Game:
             self.upgrade_buttons = []
             self.houses = [[], [], [], [], []]
             self.houses_states = [[], [], [], [], []]
-            self.right_button_peopletotal = [0, 0, 0, 0, 0]
             self.right_button_amounts = [0, 0, 0, 0, 0]
             self.bar_amounts = [0, 0, 0, 0, 0, 1]
             self.taxes[0][1] = self.taxes[1][1] = self.taxes[2][1] = 0
@@ -122,7 +120,6 @@ class Game:
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
                 self.right_button_prices = d["right_button_prices"]
-                self.right_button_peopletotal = d["right_button_peopletotal"]
                 self.bar_amounts = \
                     [d["people"], d["peopletotal"], d["money"], d["income"], d["special"], d["perspecial"]]
                 self.usedupgrades = d["usedupgrades"]
@@ -135,7 +132,6 @@ class Game:
             d["houses_states"] = self.houses_states
             d["right_button_amounts"] = self.right_button_amounts
             d["right_button_prices"] = self.right_button_prices
-            d["right_button_peopletotal"] = self.right_button_peopletotal
             d["people"] = self.bar.people
             d["peopletotal"] = self.bar.peopletotal
             d["money"] = self.bar.money
@@ -151,7 +147,6 @@ class Game:
         for button in range(len(self.right_buttons)):
             self.right_button_amounts[button] = self.right_buttons[button].amount
             self.right_button_prices[button] = self.right_buttons[button].price
-            self.right_button_peopletotal[button] = self.right_buttons[button].peopletotal
         self.houses_states = [[], [], [], [], []]
         for sizetype in self.houses:
             for house in sizetype:
@@ -681,7 +676,6 @@ class RightButton:
         self.logo = game.images.right_button_logos[self.sizetype]
         self.name = game.right_button_names[self.sizetype]
         self.amount = game.right_button_amounts[self.sizetype]
-        self.peopletotal = game.right_button_peopletotal[self.sizetype]
         if self.amount > 0:
             self.price = game.right_button_prices[self.sizetype]
         else:
@@ -709,13 +703,13 @@ class RightButton:
                                   pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
                 self.surface.blit(self.image_available, self.rect, pygame.Rect(0, 0, self.w / 100 * percentage, self.h))
             Methods.draw_obj(game, True, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata, 0)
-            Methods.draw_obj(
-                game, True, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata, 0)
-            Methods.draw_obj(
-                game, True, self.name, (self.x, self.y), (62.013, 7.216), (132.25, 19.256), self.drawdata, 0)
+            Methods.draw_obj(game, True, self.amount, (self.x, self.y),
+                             (7, 62.178), (47.25, 19.256), self.drawdata, 0)
+            Methods.draw_obj(game, True, self.name, (self.x, self.y),
+                             (62.013, 7.216), (132.25, 19.256), self.drawdata, 0)
             Methods.draw_obj(game, True, self.people, (self.x, self.y), (77, 35), (44, 19.256), self.drawdata, 0)
-            Methods.draw_obj(
-                game, True, self.peopletotal, (self.x, self.y), (132, 34.394), (63, 19.256), self.drawdata, 0)
+            Methods.draw_obj(game, True, self.calculate_peopletotal(game), (self.x, self.y),
+                             (132, 34.394), (63, 19.256), self.drawdata, 0)
             Methods.draw_obj(game, True, round(self.price), (self.x, self.y), (62.013, 62.178), (132.25, 19.256),
                              self.drawdata, self.drawdata[2])
         else:
@@ -728,6 +722,13 @@ class RightButton:
         percentage = game.bar.money / self.price * 100
         return percentage
 
+    def calculate_peopletotal(self, game):
+        people = 0
+        if len(game.houses) >= self.sizetype:
+            for house in game.houses[self.sizetype]:
+                people += house.peoplecurrent
+        return people
+
     def mouse_click_check(self, game, x, y):
         if not self.hidden:
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
@@ -735,7 +736,6 @@ class RightButton:
                 if game.bar.money >= self.price:
                     game.bar.money -= self.price
                     self.amount += 1
-                    self.peopletotal += self.people
                     self.price = game.right_button_prices_fixed[
                                      self.sizetype] * game.bar.house_multiplier ** self.amount
                     game.houses[self.sizetype].append(
