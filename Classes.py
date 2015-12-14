@@ -100,15 +100,15 @@ class Game:
         # houses_properties = sizetype(people, per people modifier, minpeople)
         if difficulty == 0:  # easy
             self.houses_properties = [
-                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 4000), (7200, 1.8, 10800), (13500, 6, 24000)]
+                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
             self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
             self.houses_properties = [
-                (100, 0.1, 0), (450, 0.2, 600), (1280, 0.5, 10000), (3600, 0.9, 20000), (6750, 3, 35000)]
+                (100, 0.1, 0), (450, 0.2, 700), (1280, 0.5, 4000), (3600, 0.9, 18000), (6750, 3, 40000)]
             self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
         elif difficulty == 2:  # insane
             self.houses_properties = [
-                (50, 0.1, 0), (220, 0.2, 2000), (640, 0.3, 7000), (1800, 0.5, 30000), (3300, 1.5, 46000)]
+                (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
 
     def filesystem_do(self, game, action):
@@ -172,8 +172,7 @@ class Images:
                                    Images.load_image("House_5_logo.png")]
         self.left_button = [Images.load_image("Tax.png"), Images.load_image("Tax_hover_minus.png"),
                             Images.load_image("Tax_hover_plus.png")]
-        self.upgrade_button = [Images.load_image("Upgrade_available.png"),
-                               Images.load_image("Upgrade_available_hover.png"),
+        self.upgrade_button = [Images.load_image("Upgrade_available.png"), Images.load_image("Upgrade_unavailable.png"),
                                Images.load_image("Upgrade_available_hover.png")]
         self.bar = Images.load_image("Bar.png")
         self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
@@ -310,7 +309,7 @@ class News:
         elif eventtype == "good":
             self.presenttxt = "A reindeer has been spotted by the local bank!".upper()
         self.drawing = True
-        self.counter = 1800
+        self.counter = 3000
 
     def update(self):
         if self.drawing:
@@ -389,7 +388,7 @@ class House:
 
     def draw(self, game):
         if self.x < game.resolution[0]:
-            if self.drawnout:  # todo or game.menu_running
+            if self.drawnout:
                 self.surface.blit(self.image, (self.x, self.y))
             else:
                 if self.arearect.y > 0:
@@ -444,6 +443,8 @@ class LeftDrawer:
     def mouse_hover_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
             for button in game.tax_buttons + game.upgrade_buttons:
+                if button.animatecounter > 0:
+                    button.animatein = False
                 if not button.animateout and not button.animatein:
                     if button.x < button.maxx:
                         button.x += 20
@@ -500,7 +501,10 @@ class UpgradeButton:
         self.name = name
         for item in game.upgrades:
             if item[0] == self.name:
-                self.cost = item[1]
+                multiplier = game.difficulty
+                if multiplier == 0:
+                    multiplier = 0.5
+                self.cost = int(item[1] * multiplier)
                 self.rewardtype = item[2][0]
                 self.reward = item[2][1]
 
@@ -599,6 +603,7 @@ class TaxButton:
         self.active = True
         self.animatein = True
         self.animateout = False
+        self.animatecounter = 0
 
     def draw(self, game, is_highlighted):
         if self.animatein:

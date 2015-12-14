@@ -112,7 +112,7 @@ def draw_obj(game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, dr
         inner_obj_xy = main_obj_xy
     else:
         inner_obj_xy = (main_obj_xy[0] + inner_relative_xy[0], main_obj_xy[1] + inner_relative_xy[1])
-    if inner_obj_xy[0] > game.resolution[0]:
+    if inner_obj_xy[0] > game.resolution[0] or inner_obj_wh != 0 and inner_obj_xy[0] + inner_obj_wh[0] < 0:
         return
     if isinstance(obj, str) or isinstance(obj, int):
         if isinstance(obj, int):
