@@ -639,8 +639,9 @@ class RightButton:
                 else:
                     self.surface.blit(self.image_available, self.rect)
             else:
-                self.surface.blit(self.image_unavailable, self.rect, self.calculate_area_percentage(game, 0))
-                self.surface.blit(self.image_available, self.rect, self.calculate_area_percentage(game, 1))
+                percentage = self.calculate_area_percentage(game)
+                self.surface.blit(self.image_unavailable, pygame.Rect(self.x + self.w / 100 * percentage, self.y, self.w, self.h), pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
+                self.surface.blit(self.image_available, self.rect, pygame.Rect(0, 0, self.w / 100 * percentage, self.h))
             Methods.draw_obj(game, True, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata, 0)
             Methods.draw_obj(
                 game, True, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata, 0)
@@ -655,17 +656,11 @@ class RightButton:
             if game.bar.people >= game.houses_properties[self.sizetype][2]:
                 self.hidden = False
 
-    def calculate_area_percentage(self, game, areatype):
+    def calculate_area_percentage(self, game):
         if game.bar.money == 0:
-            if areatype == 0:
-                return pygame.Rect(0, 0, self.w, self.h)
-            elif areatype == 1:
-                return pygame.Rect(0, 0, 0, self.h)
+            return 0
         percentage = game.bar.money / self.price * 100
-        if areatype == 0:
-            return pygame.Rect(-self.w / 100 * percentage, 0, self.w, self.h)
-        elif areatype == 1:
-            return pygame.Rect(0, 0, self.w / 100 * percentage, self.h)
+        return percentage
 
     def mouse_click_check(self, game, x, y):
         if not self.hidden:
