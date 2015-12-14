@@ -504,7 +504,7 @@ class UpgradeButton:
         self.active = True
         self.index = index
         self.surface = game.screen
-        self.drawdata = [(255, 255, 255), 14, " €"]
+        self.drawdata = [(255, 255, 255), 13, " €"]
         self.image_available = game.images.upgrade_button[0]
         self.image_unavailable = game.images.upgrade_button[1]
         self.image_highlighted = game.images.upgrade_button[2]
@@ -608,7 +608,7 @@ class TaxButton:
     def __init__(self, game, sizetype):
         self.surface = game.screen
         self.sizetype = sizetype
-        self.drawdata = [(255, 255, 255), 14]
+        self.drawdata = [(255, 255, 255), 13]
         self.image_regular = game.images.left_button[0]
         self.image_minus = game.images.left_button[1]
         self.image_plus = game.images.left_button[2]
@@ -676,7 +676,7 @@ class RightButton:
         self.image_available = game.images.right_button[0]
         self.image_available_highlighted = game.images.right_button[1]
         self.image_unavailable = game.images.right_button[2]
-        self.drawdata = [(255, 255, 255), 14, " €"]
+        self.drawdata = [(255, 255, 255), 13, " €"]
         self.w = self.image_available.get_rect().w
         self.h = self.image_available.get_rect().h
         self.x = game.resolution[0]
@@ -840,7 +840,7 @@ class Bar:
         self.surface = game.screen
         self.image = game.images.bar
         self.time_from_beginning = 0
-        self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
+        self.drawdata = [(255, 255, 255), 13, [" €", " €/s"]]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = (game.resolution[0] - self.w) / 2
