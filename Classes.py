@@ -18,7 +18,8 @@ class Game:
         self.menu_running = True
         self.difficulty = 1
         self.tick = 0
-        self.left_buttons = []
+        self.tax_buttons = []
+        self.upgrade_buttons = []
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
@@ -31,16 +32,17 @@ class Game:
                              ([-10, [130, 180, 0]], [115, 130, 0]),
                              ([-40, [170, 135, 0]], [73, 59, 0])]
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
-        self.upgrades = [("Google Fiber", 400000, ("special", 100), ("people", 2000)),
-                         ("Metro", 200000, ("unlock", 0), ("income", 3000)),
-                         ("Plumbing", 20000, ("unlock", 0), ("houses", 10))]
+        self.upgrades = [("Google Fiber", 400000, ("perspecial", 100), ("people", 2000)),
+                         ("Santa Claus", 800000, ("special", 666), ("houses", 20)),
+                         ("Metro", 200000, ("unlock", "Metro"), ("income", 3000)),
+                         ("Plumbing", 20000, ("unlock", "Pipe"), ("houses", 10))]
         self.usedupgrades = []
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_peopletotal = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
-        self.bar_amounts = [0, 0, 0]
+        self.bar_amounts = [0, 0, 0, 0, 1]
         self.images = None
         self.background = None
         self.cloud = None
@@ -50,26 +52,34 @@ class Game:
         self.metro = None
         self.menu = None
         self.news = None
+        self.pipe = None
 
     def initialize_menu(self, game):
         self.images = Images()
         self.filesystem_do(game, "load_state")
         self.background = Background(game)
         self.cloud = Cloud(game)
-        self.metro = Metro(game)
+        for upgrade in self.usedupgrades:
+            if upgrade == "Metro":
+                self.metro = Metro(game)
+            elif upgrade == "Plumbing":
+                self.pipe = Pipe(game)
         self.menu = Menu(game)
 
     def initialize_game(self, game, state):
         if state == "new":
             self.difficulty = game.menu.is_highlighted_button - 2
             self.right_buttons = []
-            self.left_buttons = []
+            self.tax_buttons = []
+            self.upgrade_buttons = []
             self.houses = [[], [], [], [], []]
             self.houses_states = [[], [], [], [], []]
             self.right_button_peopletotal = [0, 0, 0, 0, 0]
             self.right_button_amounts = [0, 0, 0, 0, 0]
-            self.bar_amounts = [0, 0, 0]
+            self.bar_amounts = [0, 0, 0, 0, 1]
             self.usedupgrades = []
+            self.metro = None
+            self.pipe = None
         self.set_difficulty(self.difficulty)
         self.right_drawer = RightDrawer(game)
         self.left_drawer = LeftDrawer(game)
@@ -78,7 +88,13 @@ class Game:
         for sizetype in range(5):
             self.right_buttons.append(RightButton(game, sizetype))
         for sizetype in range(3):
-            self.left_buttons.append(TaxButton(game, sizetype))
+            self.tax_buttons.append(TaxButton(game, sizetype))
+
+    def initialize_unlock(self, game, unlocktype):
+        if unlocktype == "Metro":
+            self.metro = Metro(game)
+        elif unlocktype == "Pipe":
+            self.pipe = Pipe(game)
 
     def set_difficulty(self, difficulty):
         # houses_properties = sizetype(people, per people modifier, minpeople)
@@ -108,8 +124,9 @@ class Game:
                 self.right_button_amounts = d["right_button_amounts"]
                 self.right_button_prices = d["right_button_prices"]
                 self.right_button_peopletotal = d["right_button_peopletotal"]
-                self.bar_amounts = [d["people"], d["money"], d["income"]]
+                self.bar_amounts = [d["people"], d["money"], d["income"], d["special"], d["perspecial"]]
                 self.usedupgrades = d["usedupgrades"]
+                self.taxes = d["taxes"]
             d.close()
             self.set_loaded_states(game)
         elif action == "save_state":
@@ -122,8 +139,11 @@ class Game:
             d["people"] = self.bar.people
             d["money"] = self.bar.money
             d["income"] = self.bar.income
+            d["special"] = self.bar.special
+            d["perspecial"] = self.bar.perspecial
             d["difficulty"] = self.difficulty
             d["usedupgrades"] = self.usedupgrades
+            d["taxes"] = self.taxes
             d.close()
 
     def get_current_states(self):
@@ -154,7 +174,8 @@ class Images:
                             Images.load_image("Tax_hover_plus.png")]
         self.upgrade_button = [Images.load_image("Upgrade.png"), Images.load_image("Upgrade_hover.png")]
         self.bar = Images.load_image("Bar.png")
-        self.cloud = Images.load_image("Cloud.png")
+        self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
+                     Images.load_image("Pipe.png")]
         self.houses = [
             [Images.load_image("House_11.png"), Images.load_image("House_12.png"), Images.load_image("House_13.png"),
              Images.load_image("House_14.png")],
@@ -168,8 +189,6 @@ class Images:
         self.menu = [[Images.load_image("Urbancity_logo.png")],
                      [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
                       Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
-        self.news = [Images.load_image("Breaking_news.png")]
-        self.misc = [Images.load_image("Pipe.png")]
 
     @staticmethod
     def load_image(file):
@@ -270,7 +289,7 @@ class Metro:
 class News:
     def __init__(self, game):
         self.surface = game.screen
-        self.image = game.images.news[0]
+        self.image = game.images.misc[1]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = -self.w
@@ -314,6 +333,20 @@ class News:
             Methods.draw_obj(game, False, self.presenttxt, (self.x, self.y), (135, 60), 0, self.drawdata, 0)
 
 
+class Pipe:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.misc[2]
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.x = -10
+        self.y = game.resolution[1] - self.h + 10
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+
+    def draw(self):
+        self.surface.blit(self.image, self.rect)
+
+
 class House:
     def __init__(self, game, sizetype, randtype, people):
         self.surface = game.screen
@@ -354,7 +387,7 @@ class House:
 
     def draw(self, game):
         if self.x < game.resolution[0]:
-            if self.drawnout:
+            if self.drawnout or game.menu_running:
                 self.surface.blit(self.image, (self.x, self.y))
             else:
                 if self.arearect.y > 0:
@@ -370,7 +403,7 @@ class House:
 class Cloud:
     def __init__(self, game):
         self.surface = game.screen
-        self.image = game.images.cloud
+        self.image = game.images.misc[0]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = -self.w
@@ -398,20 +431,22 @@ class LeftDrawer:
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     @staticmethod
-    def process_buttons(game):
-        for button in game.left_buttons:
+    def process_upgrade_buttons(game):
+        for button in game.upgrade_buttons:
             if not button.active:
                 game.usedupgrades.append(button.name)
-                game.left_buttons.remove(button)
+                game.upgrade_buttons.remove(button)
+            else:
+                button.process_location(game)
 
     def mouse_hover_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
-            for button in game.left_buttons:
+            for button in game.tax_buttons + game.upgrade_buttons:
                 if not button.animateout:
                     if button.x < button.maxx:
                         button.x += 20
         else:
-            for button in game.left_buttons:
+            for button in game.tax_buttons + game.upgrade_buttons:
                 if not button.animateout:
                     if button.x > button.minx:
                         button.x -= 20
@@ -442,13 +477,14 @@ class RightDrawer:
 
 
 class UpgradeButton:
-    def __init__(self, game, name):
+    def __init__(self, game, name, index):
         self.active = True
+        self.index = index
         self.surface = game.screen
         self.drawdata = [(255, 255, 255), 14]
         self.image_regular = game.images.upgrade_button[0]
         self.image_highlighted = game.images.upgrade_button[1]
-        self.miny = 155 + 75 * (len(game.left_buttons) - 3)
+        self.miny = 155 + 75 * index
         self.y = game.resolution[1]
         self.w = self.image_regular.get_rect().w
         self.h = self.image_regular.get_rect().h
@@ -463,7 +499,7 @@ class UpgradeButton:
             if item[0] == self.name:
                 self.cost = item[1]
                 self.rewardtype = item[2][0]
-                self.rewardamount = item[2][1]
+                self.reward = item[2][1]
 
     def draw(self, game, is_highlighted):
         if self.animatein:
@@ -483,18 +519,34 @@ class UpgradeButton:
             self.surface.blit(self.image_regular, (self.x, self.y))
         Methods.draw_obj(game, True, self.name, (self.x, self.y), (10, 7), (132, 20), self.drawdata, 0)
         Methods.draw_obj(game, True, self.cost, (self.x, self.y), (12, 35), (77, 20), self.drawdata, 1)
-        Methods.draw_obj(game, True, self.rewardamount, (self.x, self.y), (97, 35), (48, 20), self.drawdata, 0)
+        Methods.draw_obj(game, True, self.reward, (self.x, self.y), (97, 35), (48, 20), self.drawdata, 0)
+
+    def process_location(self, game):
+        for upgrade in game.upgrade_buttons:
+            if upgrade.name == self.name:
+                if game.upgrade_buttons.index(upgrade) < self.index:
+                    self.index -= 1
+                    self.miny = 155 + 75 * self.index
+                    self.animatein = True
 
     def mouse_click_check(self, game, x, y):
         rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if rect.collidepoint(x, y):
+            self.process_rewards(game)
             self.animateout = True
-            # todo buy upgrade here
 
     def mouse_hover_check(self, x, y):
         rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if rect.collidepoint(x, y):
             return True
+
+    def process_rewards(self, game):
+        if self.rewardtype == "special":
+            game.bar.special += self.reward
+        elif self.rewardtype == "perspecial":
+            game.bar.perspecial += self.reward
+        elif self.rewardtype == "unlock":
+            game.initialize_unlock(game, self.reward)
 
 
 class TaxButton:
@@ -577,16 +629,18 @@ class RightButton:
         else:
             self.price = game.right_button_prices_fixed[self.sizetype]
         self.people = game.houses_properties[self.sizetype][0]
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     def draw(self, game, is_highlighted):
         if not self.hidden:
             if game.bar.money >= self.price:
                 if is_highlighted:
-                    self.surface.blit(self.image_available_highlighted, (self.x, self.y))
+                    self.surface.blit(self.image_available_highlighted, self.rect)
                 else:
-                    self.surface.blit(self.image_available, (self.x, self.y))
+                    self.surface.blit(self.image_available, self.rect)
             else:
-                self.surface.blit(self.image_unavailable, (self.x, self.y))
+                self.surface.blit(self.image_unavailable, self.rect, self.calculate_area_percentage(game, 0))
+                self.surface.blit(self.image_available, self.rect, self.calculate_area_percentage(game, 1))
             Methods.draw_obj(game, True, self.logo, (self.x, self.y), (7, 6.653), (47.25, 47.603), self.drawdata, 0)
             Methods.draw_obj(
                 game, True, self.amount, (self.x, self.y), (7, 62.178), (47.25, 19.256), self.drawdata, 0)
@@ -600,6 +654,18 @@ class RightButton:
         else:
             if game.bar.people >= game.houses_properties[self.sizetype][2]:
                 self.hidden = False
+
+    def calculate_area_percentage(self, game, areatype):
+        if game.bar.money == 0:
+            if areatype == 0:
+                return pygame.Rect(0, 0, self.w, self.h)
+            elif areatype == 1:
+                return pygame.Rect(0, 0, 0, self.h)
+        percentage = game.bar.money / self.price * 100
+        if areatype == 0:
+            return pygame.Rect(-self.w / 100 * percentage, 0, self.w, self.h)
+        elif areatype == 1:
+            return pygame.Rect(0, 0, self.w / 100 * percentage, self.h)
 
     def mouse_click_check(self, game, x, y):
         if not self.hidden:
@@ -706,11 +772,14 @@ class Bar:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = (game.resolution[0] - self.w) / 2
-        self.y = 6
+        self.y = -self.h
+        self.maxy = 6
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.people = game.bar_amounts[0]
         self.money = game.bar_amounts[1]
         self.income = game.bar_amounts[2]
+        self.special = game.bar_amounts[3]
+        self.perspecial = game.bar_amounts[4]
         self.income_manual = 0
         self.income_manual_time = 0
         self.income_manual_data = []
@@ -745,17 +814,15 @@ class Bar:
             self.income_manual = 0
 
     def calculate_auto_income(self, game):
+        special = self.special * self.perspecial
         income = 0
         tax = 0
-        special = 0
-        per_special = 1
-        from_special = special * per_special
         for taxtype in game.taxes:
             tax += taxtype[1]
         for sizetype in game.houses:
             for house in sizetype:
                 income += house.people * game.bar.house_multiplier * game.houses_properties[house.sizetype][1]
-        taxed_income = (income + from_special) * (1 + tax / 100)
+        taxed_income = (income + special) * (1 + tax / 100)
         self.income = taxed_income
 
     def calculate_money(self, game):
@@ -769,27 +836,29 @@ class Bar:
         self.time_from_beginning = 0
 
     def process_upgrades(self, game):
-        game.left_drawer.process_buttons(game)
+        game.left_drawer.process_upgrade_buttons(game)
         for upgrade in game.upgrades:
             if upgrade[3][0] == "people":
                 if self.people >= upgrade[3][1]:
-                    game.left_buttons.append(UpgradeButton(game, upgrade[0]))
+                    game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
             elif upgrade[3][0] == "houses":
                 houses = 0
                 for sizetype in game.houses:
                     houses += len(sizetype)
                 if houses >= upgrade[3][1]:
-                    game.left_buttons.append(UpgradeButton(game, upgrade[0]))
+                    game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
             elif upgrade[3][0] == "income":
                 if self.income >= upgrade[3][1]:
-                    game.left_buttons.append(UpgradeButton(game, upgrade[0]))
+                    game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
             if upgrade in self.unlockedupgrades:
                 game.upgrades.remove(upgrade)
 
     def draw(self, game):
+        if self.y < self.maxy:
+            self.y += 2
         self.surface.blit(self.image, (self.x, self.y))
         Methods.draw_obj(game, True, self.people, (self.x, self.y),
                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]), self.drawdata, 0)

@@ -4,10 +4,13 @@ from random import randint
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
-def update_menu(game):
+def update_common(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
-    game.metro.draw()
+    if game.metro is not None:
+        game.metro.draw()
+    if game.pipe is not None:
+        game.pipe.draw()
     game.cloud.drawable = True
     for sizetype in reversed(game.houses):
         for house in sizetype:
@@ -20,6 +23,11 @@ def update_menu(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
+    return x, y
+
+
+def update_menu(game):
+    x, y = update_common(game)
     blursurface(game, 2.2)
     game.menu.draw()
     for button in game.menu.buttons:
@@ -37,24 +45,10 @@ def update_menu(game):
 
 
 def update_game(game):
-    x, y = pygame.mouse.get_pos()
-    game.background.draw(game)
-    game.metro.draw()
-    game.cloud.drawable = True
-    for sizetype in reversed(game.houses):
-        for house in sizetype:
-            house.draw(game)
-        if game.cloud.drawable:
-            if len(sizetype) != 0:
-                if sizetype[0].sizetype == 4:
-                    game.cloud.draw()
-                    game.cloud.drawable = False
-            else:
-                game.cloud.draw()
-                game.cloud.drawable = False
+    x, y = update_common(game)
     game.right_drawer.mouse_hover_check(game, x, y)
     game.left_drawer.mouse_hover_check(game, x, y)
-    for button in game.right_buttons + game.left_buttons:
+    for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:
         button.draw(game, button.mouse_hover_check(x, y))
     game.bar.update(game)
     game.news.draw(game)
@@ -91,7 +85,7 @@ def update_game(game):
                 game.news.present("good")
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             print(x, y)
-            for button in game.right_buttons + game.left_buttons:
+            for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))
 
