@@ -1,7 +1,8 @@
 from cx_Freeze import setup, Executable
 
 target = Executable(
-    script="Main.py"
+    script="Main.py",
+    icon="data/icon.ico"
 )
 
 options = {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
