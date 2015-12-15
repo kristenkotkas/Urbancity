@@ -33,7 +33,9 @@ def update_menu(game):
     for button in game.menu.buttons:
         button.draw(game, button.mouse_hover_check(x, y))
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.USEREVENT+4:
+            game.metro.update_metro_counter()
+        elif event.type == pygame.QUIT:
             game.running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -61,6 +63,8 @@ def update_game(game):
             for sizetype in game.houses:
                 for house in sizetype:
                     house.calculate_taxmax()
+        elif event.type == pygame.USEREVENT+4:
+            game.metro.update_metro_counter()
         elif event.type == pygame.QUIT:
             game.running = False
         elif event.type == pygame.KEYDOWN:
@@ -87,6 +91,8 @@ def update_game(game):
             elif event.key == pygame.K_m:  # cheating
                 game.bar.money *= 10
                 game.news.present("good")
+            elif event.key == pygame.K_b:  # cheating
+                game.metro.terroristevent = True
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             print(x, y)
             for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:

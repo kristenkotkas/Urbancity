@@ -23,7 +23,7 @@ class Game:
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
-        self.taxes = [["Beard Tax", 0], ["Goat Tax", 0], ["Weed Tax", 0]]
+        self.taxes = [["Beard Tax", 0], ["Luxury Tax", 0], ["Weed Tax", 0]]
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         # houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y from bottom])
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
@@ -248,12 +248,14 @@ class Metro:
         self.trainy = self.metroy + 50
         self.trainw = self.image_train.get_rect().w - 2
         self.trainh = self.image_train.get_rect().h
+        self.trainstop = self.metrox + 20
         self.trainrect = pygame.Rect(self.metrox, self.metroy + 50, self.trainw, self.trainh)
         self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
-        self.counter = 0
-        self.speed = 4  # 4
+        self.speed = 4
         self.time_from_beginning = 0
-        pygame.time.set_timer(pygame.USEREVENT + 3, 100)
+        self.waiting = False
+        self.trainstopwaiting = True
+        self.terroristevent = False
 
     def draw(self):
         self.draw_metro_background()
@@ -264,23 +266,37 @@ class Metro:
         self.surface.blit(self.image_metro, self.metrorect)
 
     def update_metro(self):
-        # kui rongi parem pool pole metro paremast poolest möödunud
-        if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
-            # kui rong pole välja joonistatud
-            if self.arearect.x > 0:
-                self.arearect.x -= self.speed  # joonistab rongi
+        if self.terroristevent:
+            self.speed = 20
+            # todo terroriststuff
+        if not self.waiting:
+            # kui rongi parem pool pole metro paremast poolest möödunud
+            if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
+                # kui rong pole välja joonistatud
+                if self.arearect.x > 0:
+                    self.arearect.x -= self.speed  # joonistab rongi
+                else:
+                    if self.trainrect.x > self.trainstop and self.trainstopwaiting and not self.terroristevent:
+                        pygame.time.set_timer(pygame.USEREVENT+4, 3000)
+                        self.waiting = True
+                    self.trainrect.x += self.speed  # liigutab tervet rongi edasi
+            # kui rong on välja joonistatud
+            elif self.arearect.x > -self.trainw:
+                self.arearect.x -= self.speed  # kustutab rongi
             else:
-                self.trainrect.x += self.speed  # liigutab tervet rongi edasi
-        # kui rong on välja joonistatud
-        elif self.arearect.x > -self.trainw:
-            self.arearect.x -= self.speed  # kustutab rongi
+                self.waiting = True
+                pygame.time.set_timer(pygame.USEREVENT+4, randint(3000, 7000))
+
+    def update_metro_counter(self):
+        if self.trainstopwaiting:
+            self.trainstopwaiting = False
         else:
-            self.counter += 1
-            if self.counter > 300:
-                self.trainrect.x = self.metrox
-                self.arearect.x = self.trainw
-                self.arearect.w = self.trainw
-                self.counter = 0
+            self.trainrect.x = self.metrox
+            self.arearect.x = self.trainw
+            self.arearect.w = self.trainw
+            self.trainstopwaiting = True
+        self.waiting = False
+        pygame.time.set_timer(pygame.USEREVENT+4, 0)
 
     def draw_moving_metro(self):
         self.surface.blit(self.image_train, self.trainrect, self.arearect)
@@ -509,7 +525,7 @@ class UpgradeButton:
         self.image_unavailable = game.images.upgrade_button[1]
         self.image_highlighted = game.images.upgrade_button[2]
         self.miny = 155 + 75 * index
-        self.y = 155 + 75 * index
+        self.y = self.miny
         self.w = self.image_available.get_rect().w
         self.h = self.image_available.get_rect().h
         self.x = -self.w
