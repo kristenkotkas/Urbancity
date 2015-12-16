@@ -23,7 +23,7 @@ class Game:
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
-        self.taxes = [["Beard Tax", 0], ["Luxury Tax", 0], ["Weed Tax", 0]]
+        self.taxnames = ["Beard Tax", "Luxury Tax", "Weed Tax"]
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         # houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y from bottom])
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
@@ -48,6 +48,7 @@ class Game:
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
         self.bar_amounts = [0, 0, 0, 0]
+        self.taxes = [0, 0, 0]
         self.images = None
         self.background = None
         self.cloud = None
@@ -81,7 +82,7 @@ class Game:
             self.houses_states = [[], [], [], [], []]
             self.right_button_amounts = [0, 0, 0, 0, 0]
             self.bar_amounts = [0, 0, 0, 0]
-            self.taxes[0][1] = self.taxes[1][1] = self.taxes[2][1] = 0
+            self.taxes = [0, 0, 0]
             self.usedupgrades = []
             self.metro = None
             self.pipe = None
@@ -256,19 +257,29 @@ class Metro:
         self.waiting = False
         self.trainstopwaiting = True
         self.terroristevent = False
+        self.terroristcounter = 0
 
-    def draw(self):
+    def draw(self, game):
         self.draw_metro_background()
-        self.update_metro()
+        self.update_metro(game)
         self.draw_moving_metro()
 
     def draw_metro_background(self):
         self.surface.blit(self.image_metro, self.metrorect)
 
-    def update_metro(self):
+    def update_metro(self, game):
         if self.terroristevent:
-            self.speed = 20
-            # todo terroriststuff
+            if self.terroristcounter == 0:
+                self.metrow -= 15
+                self.speed = 18
+            elif self.terroristcounter == 450:
+                game.news.present("metro")
+            elif self.terroristcounter == 1250:
+                self.metrow += 15
+                self.speed = 4
+                self.terroristcounter = -1
+                self.terroristevent = False
+            self.terroristcounter += 1
         if not self.waiting:
             # kui rongi parem pool pole metro paremast poolest möödunud
             if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
@@ -277,15 +288,18 @@ class Metro:
                     self.arearect.x -= self.speed  # joonistab rongi
                 else:
                     if self.trainrect.x > self.trainstop and self.trainstopwaiting and not self.terroristevent:
-                        pygame.time.set_timer(pygame.USEREVENT+4, 3000)
+                        pygame.time.set_timer(pygame.USEREVENT+4, 4000)
                         self.waiting = True
                     self.trainrect.x += self.speed  # liigutab tervet rongi edasi
             # kui rong on välja joonistatud
             elif self.arearect.x > -self.trainw:
                 self.arearect.x -= self.speed  # kustutab rongi
             else:
+                if self.terroristevent:
+                    pygame.time.set_timer(pygame.USEREVENT+4, randint(100, 500))
+                else:
+                    pygame.time.set_timer(pygame.USEREVENT+4, randint(6000, 9000))
                 self.waiting = True
-                pygame.time.set_timer(pygame.USEREVENT+4, randint(3000, 7000))
 
     def update_metro_counter(self):
         if self.trainstopwaiting:
@@ -294,7 +308,10 @@ class Metro:
             self.trainrect.x = self.metrox
             self.arearect.x = self.trainw
             self.arearect.w = self.trainw
-            self.trainstopwaiting = True
+            if randint(1, 10) < 4:
+                self.trainstopwaiting = True
+            if randint(1, 3000) == 500:
+                self.terroristevent = True
         self.waiting = False
         pygame.time.set_timer(pygame.USEREVENT+4, 0)
 
@@ -314,7 +331,7 @@ class News:
         self.presenttxt = "General txt"
         self.drawdata = [(0, 0, 0), 20]
         self.drawing = False
-        self.counter = 1800
+        self.counter = 1000
         self.speed = 10
 
     def present(self, eventtype):
@@ -322,15 +339,17 @@ class News:
         if eventtype == "bad":
             self.presenttxt = "Terrorists have blown up the city's money reserves!".upper()
         elif eventtype == "good":
-            self.presenttxt = "A reindeer has been spotted by the local bank!".upper()
+            self.presenttxt = "Santa Claus has been spotted by the local bank!".upper()
+        elif eventtype == "metro":
+            self.presenttxt = "A group of terrorists have hijacked the metro train!".upper()
         self.drawing = True
-        self.counter = 3000
 
     def update(self):
         if self.drawing:
             if self.x + self.w < self.w - 5:
                 self.x += self.speed
             else:
+                self.counter = 4000
                 self.drawing = False
         else:
             if self.counter < 0:
@@ -338,9 +357,8 @@ class News:
                     self.x -= self.speed
                 else:
                     pygame.time.set_timer(pygame.USEREVENT + 2, 0)
-                    self.counter = 1800
             else:
-                self.counter -= self.speed
+                self.counter -= 10
 
     def draw(self, game):
         if self.x + self.w > 0:
@@ -406,7 +424,7 @@ class House:
         self.arearect = pygame.Rect(0, self.h, self.w, self.h)
 
     def calculate_current_people(self, game):
-        if game.taxes[0][1] > self.taxmax1 or game.taxes[1][1] > self.taxmax2 or game.taxes[2][1] > self.taxmax3:
+        if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
             self.peoplecurrent -= randint(0, 1) + game.difficulty
         else:
             fillrate = randint(0, 3) - game.difficulty
@@ -630,7 +648,7 @@ class TaxButton:
         self.image_minus = game.images.left_button[1]
         self.image_plus = game.images.left_button[2]
         self.y = 15 + 45 * self.sizetype
-        self.taxtxt = game.taxes[self.sizetype][0]
+        self.taxtxt = game.taxnames[self.sizetype]
         self.w = self.image_regular.get_rect().w
         self.h = self.image_regular.get_rect().h
         self.minx = 155 - self.w
@@ -659,7 +677,7 @@ class TaxButton:
         else:
             self.surface.blit(self.image_regular, (self.x, self.y))
         Methods.draw_obj(game, True, self.taxtxt, (self.x, self.y), (10, 7), (132, 20), self.drawdata, 0)
-        Methods.draw_obj(game, True, str(game.taxes[self.sizetype][1]) + "%",
+        Methods.draw_obj(game, True, str(game.taxes[self.sizetype]) + "%",
                          (self.x, self.y), (149, 7), (52, 20), self.drawdata, 0)
 
     def mouse_click_check(self, game, x, y):
@@ -668,11 +686,11 @@ class TaxButton:
         for rect in rects:
             if rect.collidepoint(x, y):
                 if rects.index(rect) == 1:
-                    if game.taxes[self.sizetype][1] < 100:
-                        game.taxes[self.sizetype][1] += 5
+                    if game.taxes[self.sizetype] < 100:
+                        game.taxes[self.sizetype] += 5
                 else:
-                    if game.taxes[self.sizetype][1] > 0:
-                        game.taxes[self.sizetype][1] -= 5
+                    if game.taxes[self.sizetype] > 0:
+                        game.taxes[self.sizetype] -= 5
 
     def mouse_hover_check(self, x, y):
         rects = [pygame.Rect(self.x + self.clickxminus, self.clicky, self.clickw, self.clickh),
@@ -743,12 +761,6 @@ class RightButton:
         else:
             if game.bar.peopletotal >= game.houses_properties[self.sizetype][2]:
                 self.hidden = False
-
-    def calculate_percentage(self, game):
-        if game.bar.money == 0:
-            return 0
-        percentage = game.bar.money / self.price * 100
-        return percentage
 
     def calculate_peopletotal(self, game):
         people = 0
@@ -909,7 +921,7 @@ class Bar:
         income = 0
         tax = 0
         for taxtype in game.taxes:
-            tax += taxtype[1]
+            tax += taxtype
         for sizetype in game.houses:
             for house in sizetype:
                 income += house.peoplecurrent * game.bar.house_multiplier * game.houses_properties[house.sizetype][1]

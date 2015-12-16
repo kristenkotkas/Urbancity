@@ -8,7 +8,7 @@ def update_common(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
     if game.metro is not None:
-        game.metro.draw()
+        game.metro.draw(game)
     if game.pipe is not None:
         game.pipe.draw()
     game.cloud.drawable = True
@@ -93,6 +93,7 @@ def update_game(game):
                 game.news.present("good")
             elif event.key == pygame.K_b:  # cheating
                 game.metro.terroristevent = True
+                pygame.time.set_timer(pygame.USEREVENT+4, 100)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             print(x, y)
             for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:
