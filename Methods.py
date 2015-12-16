@@ -25,6 +25,8 @@ def update_common(game):
             else:
                 game.cloud.draw()
                 game.cloud.drawable = False
+    if game.power is not None:
+        game.power.draw()
     return x, y
 
 

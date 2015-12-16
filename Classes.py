@@ -9,8 +9,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 60
-        self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # self.screen_final = pygame.display.set_mode((1280, 720))
+        # self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen_final = pygame.display.set_mode((1280, 720))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -92,6 +92,8 @@ class Game:
             self.usedupgrades = []
             self.metro = None
             self.pipe = None
+            self.fiber = None
+            self.power = None
         self.set_difficulty(self.difficulty)
         self.right_drawer = RightDrawer(game)
         self.left_drawer = LeftDrawer(game)
@@ -187,7 +189,7 @@ class Images:
         self.bar = Images.load_image("Bar.png")
         self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
                      Images.load_image("Pipe.png"), Images.load_image("Google_Fiber.png"),
-                     Images.load_image("PLACEHOLDER.png")]
+                     Images.load_image("Electricity.png")]
         self.houses = [
             [Images.load_image("House_11.png"), Images.load_image("House_12.png"), Images.load_image("House_13.png"),
              Images.load_image("House_14.png")],
@@ -436,15 +438,22 @@ class Power:
     def __init__(self, game):
         self.surface = game.screen
         self.image = game.images.misc[4]
-        self.w = self.image.get_rect().w
+        self.w = self.image.get_rect().w - 10
         self.h = self.image.get_rect().h
         self.x = 0
-        self.y = game.resolution[1] - self.h - 60
+        self.y = game.resolution[1] - self.h - game.background.groundsize + 14
+        self.timesx = game.resolution[0] // self.w
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.arearect = pygame.Rect(0, 0, self.w, self.h)
+        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx, self.h)
+        print(self.y, self.timesx)
 
-    def draw(self, game):
-        self.surface.blit(self.image, self.rect, self.arearect)
+    def draw(self):
+        self.surface.blit(self.image, self.rect)
+        for column in range(int(self.timesx)):
+            self.rect = pygame.Rect(self.w * column - 10, self.y, self.w, self.h)
+            self.surface.blit(self.image, self.rect)
+        self.rect = pygame.Rect(self.w * self.timesx - 10, self.y, self.w, self.h)
+        self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
 class House:
