@@ -9,8 +9,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 60
-        # self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen_final = pygame.display.set_mode((1280, 720))
+        self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # self.screen_final = pygame.display.set_mode((1280, 720))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -244,7 +244,7 @@ class Metro:
         self.metroh = self.image_metro.get_rect().h
         self.metrox = (game.resolution[0] - self.metrow) / 2
         self.metroy = game.resolution[1] - 144
-        self.metrorect = pygame.Rect(self.metrox, self.metroy, self.metrow, self.metroh)
+        self.metrorect = pygame.Rect(self.metrox, self.metroy + self.metroh, self.metrow, self.metroh)
         self.trainx = self.metrox
         self.trainy = self.metroy + 50
         self.trainw = self.image_train.get_rect().w - 2
@@ -254,6 +254,8 @@ class Metro:
         self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
         self.speed = 4
         self.time_from_beginning = 0
+        self.drawnoutarea = pygame.Rect(0, self.metroh, self.metrow, self.metroh)
+        self.drawnout = False
         self.waiting = False
         self.trainstopwaiting = True
         self.terroristevent = False
@@ -261,11 +263,22 @@ class Metro:
 
     def draw(self, game):
         self.draw_metro_background()
-        self.update_metro(game)
-        self.draw_moving_metro()
+        if self.drawnout:
+            self.update_metro(game)
+            self.draw_moving_metro()
 
     def draw_metro_background(self):
-        self.surface.blit(self.image_metro, self.metrorect)
+        if self.drawnout:
+            self.surface.blit(self.image_metro, self.metrorect)
+        else:
+            if self.drawnoutarea.y > 0:
+                self.drawnoutarea.y -= 5
+                self.metrorect.y -= 5
+                self.surface.blit(self.image_metro, self.metrorect, self.drawnoutarea)
+            else:
+                self.drawnout = True
+                self.metrorect.y = self.metroy
+                self.surface.blit(self.image_metro, self.metrorect)
 
     def update_metro(self, game):
         if self.terroristevent:
@@ -372,10 +385,22 @@ class Pipe:
         self.h = self.image.get_rect().h
         self.x = -10
         self.y = game.resolution[1] - self.h + 10
-        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.drawnout = False
+        self.rect = pygame.Rect(self.x, self.y + self.h, self.w, self.h)
+        self.arearect = pygame.Rect(0, self.h, self.w, self.h)
 
     def draw(self):
-        self.surface.blit(self.image, self.rect)
+        if self.drawnout:
+            self.surface.blit(self.image, (self.x, self.y))
+        else:
+            if self.arearect.y > 0:
+                self.arearect.y -= 5
+                self.rect.y -= 5
+                self.surface.blit(self.image, self.rect, self.arearect)
+            else:
+                self.drawnout = True
+                self.rect.y = self.y
+                self.surface.blit(self.image, (self.x, self.y))
 
 
 class House:
@@ -869,7 +894,7 @@ class Bar:
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
-        self.x = (game.resolution[0] - self.w) / 2
+        self.x = (game.resolution[0] - self.w) / 2 + 25
         self.y = -self.h
         self.maxy = 6
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
@@ -891,8 +916,8 @@ class Bar:
         self.startcounter = 50
         pygame.time.set_timer(pygame.USEREVENT+1, 100)
         pygame.time.set_timer(pygame.USEREVENT+3, 10000)
-        self.objxy = ([19, 204, 469], 7)
-        self.objwh = ([170, 249], 21.621)
+        self.objxy = ([26, 204, 469], 7)
+        self.objwh = ([170, 249, 239], 21.621)
 
     def update(self, game):
         self.calculate_money(game)
@@ -995,5 +1020,5 @@ class Bar:
                          (self.objwh[0][1], self.objwh[1]), self.drawdata, self.drawdata[2][0])
         Methods.draw_obj(game, True, str(format(round(self.income + self.income_manual + self.incomereward), ",d")) +
                          "/" + str(format(round(self.incometotal + self.incomereward), ",d") + " €/s"),
-                         (self.x, self.y), (self.objxy[0][2], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
+                         (self.x, self.y), (self.objxy[0][2], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
                          self.drawdata, self.drawdata[2][1])
