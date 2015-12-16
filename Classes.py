@@ -9,8 +9,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 60
-        # self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen_final = pygame.display.set_mode((1280, 720))
+        self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # self.screen_final = pygame.display.set_mode((1280, 720))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -32,7 +32,7 @@ class Game:
                              ([-10, [128, 180, 223]], [115, 130, 130]),
                              ([-40, [170, 135, 150]], [73, 59, 41])]
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
-        self.upgrades = [("Electricity", 300000, ("income", 100), ("incometotal", 100)),
+        self.upgrades = [("Electricity", 300000, ("unlock", "Power"), ("incometotal", 100)),
                          ("Plumbing", 400712, ("unlock", "Pipe"), ("incometotal", 160)),
                          ("Water Supply", 618584, ("income", 207), ("incometotal", 243)),
                          ("Metro", 1103622, ("unlock", "Metro"), ("incometotal", 341)),
@@ -60,6 +60,7 @@ class Game:
         self.news = None
         self.pipe = None
         self.fiber = None
+        self.power = None
 
     def initialize_menu(self, game):
         self.images = Images()
@@ -71,6 +72,10 @@ class Game:
                 self.metro = Metro(game)
             elif upgrade == "Plumbing":
                 self.pipe = Pipe(game)
+            elif upgrade == "Google Fiber":
+                self.fiber = Fiber(game)
+            elif upgrade == "Electricity":
+                self.power = Power(game)
         self.menu = Menu(game)
 
     def initialize_game(self, game, state):
@@ -104,6 +109,8 @@ class Game:
             self.pipe = Pipe(game)
         elif unlocktype == "Fiber":
             self.fiber = Fiber(game)
+        elif unlocktype == "Power":
+            self.power = Power(game)
 
     def set_difficulty(self, difficulty):
         # houses_properties = sizetype(people, per people modifier, minpeople)
@@ -179,7 +186,8 @@ class Images:
                                Images.load_image("Upgrade_available_hover.png")]
         self.bar = Images.load_image("Bar.png")
         self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
-                     Images.load_image("Pipe.png"), Images.load_image("Google_Fiber.png")]
+                     Images.load_image("Pipe.png"), Images.load_image("Google_Fiber.png"),
+                     Images.load_image("PLACEHOLDER.png")]
         self.houses = [
             [Images.load_image("House_11.png"), Images.load_image("House_12.png"), Images.load_image("House_13.png"),
              Images.load_image("House_14.png")],
@@ -411,7 +419,27 @@ class Fiber:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = 0
-        self.y = game.resolution[1] - self.h - 10
+        self.y = game.resolution[1] - self.h - 60
+        self.timesx = game.resolution[0] // self.w
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx, self.h)
+
+    def draw(self):
+        for column in range(int(self.timesx)):
+            self.rect = pygame.Rect(self.w * column, self.y, self.w, self.h)
+            self.surface.blit(self.image, self.rect)
+        self.rect = pygame.Rect(self.w * self.timesx, self.y, self.w, self.h)
+        self.surface.blit(self.image, self.rect, self.areaendrect)
+
+
+class Power:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.misc[4]
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.x = 0
+        self.y = game.resolution[1] - self.h - 60
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.arearect = pygame.Rect(0, 0, self.w, self.h)
 

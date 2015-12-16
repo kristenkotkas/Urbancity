@@ -8,7 +8,7 @@ def update_common(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
     if game.fiber is not None:
-        game.fiber.draw(game)
+        game.fiber.draw()
     if game.metro is not None:
         game.metro.draw(game)
     if game.pipe is not None:
@@ -99,7 +99,6 @@ def update_game(game):
                 game.metro.terroristevent = True
                 pygame.time.set_timer(pygame.USEREVENT+4, 100)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            print(x, y)
             for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))
