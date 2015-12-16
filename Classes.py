@@ -9,8 +9,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 60
-        self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # self.screen_final = pygame.display.set_mode((1280, 720))
+        # self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen_final = pygame.display.set_mode((1280, 720))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -560,7 +560,7 @@ class UpgradeButton:
         self.active = True
         self.index = index
         self.surface = game.screen
-        self.drawdata = [(255, 255, 255), 14, " €"]
+        self.drawdata = [(255, 255, 255), 14, " €", " €/s"]
         self.image_available = game.images.upgrade_button[0]
         self.image_unavailable = game.images.upgrade_button[1]
         self.image_highlighted = game.images.upgrade_button[2]
@@ -627,10 +627,10 @@ class UpgradeButton:
                               pygame.Rect(self.w / 100 * percentage, 0, self.w, self.h))
             self.surface.blit(self.image_available, (self.x, self.y),
                               pygame.Rect(0, 0, self.w / 100 * percentage, self.h))
-        Methods.draw_obj(game, True, self.name, (self.x, self.y), (10, 7), (172, 20), self.drawdata, 0)
-        Methods.draw_obj(game, True, self.cost, (self.x, self.y), (12, 35), (96, 20), self.drawdata, self.drawdata[2])
+        Methods.draw_obj(game, True, self.name, (self.x, self.y), (10, 7), (192, 20), self.drawdata, 0)
+        Methods.draw_obj(game, True, self.cost, (self.x, self.y), (12, 35), (98, 20), self.drawdata, self.drawdata[2])
         Methods.draw_obj(game, True, self.reward,
-                         (self.x, self.y), (117, 35), (70, 20), self.drawdata, self.drawdata[2])
+                         (self.x, self.y), (117, 35), (87, 20), self.drawdata, self.drawdata[3])
 
     def process_location(self, game):
         for upgrade in game.upgrade_buttons:
