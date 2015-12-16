@@ -438,21 +438,31 @@ class Power:
     def __init__(self, game):
         self.surface = game.screen
         self.image = game.images.misc[4]
-        self.w = self.image.get_rect().w - 10
+        self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = 0
-        self.y = game.resolution[1] - self.h - game.background.groundsize + 14
+        self.fixedy = game.resolution[1] - self.h - game.background.groundsize + 14
+        self.y = self.fixedy + self.h
         self.timesx = game.resolution[0] // self.w
+        self.drawnout = False
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx, self.h)
-        print(self.y, self.timesx)
+        self.arearect = pygame.Rect(0, self.h, self.w, self.h)
+        self.areaendrect = pygame.Rect(0, self.h,
+                                       game.resolution[0] - self.w * self.timesx + 10 * (self.timesx + 1), self.h)
 
     def draw(self):
-        self.surface.blit(self.image, self.rect)
+        if not self.drawnout:
+            if self.arearect.y > 0:
+                self.arearect.y -= 5
+                self.areaendrect.y -= 5
+                self.y -= 5
+            else:
+                self.drawnout = True
+                self.y = self.fixedy
         for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column - 10, self.y, self.w, self.h)
-            self.surface.blit(self.image, self.rect)
-        self.rect = pygame.Rect(self.w * self.timesx - 10, self.y, self.w, self.h)
+            self.rect = pygame.Rect(self.w * column - 10 * (column + 1), self.y, self.w, self.h)
+            self.surface.blit(self.image, self.rect, self.arearect)
+        self.rect = pygame.Rect(self.w * self.timesx - 10 * (self.timesx + 1), self.y, self.w, self.h)
         self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
