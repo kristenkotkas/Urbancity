@@ -29,7 +29,7 @@ class Game:
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
                              ([5, [90, 96, 242]], [340, 335, 328]),
                              ([-30, [103, 96, 170]], [255, 255, 250]),
-                             ([-10, [130, 180, 0]], [115, 130, 0]),
+                             ([-10, [128, 180, 223]], [115, 130, 130]),
                              ([-40, [170, 135, 0]], [73, 59, 0])]
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
         self.upgrades = [("Electricity", 400000, ("income", 100), ("incometotal", 2000)),
@@ -106,7 +106,8 @@ class Game:
         # houses_properties = sizetype(people, per people modifier, minpeople)
         if difficulty == 0:  # easy
             self.houses_properties = [
-                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
+                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 0), (13500, 6, 27000)]
+            # (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
             self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
             self.houses_properties = [
@@ -182,8 +183,7 @@ class Images:
              Images.load_image("House_14.png")],
             [Images.load_image("House_21.png"), Images.load_image("House_22.png"), Images.load_image("House_23.png")],
             [Images.load_image("House_31.png"), Images.load_image("House_32.png"), Images.load_image("House_33.png")],
-            [Images.load_image("House_41.png"), Images.load_image("House_42.png"),
-             Images.load_image("PLACEHOLDER.png")],
+            [Images.load_image("House_41.png"), Images.load_image("House_42.png"), Images.load_image("House_43.png")],
             [Images.load_image("House_51.png"), Images.load_image("House_52.png"),
              Images.load_image("PLACEHOLDER.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png")]
@@ -418,7 +418,7 @@ class House:
             # ajutine randtype määramine
             if self.sizetype == 0:  # 1 tüüpi on 4 maja
                 self.randtype = randint(0, 3)
-            elif 2 < self.sizetype:  # 2,4,5 tüüpi on 1 puudu
+            elif 3 < self.sizetype:  # 5 tüüpi on 1 puudu
                 self.randtype = randint(0, 1)
             else:  # tüüp 2,3
                 self.randtype = randint(0, 2)
@@ -428,7 +428,7 @@ class House:
                 if self.randtype == self.last_randtype == self.last2_randtype:
                     if self.sizetype == 0:  # 1 tüüpi on 4 maja
                         self.randtype = randint(0, 3)
-                    elif 2 < self.sizetype:  # 4,5 tüüpi on 1 puudu
+                    elif 3 < self.sizetype:  # 5 tüüpi on 1 puudu
                         self.randtype = randint(0, 1)
                     else:  # tüüp 2,3
                         self.randtype = randint(0, 2)
