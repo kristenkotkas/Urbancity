@@ -7,6 +7,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 def update_common(game):
     x, y = pygame.mouse.get_pos()
     game.background.draw(game)
+    if game.fiber is not None:
+        game.fiber.draw(game)
     if game.metro is not None:
         game.metro.draw(game)
     if game.pipe is not None:

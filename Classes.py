@@ -38,7 +38,7 @@ class Game:
                          ("Metro", 1103622, ("unlock", "Metro"), ("incometotal", 341)),
                          ("Santa Claus", 2275607, ("income", 761), ("incometotal", 449)),
                          ("Wi-Fi", 5422875, ("income", 1813), ("incometotal", 567)),
-                         ("Google Fiber", 14935416, ("income", 4993), ("incometotal", 692)),
+                         ("Google Fiber", 14935416, ("unlock", "Fiber"), ("incometotal", 692)),
                          ("5G", 47540139, ("income", 15893), ("incometotal", 822)),
                          ("Li-Fi", 174887578, ("income", 58466), ("incometotal", 959)),
                          ("World Peace", 743554611, ("income", 248575), ("incometotal", 1100))]
@@ -59,6 +59,7 @@ class Game:
         self.menu = None
         self.news = None
         self.pipe = None
+        self.fiber = None
 
     def initialize_menu(self, game):
         self.images = Images()
@@ -101,6 +102,8 @@ class Game:
             self.metro = Metro(game)
         elif unlocktype == "Pipe":
             self.pipe = Pipe(game)
+        elif unlocktype == "Fiber":
+            self.fiber = Fiber(game)
 
     def set_difficulty(self, difficulty):
         # houses_properties = sizetype(people, per people modifier, minpeople)
@@ -176,7 +179,7 @@ class Images:
                                Images.load_image("Upgrade_available_hover.png")]
         self.bar = Images.load_image("Bar.png")
         self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
-                     Images.load_image("Pipe.png")]
+                     Images.load_image("Pipe.png"), Images.load_image("Google_Fiber.png")]
         self.houses = [
             [Images.load_image("House_11.png"), Images.load_image("House_12.png"), Images.load_image("House_13.png"),
              Images.load_image("House_14.png")],
@@ -399,6 +402,21 @@ class Pipe:
                 self.drawnout = True
                 self.rect.y = self.y
                 self.surface.blit(self.image, (self.x, self.y))
+
+
+class Fiber:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.misc[3]
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.x = 0
+        self.y = game.resolution[1] - self.h - 10
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.arearect = pygame.Rect(0, 0, self.w, self.h)
+
+    def draw(self, game):
+        self.surface.blit(self.image, self.rect, self.arearect)
 
 
 class House:
