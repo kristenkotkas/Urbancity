@@ -281,19 +281,16 @@ class Metro:
                 self.terroristevent = False
             self.terroristcounter += 1
         if not self.waiting:
-            # kui rongi parem pool pole metro paremast poolest möödunud
             if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
-                # kui rong pole välja joonistatud
                 if self.arearect.x > 0:
-                    self.arearect.x -= self.speed  # joonistab rongi
+                    self.arearect.x -= self.speed
                 else:
                     if self.trainrect.x > self.trainstop and self.trainstopwaiting and not self.terroristevent:
                         pygame.time.set_timer(pygame.USEREVENT+4, 4000)
                         self.waiting = True
-                    self.trainrect.x += self.speed  # liigutab tervet rongi edasi
-            # kui rong on välja joonistatud
+                    self.trainrect.x += self.speed
             elif self.arearect.x > -self.trainw:
-                self.arearect.x -= self.speed  # kustutab rongi
+                self.arearect.x -= self.speed
             else:
                 if self.terroristevent:
                     pygame.time.set_timer(pygame.USEREVENT+4, randint(100, 500))
