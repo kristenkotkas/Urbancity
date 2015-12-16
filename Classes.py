@@ -30,7 +30,7 @@ class Game:
                              ([5, [90, 96, 242]], [340, 335, 328]),
                              ([-30, [103, 96, 170]], [255, 255, 250]),
                              ([-10, [128, 180, 223]], [115, 130, 130]),
-                             ([-40, [170, 135, 0]], [73, 59, 0])]
+                             ([-40, [170, 135, 150]], [73, 59, 41])]
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
         self.upgrades = [("Electricity", 400000, ("income", 100), ("incometotal", 2000)),
                          ("Plumbing", 534282, ("unlock", "Pipe"), ("incometotal", 2311)),
@@ -183,8 +183,7 @@ class Images:
             [Images.load_image("House_21.png"), Images.load_image("House_22.png"), Images.load_image("House_23.png")],
             [Images.load_image("House_31.png"), Images.load_image("House_32.png"), Images.load_image("House_33.png")],
             [Images.load_image("House_41.png"), Images.load_image("House_42.png"), Images.load_image("House_43.png")],
-            [Images.load_image("House_51.png"), Images.load_image("House_52.png"),
-             Images.load_image("PLACEHOLDER.png")]]
+            [Images.load_image("House_51.png"), Images.load_image("House_52.png"), Images.load_image("House_53.png")]]
         self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png")]
         self.menu = [[Images.load_image("Urbancity_logo.png")],
                      [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
@@ -417,9 +416,7 @@ class House:
             # ajutine randtype määramine
             if self.sizetype == 0:  # 1 tüüpi on 4 maja
                 self.randtype = randint(0, 3)
-            elif 3 < self.sizetype:  # 5 tüüpi on 1 puudu
-                self.randtype = randint(0, 1)
-            else:  # tüüp 2,3
+            else:
                 self.randtype = randint(0, 2)
             if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
                 self.last_randtype = game.houses[sizetype][-1].randtype
@@ -427,9 +424,7 @@ class House:
                 if self.randtype == self.last_randtype == self.last2_randtype:
                     if self.sizetype == 0:  # 1 tüüpi on 4 maja
                         self.randtype = randint(0, 3)
-                    elif 3 < self.sizetype:  # 5 tüüpi on 1 puudu
-                        self.randtype = randint(0, 1)
-                    else:  # tüüp 2,3
+                    else:
                         self.randtype = randint(0, 2)
         else:
             self.randtype = randtype
