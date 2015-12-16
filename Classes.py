@@ -32,16 +32,16 @@ class Game:
                              ([-10, [128, 180, 223]], [115, 130, 130]),
                              ([-40, [170, 135, 150]], [73, 59, 41])]
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
-        self.upgrades = [("Electricity", 400000, ("income", 100), ("incometotal", 2000)),
-                         ("Plumbing", 534282, ("unlock", "Pipe"), ("incometotal", 2311)),
-                         ("Water Supply", 824777, ("income", 207), ("incometotal", 3087)),
-                         ("Metro", 1471493, ("unlock", "Metro"), ("incometotal", 4765)),
-                         ("Santa Claus", 3034137, ("income", 761), ("incometotal", 8501)),
-                         ("Wi-Fi", 7230487, ("income", 1813), ("incometotal", 17529)),
-                         ("Google Fiber", 19913852, ("income", 4993), ("incometotal", 41772)),
-                         ("5G", 63386738, ("income", 15893), ("incometotal", 115046)),
-                         ("Li-Fi", 233183018, ("income", 58466), ("incometotal", 366197)),
-                         ("World Peace", 991404365, ("income", 248575), ("incometotal", 1347142))]
+        self.upgrades = [("Electricity", 300000, ("income", 100), ("incometotal", 100)),
+                         ("Plumbing", 400712, ("unlock", "Pipe"), ("incometotal", 160)),
+                         ("Water Supply", 618584, ("income", 207), ("incometotal", 243)),
+                         ("Metro", 1103622, ("unlock", "Metro"), ("incometotal", 341)),
+                         ("Santa Claus", 2275607, ("income", 761), ("incometotal", 449)),
+                         ("Wi-Fi", 5422875, ("income", 1813), ("incometotal", 567)),
+                         ("Google Fiber", 14935416, ("income", 4993), ("incometotal", 692)),
+                         ("5G", 47540139, ("income", 15893), ("incometotal", 822)),
+                         ("Li-Fi", 174887578, ("income", 58466), ("incometotal", 959)),
+                         ("World Peace", 743554611, ("income", 248575), ("incometotal", 1100))]
         self.usedupgrades = []
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
