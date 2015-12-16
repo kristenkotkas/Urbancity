@@ -106,8 +106,7 @@ class Game:
         # houses_properties = sizetype(people, per people modifier, minpeople)
         if difficulty == 0:  # easy
             self.houses_properties = [
-                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 0), (13500, 6, 27000)]
-            # (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
+                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
             self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
         elif difficulty == 1:  # normal
             self.houses_properties = [
