@@ -474,7 +474,7 @@ class Power:
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.arearect = pygame.Rect(0, self.h, self.w, self.h)
         self.areaendrect = pygame.Rect(0, self.h,
-                                       game.resolution[0] - self.w * self.timesx + 10 * (self.timesx + 3), self.h)
+                                       game.resolution[0] - self.w * self.timesx + 20 * (self.timesx + 2), self.h)
 
     def draw(self):
         if not self.drawnout:
@@ -486,9 +486,9 @@ class Power:
                 self.drawnout = True
                 self.y = self.fixedy
         for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column - 10 * (column + 3), self.y, self.w, self.h)
+            self.rect = pygame.Rect(self.w * column - 20 * (column + 2), self.y, self.w, self.h)
             self.surface.blit(self.image, self.rect, self.arearect)
-        self.rect = pygame.Rect(self.w * self.timesx - 10 * (self.timesx + 3), self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.w * self.timesx - 20 * (self.timesx + 2), self.y, self.w, self.h)
         self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
