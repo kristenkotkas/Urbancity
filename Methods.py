@@ -9,6 +9,8 @@ def update_common(game):
     game.background.draw(game)
     if game.fiber is not None:
         game.fiber.draw()
+    if game.watersupply is not None:
+        game.watersupply.draw()
     if game.metro is not None:
         game.metro.draw(game)
     if game.pipe is not None:

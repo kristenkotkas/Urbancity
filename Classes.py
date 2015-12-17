@@ -34,7 +34,7 @@ class Game:
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
         self.upgrades = [("Electricity", 300000, ("unlock", "Power"), ("incometotal", 100)),
                          ("Plumbing", 400712, ("unlock", "Pipe"), ("incometotal", 160)),
-                         ("Water Supply", 618584, ("income", 207), ("incometotal", 243)),
+                         ("Water Supply", 618584, ("unlock", "Water"), ("incometotal", 243)),
                          ("Metro", 1103622, ("unlock", "Metro"), ("incometotal", 341)),
                          ("Santa Claus", 2275607, ("income", 761), ("incometotal", 449)),
                          ("Wi-Fi", 5422875, ("income", 1813), ("incometotal", 567)),
@@ -61,6 +61,7 @@ class Game:
         self.pipe = None
         self.fiber = None
         self.power = None
+        self.watersupply = None
 
     def initialize_menu(self, game):
         self.images = Images()
@@ -76,6 +77,8 @@ class Game:
                 self.fiber = Fiber(game)
             elif upgrade == "Electricity":
                 self.power = Power(game)
+            elif upgrade == "Water Supply":
+                self.watersupply = Watersupply(game)
         self.menu = Menu(game)
 
     def initialize_game(self, game, state):
@@ -94,6 +97,7 @@ class Game:
             self.pipe = None
             self.fiber = None
             self.power = None
+            self.watersupply = None
         self.set_difficulty(self.difficulty)
         self.right_drawer = RightDrawer(game)
         self.left_drawer = LeftDrawer(game)
@@ -113,6 +117,8 @@ class Game:
             self.fiber = Fiber(game)
         elif unlocktype == "Power":
             self.power = Power(game)
+        elif unlocktype == "Water":
+            self.watersupply = Watersupply(game)
 
     def set_difficulty(self, difficulty):
         # houses_properties = sizetype(people, per people modifier, minpeople)
@@ -189,7 +195,7 @@ class Images:
         self.bar = Images.load_image("Bar.png")
         self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
                      Images.load_image("Pipe.png"), Images.load_image("Google_Fiber.png"),
-                     Images.load_image("Electricity.png")]
+                     Images.load_image("Electricity.png"), Images.load_image("Water.png")]
         self.houses = [
             [Images.load_image("House_11.png"), Images.load_image("House_12.png"), Images.load_image("House_13.png"),
              Images.load_image("House_14.png")],
@@ -434,6 +440,26 @@ class Fiber:
         self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
+class Watersupply:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.misc[5]
+        self.w = self.image.get_rect().w
+        self.h = self.image.get_rect().h
+        self.x = 0
+        self.y = game.resolution[1] - self.h
+        self.timesx = game.resolution[0] // self.w
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx, self.h)
+
+    def draw(self):
+        for column in range(int(self.timesx)):
+            self.rect = pygame.Rect(self.w * column, self.y, self.w, self.h)
+            self.surface.blit(self.image, self.rect)
+        self.rect = pygame.Rect(self.w * self.timesx, self.y, self.w, self.h)
+        self.surface.blit(self.image, self.rect, self.areaendrect)
+
+
 class Power:
     def __init__(self, game):
         self.surface = game.screen
@@ -448,7 +474,7 @@ class Power:
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.arearect = pygame.Rect(0, self.h, self.w, self.h)
         self.areaendrect = pygame.Rect(0, self.h,
-                                       game.resolution[0] - self.w * self.timesx + 10 * (self.timesx + 1), self.h)
+                                       game.resolution[0] - self.w * self.timesx + 10 * (self.timesx + 3), self.h)
 
     def draw(self):
         if not self.drawnout:
@@ -460,9 +486,9 @@ class Power:
                 self.drawnout = True
                 self.y = self.fixedy
         for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column - 10 * (column + 1), self.y, self.w, self.h)
+            self.rect = pygame.Rect(self.w * column - 10 * (column + 3), self.y, self.w, self.h)
             self.surface.blit(self.image, self.rect, self.arearect)
-        self.rect = pygame.Rect(self.w * self.timesx - 10 * (self.timesx + 1), self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.w * self.timesx - 10 * (self.timesx + 3), self.y, self.w, self.h)
         self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
