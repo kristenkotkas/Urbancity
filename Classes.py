@@ -260,7 +260,7 @@ class Metro:
         self.metrow = self.image_metro.get_rect().w
         self.metroh = self.image_metro.get_rect().h
         self.metrox = (game.resolution[0] - self.metrow) / 2
-        self.metroy = game.resolution[1] - 144
+        self.metroy = game.resolution[1] - 111
         self.metrorect = pygame.Rect(self.metrox, self.metroy + self.metroh, self.metrow, self.metroh)
         self.trainx = self.metrox
         self.trainy = self.metroy + 50
@@ -401,7 +401,7 @@ class Pipe:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = -10
-        self.y = game.resolution[1] - self.h + 10
+        self.y = game.resolution[1] - self.h + 30
         self.drawnout = False
         self.rect = pygame.Rect(self.x, self.y + self.h, self.w, self.h)
         self.arearect = pygame.Rect(0, self.h, self.w, self.h)
@@ -427,7 +427,7 @@ class Fiber:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = 0
-        self.y = game.resolution[1] - self.h - 60
+        self.y = game.resolution[1] - self.h - 90
         self.timesx = game.resolution[0] // self.w
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx, self.h)
@@ -447,16 +447,16 @@ class Watersupply:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = 0
-        self.y = game.resolution[1] - self.h
+        self.y = game.resolution[1] - self.h + 5
         self.timesx = game.resolution[0] // self.w
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx, self.h)
+        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx + 5 * (self.timesx + 1), self.h)
 
     def draw(self):
         for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column, self.y, self.w, self.h)
+            self.rect = pygame.Rect(self.w * column - 5 * (column + 1), self.y, self.w, self.h)
             self.surface.blit(self.image, self.rect)
-        self.rect = pygame.Rect(self.w * self.timesx, self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.w * self.timesx - 5 * (self.timesx + 1), self.y, self.w, self.h)
         self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
