@@ -9,8 +9,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 60
-        # self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen_final = pygame.display.set_mode((1280, 720))
+        self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # self.screen_final = pygame.display.set_mode((1280, 720))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -469,7 +469,7 @@ class Power:
         self.x = 0
         self.fixedy = game.resolution[1] - self.h - game.background.groundsize + 14
         self.y = self.fixedy + self.h
-        self.timesx = game.resolution[0] // self.w
+        self.timesx = game.resolution[0] // (self.w - 20)
         self.drawnout = False
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.arearect = pygame.Rect(0, self.h, self.w, self.h)
