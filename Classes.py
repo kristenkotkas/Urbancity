@@ -469,12 +469,13 @@ class Power:
         self.x = 0
         self.fixedy = game.resolution[1] - self.h - game.background.groundsize + 14
         self.y = self.fixedy + self.h
-        self.timesx = game.resolution[0] // (self.w - 20)
+        self.offset = 20
+        self.timesx = game.resolution[0] // (self.w - self.offset)
         self.drawnout = False
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
         self.arearect = pygame.Rect(0, self.h, self.w, self.h)
-        self.areaendrect = pygame.Rect(0, self.h,
-                                       game.resolution[0] - self.w * self.timesx + 20 * (self.timesx + 2), self.h)
+        self.areaendrect = \
+            pygame.Rect(0, self.h, game.resolution[0] - self.w * self.timesx + self.offset * (self.timesx + 2), self.h)
 
     def draw(self):
         if not self.drawnout:
@@ -486,9 +487,9 @@ class Power:
                 self.drawnout = True
                 self.y = self.fixedy
         for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column - 20 * (column + 2), self.y, self.w, self.h)
+            self.rect = pygame.Rect(self.w * column - self.offset * (column + 2), self.y, self.w, self.h)
             self.surface.blit(self.image, self.rect, self.arearect)
-        self.rect = pygame.Rect(self.w * self.timesx - 20 * (self.timesx + 2), self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.w * self.timesx - self.offset * (self.timesx + 2), self.y, self.w, self.h)
         self.surface.blit(self.image, self.rect, self.areaendrect)
 
 
@@ -992,7 +993,7 @@ class Bar:
         self.income_manual = 0
         self.income_manual_time = 0
         self.income_manual_data = []
-        self.house_multiplier = 1.15
+        self.house_multiplier = 1.15572735
         self.unlockedupgrades = []
         for name in game.usedupgrades:
             for upgrade in game.upgrades:

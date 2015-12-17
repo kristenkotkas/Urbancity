@@ -11,7 +11,8 @@ options = {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
            "include_files": ["data/", "Classes.py", "Methods.py"],
            "optimize": 2,
            "compressed": True,
-           "include_msvcr": True}
+           "include_msvcr": True
+           }
 setup(
     name="Urbancity",
     version="1.0.0",
