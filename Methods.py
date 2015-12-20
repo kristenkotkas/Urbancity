@@ -89,19 +89,6 @@ def update_game(game):
                 elif a == 800:
                     game.bar.money *= 10
                     game.news.present("good")
-            elif event.key == pygame.K_k:  # cheating
-                game.bar.money += game.bar.money * 133700
-            elif event.key == pygame.K_l:  # cheating
-                game.bar.money = 0
-            elif event.key == pygame.K_n:  # cheating
-                game.bar.money /= 50
-                game.news.present("bad")
-            elif event.key == pygame.K_m:  # cheating
-                game.bar.money *= 10
-                game.news.present("good")
-            elif event.key == pygame.K_b:  # cheating
-                game.metro.terroristevent = True
-                pygame.time.set_timer(pygame.USEREVENT+4, 100)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:
                 button.mouse_click_check(game, x, y)
