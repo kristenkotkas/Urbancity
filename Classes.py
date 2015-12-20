@@ -1082,6 +1082,7 @@ class Bar:
                 if self.peopletotal >= upgrade[3][1]:
                     game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
+                    break
             elif upgrade[3][0] == "houses":
                 houses = 0
                 for sizetype in game.houses:
@@ -1089,10 +1090,13 @@ class Bar:
                 if houses >= upgrade[3][1]:
                     game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
+                    break
             elif upgrade[3][0] == "incometotal":
                 if self.income >= upgrade[3][1]:
                     game.upgrade_buttons.append(UpgradeButton(game, upgrade[0], len(game.upgrade_buttons)))
                     self.unlockedupgrades.append(upgrade)
+                    break
+        for upgrade in game.upgrades:
             if upgrade in self.unlockedupgrades:
                 game.upgrades.remove(upgrade)
 
