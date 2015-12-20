@@ -1,4 +1,4 @@
 Urbancity Pygame projekt
 
-Ainsaks nupuks on siin mängus "space".
+Mängus tuleb kasutada tühikut ja hiirt.
 Allalaadimiste all on pakendatud exe.
