@@ -10,7 +10,7 @@ class Game:
     def __init__(self):
         self.fps_cap = 60
         self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # self.screen_final = pygame.display.set_mode((1280, 720))
+        # self.screen_final = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -572,7 +572,7 @@ class Cloud:
         self.w = self.image.get_rect().w
         self.h = self.image.get_rect().h
         self.x = -self.w
-        self.y = game.resolution[1] * 60 / 720
+        self.y = game.resolution[1] - 660
         self.minx = -self.w
         self.maxx = game.resolution[0]
         self.drawable = True
@@ -1043,6 +1043,15 @@ class Bar:
                 self.incometotal += \
                     house.peoplemax * game.bar.house_multiplier * game.houses_properties[house.sizetype][1]
 
+    def calculate_incomereward(self):
+        if self.peopletotal == 0:
+            return 0
+        percent = self.people / self.peopletotal * 100
+        if percent < 10:
+            return self.incomereward * percent / 10
+        else:
+            return self.incomereward
+
     def calculate_peopletotal(self, game, currentpeople):
         self.peopletotal = currentpeople
         for sizetype in game.houses:
@@ -1108,7 +1117,8 @@ class Bar:
                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]), self.drawdata, 0)
         Methods.draw_obj(game, True, round(self.money), (self.x, self.y), (self.objxy[0][1], self.objxy[1]),
                          (self.objwh[0][1], self.objwh[1]), self.drawdata, self.drawdata[2][0])
-        Methods.draw_obj(game, True, str(format(round(self.income + self.income_manual + self.incomereward), ",d")) +
-                         "/" + str(format(round(self.incometotal + self.incomereward), ",d") + " €/s"),
+        Methods.draw_obj(game, True,
+                         str(format(round(self.income + self.income_manual + self.calculate_incomereward()), ",d")) +
+                         "/" + str(format(round(self.incometotal), ",d") + " €/s"),
                          (self.x, self.y), (self.objxy[0][2], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
                          self.drawdata, self.drawdata[2][1])
