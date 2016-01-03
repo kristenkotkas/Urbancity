@@ -1,0 +1,9 @@
+* osade kaupa joonistamine
+* mängu sisesed juhised ehk "tutorial"
+* story - world peace?
+* riba alla vms juturiba, kus kirjas teated, mis praegu linnas toimub ehk tagasiside mängijale
+* upgrade-sid juurde teha ja nende väärtusi paremaks muuta kuidagi
+*
+*
+*
+* plakat on ka vaja teha?
