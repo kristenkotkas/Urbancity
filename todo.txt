@@ -3,7 +3,8 @@
 * story - world peace?
 * riba alla vms juturiba, kus kirjas teated, mis praegu linnas toimub ehk tagasiside mängijale
 * upgrade-sid juurde teha ja nende väärtusi paremaks muuta kuidagi
-* mindig helid teha
+* mingid helid teha
 *
+* õige rong panna
 *
 * plakat on ka vaja teha?
