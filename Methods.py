@@ -90,6 +90,7 @@ def update_game(game):
                     game.bar.money *= 10
                     game.news.present("good")
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            game.sounds.click.play()
             for button in game.right_buttons + game.tax_buttons + game.upgrade_buttons:
                 button.mouse_click_check(game, x, y)
     game.screen_final.blit(game.screen, (0, 0))

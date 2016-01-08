@@ -9,11 +9,11 @@ def main():
     game = Game()
     game.initialize_menu(game)
     clock = pygame.time.Clock()
-    pygame.display.set_caption("Urbancity")
+    # pygame.display.set_caption("Urbancity")
 
     while game.running:
         game.tick = clock.tick(game.fps_cap)
-        # pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
+        pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
         if game.menu_running:
             update_menu(game)
         else:

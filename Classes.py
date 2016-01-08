@@ -8,9 +8,9 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 class Game:
     def __init__(self):
-        self.fps_cap = 60
-        self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # self.screen_final = pygame.display.set_mode((1600, 900))
+        self.fps_cap = 120
+        # self.screen_final = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen_final = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         # noinspection PyArgumentList
         self.screen = pygame.Surface(self.resolution)
@@ -50,6 +50,7 @@ class Game:
         self.bar_amounts = [0, 0, 0, 0]
         self.taxes = [0, 0, 0]
         self.images = None
+        self.sounds = None
         self.background = None
         self.cloud = None
         self.bar = None
@@ -65,6 +66,7 @@ class Game:
 
     def initialize_menu(self, game):
         self.images = Images()
+        self.sounds = Sounds()
         self.filesystem_do(game, "load_state")
         self.background = Background(game)
         self.cloud = Cloud(game)
@@ -82,6 +84,7 @@ class Game:
         self.menu = Menu(game)
 
     def initialize_game(self, game, state):
+        self.sounds.play_music()
         if state == "new":
             self.difficulty = game.menu.is_highlighted_button - 2
             self.right_buttons = []
@@ -216,6 +219,28 @@ class Images:
         except:
             raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
         return loaded_image.convert_alpha()
+
+
+class Sounds:
+    def __init__(self):
+        Sounds.load_sound("house_lo.ogg", "music")
+        self.click = Sounds.load_sound("boom.wav", "sound")
+
+    @staticmethod
+    def load_sound(file, soundtype):
+        file = os.path.join(main_dir, 'data\\test', file)
+        if soundtype == "music":
+            pygame.mixer.music.load(file)
+        else:
+            try:
+                loaded_sound = pygame.mixer.Sound(file)
+            except pygame.error:
+                raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
+            return loaded_sound
+
+    @staticmethod
+    def play_music():
+        pygame.mixer.music.play(-1)
 
 
 class Background:
