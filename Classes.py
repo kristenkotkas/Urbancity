@@ -84,7 +84,6 @@ class Game:
         self.menu = Menu(game)
 
     def initialize_game(self, game, state):
-        self.sounds.play_music()
         if state == "new":
             self.difficulty = game.menu.is_highlighted_button - 2
             self.right_buttons = []
@@ -224,23 +223,20 @@ class Images:
 class Sounds:
     def __init__(self):
         Sounds.load_sound("house_lo.ogg", "music")
-        self.click = Sounds.load_sound("boom.wav", "sound")
+        self.click = Sounds.load_sound("Mouse_press.wav", "sound")
 
     @staticmethod
     def load_sound(file, soundtype):
-        file = os.path.join(main_dir, 'data\\test', file)
+        file = os.path.join(main_dir, 'data\\test_helid', file)
         if soundtype == "music":
             pygame.mixer.music.load(file)
+            # pygame.mixer.music.play(-1)
         else:
             try:
                 loaded_sound = pygame.mixer.Sound(file)
             except pygame.error:
                 raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
             return loaded_sound
-
-    @staticmethod
-    def play_music():
-        pygame.mixer.music.play(-1)
 
 
 class Background:
