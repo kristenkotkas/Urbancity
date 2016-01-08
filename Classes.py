@@ -223,7 +223,7 @@ class Images:
 class Sounds:
     def __init__(self):
         Sounds.load_sound("house_lo.ogg", "music")
-        self.click = Sounds.load_sound("Mouse_press.wav", "sound")
+        self.click = Sounds.load_sound("Mouse_press.ogg", "sound")
 
     @staticmethod
     def load_sound(file, soundtype):
