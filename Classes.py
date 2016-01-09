@@ -52,6 +52,7 @@ class Game:
         self.images = None
         self.sounds = None
         self.background = None
+        self.cursor = None
         self.cloud = None
         self.bar = None
         self.right_drawer = None
@@ -69,6 +70,7 @@ class Game:
         self.sounds = Sounds()
         self.filesystem_do(game, "load_state")
         self.background = Background(game)
+        self.cursor = Cursor(game)
         self.cloud = Cloud(game)
         for upgrade in self.usedupgrades:
             if upgrade == "Metro":
@@ -185,6 +187,7 @@ class Game:
 class Images:
     def __init__(self):
         self.background = Images.load_image("Background.png")
+        self.cursor = Images.load_image("Cursor.png")
         self.right_button = [Images.load_image("Button_available.png"), Images.load_image("Button_available_hover.png"),
                              Images.load_image("Button_unavailable.png")]
         self.right_button_logos = [Images.load_image("House_1_logo.png"), Images.load_image("House_2_logo.png"),
@@ -271,6 +274,15 @@ class Background:
             self.surface.blit(self.image, self.rect, self.groundarearect)
         self.rect = pygame.Rect(self.w * self.timesx, self.skysize * self.timesy, self.w, self.groundsize)
         self.surface.blit(self.image, self.rect, self.groundendarearect)
+
+
+class Cursor:
+    def __init__(self, game):
+        self.surface = game.screen
+        self.image = game.images.cursor
+
+    def draw(self, mousepos):
+        self.surface.blit(self.image, mousepos)
 
 
 class Metro:
@@ -751,6 +763,7 @@ class UpgradeButton:
         rect = pygame.Rect(self.x, self.y, self.w, self.h)
         if rect.collidepoint(x, y):
             if game.bar.money >= self.cost:
+                game.sounds.click.play()
                 game.bar.money -= self.cost
                 self.process_rewards(game)
                 self.animateout = True
@@ -814,6 +827,7 @@ class TaxButton:
                  pygame.Rect(self.x + self.clickxplus, self.clicky, self.clickw, self.clickh)]
         for rect in rects:
             if rect.collidepoint(x, y):
+                game.sounds.click.play()
                 if rects.index(rect) == 1:
                     if game.taxes[self.sizetype] < 100:
                         game.taxes[self.sizetype] += 5
@@ -903,6 +917,7 @@ class RightButton:
             self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
             if self.rect.collidepoint(x, y):
                 if game.bar.money >= self.price:
+                    game.sounds.click.play()
                     game.bar.money -= self.price
                     self.amount += 1
                     self.price = game.right_button_prices_fixed[
@@ -979,6 +994,7 @@ class MenuButton:
 
     def mouse_click_check(self, game, x, y):
         if self.rect.collidepoint(x, y):
+            game.sounds.click.play()
             if self.stype == 0:
                 game.initialize_game(game, "new")
                 game.menu_running = False

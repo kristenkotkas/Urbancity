@@ -7,6 +7,7 @@ from Classes import Game
 def main():
     pygame.mixer.pre_init(44100, -16, 2, 2048)
     pygame.init()
+    pygame.mouse.set_visible(False)
     game = Game()
     game.initialize_menu(game)
     clock = pygame.time.Clock()
