@@ -23,7 +23,7 @@ class Game:
         self.right_buttons = []
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
-        self.taxnames = ["Beard Tax", "Luxury Tax", "Weed Tax"]
+        self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         # houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y from bottom])
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
