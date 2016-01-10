@@ -1,29 +1,25 @@
 # -*- coding: utf-8 -*-
 import pygame
-from Methods import update_game, update_menu
+from Methods import update_events
 from Classes import Game
 
-print("test")
+
 def main():
     pygame.mixer.pre_init(44100, -16, 2, 2048)
     pygame.init()
-    pygame.mouse.set_visible(False)
+    pygame.mouse.set_visible(0)
     game = Game()
-    game.initialize_menu(game)
+    game.initialize_all(game)
     clock = pygame.time.Clock()
-    # pygame.display.set_caption("Urbancity")
 
     while game.running:
-        game.tick = clock.tick(game.fps_cap)
+        clock.tick(game.fps_cap)
         pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
-        if game.menu_running:
-            update_menu(game)
-        else:
-            update_game(game)
-        pygame.display.flip()
+        update_events(game)
+        game.allsprites.update()
+        dirtyrects = game.allsprites.draw(game.screen)
+        pygame.display.update(dirtyrects)
 
-    if not game.menu_running:
-        game.filesystem_do(game, "save_state")
     pygame.time.wait(50)
     pygame.quit()
 
