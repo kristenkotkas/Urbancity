@@ -6,7 +6,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 class Game:
     def __init__(self):
-        self.fps_cap = 1000
+        self.fps_cap = 60
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -33,7 +33,7 @@ class Game:
 
 class Images:
     def __init__(self):
-        self.background = Images.load_image("Background.png")
+        self.background = Images.load_image("Background_plain.png")
         self.cursor = Images.load_image("Cursor.png")
         self.right_button = [Images.load_image("Button_available.png"), Images.load_image("Button_available_hover.png"),
                              Images.load_image("Button_unavailable.png")]
@@ -92,7 +92,7 @@ class Sounds:
 class Background:
     def __init__(self, game):
         # noinspection PyArgumentList
-        self.surface = pygame.Surface(game.screen.get_size()).convert()
+        self.surface = pygame.Surface(game.resolution).convert()
         self.image, self.rect = game.images.background
         self.skyarearect = pygame.Rect(0, 0, game.resolution[0], game.resolution[1] - self.rect.h)
         self.surface.fill((125, 196, 255), self.skyarearect)
@@ -221,21 +221,18 @@ class Pipe(pygame.sprite.DirtySprite):
         self.layer = layer
         self.image, self.rect = game.images.misc[2]
         self.rect.x = -10
-        self.y = game.resolution[1] - self.rect.h + 30
-        self.rect.y = self.y + self.rect.h
+        self.rect.y = game.resolution[1] - self.rect.h + 30
         self.drawnout = False
-        self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
+        self.source_rect = pygame.Rect(0, 0, 0, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
         if not self.drawnout:
-            if self.source_rect.y > 0:
-                self.source_rect.y -= 5
-                self.rect.y -= 5
+            if self.source_rect.w < self.rect.w:
+                self.source_rect.w += 5
             else:
                 self.drawnout = True
-                self.rect.y = self.y
-                self.source_rect.y = 0
+                self.source_rect.w = self.rect.w
                 self.dirty = 1
 
 
@@ -248,13 +245,14 @@ class Fiber(pygame.sprite.DirtySprite):
         self.rect.y = game.resolution[1] - self.rect.h - 90
         self.timesx = game.resolution[0] // self.rect.w + 1
         # noinspection PyArgumentList
-        self.image = pygame.Surface((game.resolution[0], self.rect.h))
+        self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
         for column in range(int(self.timesx)):
             rect = pygame.Rect(self.rect.w * column, 0, self.rect.w, self.rect.h)
             arearect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
             if column == self.timesx - 1:
                 arearect.w = game.resolution[0] - self.rect.w * column
             self.image.blit(self.surface, rect, arearect)
+        self.rect.w = game.resolution[0]
         game.add_new_renderable(self, self.layer)
 
 
