@@ -11,8 +11,16 @@ class Game:
         self.screen = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
+        self.menu_running = True
+        self.difficulty = 1
+
+        self.tax_buttons = []
+        self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
+        self.bar_amounts = [0, 0, 0, 0]
+        self.taxes = [0, 0, 0]
+
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
-            self.power = self.watersupply = None
+            self.power = self.watersupply = self.bar = None
         self.allsprites = pygame.sprite.LayeredDirty()
 
     def initialize_all(self, game):
@@ -26,6 +34,7 @@ class Game:
         self.power = Power(game, 1)
         self.watersupply = Watersupply(game, 0)
         self.pipe = Pipe(game, 0)
+        self.bar = Bar(game, 9)
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -359,3 +368,93 @@ class Cloud(pygame.sprite.DirtySprite):
             self.rect.x += 1
         else:
             self.rect.x = self.minx
+
+
+class Bar(pygame.sprite.DirtySprite):
+    def __init__(self, game, layer):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 2
+        self.layer = layer
+        self.image, self.rect = game.images.bar
+        self.rect.x = (game.resolution[0] - self.rect.w) / 2 + 25
+        self.rect.y = -self.rect.h
+        self.maxy = 6
+
+        self.money = 0
+
+        self.objxy = ([26, 204, 469], 7)
+        self.objwh = ([170, 249, 239], 21.621)
+
+        self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
+
+        # self.moneycounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
+        #                                  (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
+        #                                  self.drawdata, self.drawdata[2][0])
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        self.money += 1
+        # self.moneycounter.process_update(self.money, (self.rect.x, self.rect.y))
+        if self.rect.y < self.maxy:
+            self.rect.y += 2
+        else:
+            self.rect.y = self.maxy
+
+
+class RenderObject(pygame.sprite.DirtySprite):
+    def __init__(self, game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
+        # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 1
+        self.rect = pygame.Rect(main_obj_xy[0], main_obj_xy[1], self.rect.w, self.rect.h)
+        self.image = self.old_obj = self.old_main_obj_xy = None
+        self.middle = middle
+        self.new_obj = obj
+        self.main_obj_xy = main_obj_xy
+        self.inner_obj_wh = inner_obj_wh
+        self.drawdata = drawdata
+        self.txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
+        self.end = end
+        if inner_relative_xy == 0:
+            self.inner_obj_xy = main_obj_xy
+        else:
+            self.inner_obj_xy = (main_obj_xy[0] + inner_relative_xy[0], main_obj_xy[1] + inner_relative_xy[1])
+        game.add_new_renderable(self, self.layer)
+
+        # todo rect suurused dirtyspritele on puudu, set dirty kui main obj xy muutub + uuenda rect
+
+    def process_string(self, obj):
+        self.image = self.txt_font.render(obj, True, self.drawdata[1])
+
+    def process_integer(self, obj):
+        obj = str(format(obj, ",d"))
+        if self.end != 0:
+            obj += self.end
+        self.process_string(obj)
+
+    def process_float(self, obj):
+        self.process_integer(round(obj))
+
+    def process_image(self, obj):
+        self.image = obj
+
+    def process_update(self, obj, main_obj_xy):
+        self.new_obj = obj
+        self.main_obj_xy = main_obj_xy
+
+    def update(self):
+        if self.new_obj != self.old_obj:
+            self.old_obj = self.new_obj
+            self.old_main_obj_xy = self.main_obj_xy  # todo new
+            self.dirty = 1
+            if isinstance(self.new_obj, str):
+                self.process_string(self.new_obj)
+            elif isinstance(self.new_obj, int):
+                self.process_integer(self.new_obj)
+            elif isinstance(self.new_obj, float):
+                self.process_float(self.new_obj)
+            else:
+                self.process_image(self.new_obj)
+        elif self.main_obj_xy != self.old_main_obj_xy:  # todo new
+            self.old_main_obj_xy = self.main_obj_xy
+            self.dirty = 1
