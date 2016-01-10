@@ -6,7 +6,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 class Game:
     def __init__(self):
-        self.fps_cap = 60
+        self.fps_cap = 120
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -22,10 +22,10 @@ class Game:
         self.cursor = Cursor(game, 10)
         self.cloud = Cloud(game, 0)
         # self.metro = Metro(game)
-        self.pipe = Pipe(game, 1)
-        self.fiber = Fiber(game, 2)
-        # self.power = Power(game)
-        # self.watersupply = Watersupply(game)
+        self.fiber = Fiber(game, 0)
+        self.power = Power(game, 1)
+        self.watersupply = Watersupply(game, 0)
+        self.pipe = Pipe(game, 0)
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -219,10 +219,50 @@ class Pipe(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
         self.layer = layer
-        self.image, self.rect = game.images.misc[2]
-        self.rect.x = -10
-        self.rect.y = game.resolution[1] - self.rect.h + 30
         self.drawnout = False
+        self.surface, self.rect = game.images.misc[2]
+        self.fixedy = game.resolution[1] - self.rect.h + 30
+        self.rect.y = self.fixedy + self.rect.h
+        # noinspection PyArgumentList
+        self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
+        rect = pygame.Rect(-10, 0, self.rect.w, self.rect.h)
+        self.image.blit(self.surface, rect)
+        rect = pygame.Rect(game.resolution[0] - self.rect.w + 10, 0, self.rect.w, self.rect.h)
+        self.image.blit(pygame.transform.flip(self.surface, True, False), rect)
+        self.rect.w = game.resolution[0]
+        self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        if not self.drawnout:
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
+            else:
+                self.drawnout = True
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
+                self.dirty = 1
+
+
+class Fiber(pygame.sprite.DirtySprite):
+    def __init__(self, game, layer):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 2
+        self.layer = layer
+        self.drawnout = False
+        self.surface, self.rect = game.images.misc[3]
+        self.rect.y = game.resolution[1] - self.rect.h - 90
+        self.timesx = game.resolution[0] // self.rect.w + 1
+        # noinspection PyArgumentList
+        self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
+        for column in range(int(self.timesx)):
+            rect = pygame.Rect(self.rect.w * column, 0, self.rect.w, self.rect.h)
+            arearect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
+            if column == self.timesx - 1:
+                arearect.w = game.resolution[0] - self.rect.w * column
+            self.image.blit(self.surface, rect, arearect)
+        self.rect.w = game.resolution[0]
         self.source_rect = pygame.Rect(0, 0, 0, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
@@ -236,77 +276,71 @@ class Pipe(pygame.sprite.DirtySprite):
                 self.dirty = 1
 
 
-class Fiber(pygame.sprite.DirtySprite):
+class Watersupply(pygame.sprite.DirtySprite):
     def __init__(self, game, layer):
         pygame.sprite.DirtySprite.__init__(self)
-        self.dirty = 1
+        self.dirty = 2
         self.layer = layer
-        self.surface, self.rect = game.images.misc[3]
-        self.rect.y = game.resolution[1] - self.rect.h - 90
+        self.drawnout = False
+        self.surface, self.rect = game.images.misc[5]
+        self.shift = 6
+        self.rect.y = game.resolution[1] - self.rect.h + 5
         self.timesx = game.resolution[0] // self.rect.w + 1
         # noinspection PyArgumentList
         self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
         for column in range(int(self.timesx)):
-            rect = pygame.Rect(self.rect.w * column, 0, self.rect.w, self.rect.h)
+            rect = pygame.Rect(self.rect.w * column - self.shift * (column + 1), 0, self.rect.w, self.rect.h)
+            arearect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
+            if column == self.timesx - 1:
+                arearect.w = game.resolution[0] - self.rect.w * column + self.shift * self.timesx
+            self.image.blit(self.surface, rect, arearect)
+        self.rect.w = game.resolution[0]
+        self.source_rect = pygame.Rect(0, 0, 0, self.rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        if not self.drawnout:
+            if self.source_rect.w < self.rect.w:
+                self.source_rect.w += 5
+            else:
+                self.drawnout = True
+                self.source_rect.w = self.rect.w
+                self.dirty = 1
+
+
+class Power(pygame.sprite.DirtySprite):
+    def __init__(self, game, layer):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 2
+        self.layer = layer
+        self.drawnout = False
+        self.surface, self.rect = game.images.misc[4]
+        self.fixedy = game.resolution[1] - self.rect.h - game.background.rect.h + 14
+        self.rect.y = self.fixedy + self.rect.h
+        self.offset = 20
+        self.timesx = game.resolution[0] // (self.rect.w - self.offset) + 1
+        # noinspection PyArgumentList
+        self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
+        for column in range(int(self.timesx)):
+            rect = pygame.Rect(self.rect.w * column - self.offset * (column + 2), 0, self.rect.w, self.rect.h)
             arearect = pygame.Rect(0, 0, self.rect.w, self.rect.h)
             if column == self.timesx - 1:
                 arearect.w = game.resolution[0] - self.rect.w * column
             self.image.blit(self.surface, rect, arearect)
         self.rect.w = game.resolution[0]
+        self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
-
-class Watersupply:
-    def __init__(self, game):
-        self.surface = game.screen
-        self.image = game.images.misc[5]
-        self.w = self.image.get_rect().w
-        self.h = self.image.get_rect().h
-        self.x = 0
-        self.y = game.resolution[1] - self.h + 5
-        self.timesx = game.resolution[0] // self.w
-        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.areaendrect = pygame.Rect(0, 0, game.resolution[0] - self.w * self.timesx + 5 * (self.timesx + 1), self.h)
-
-    def draw(self):
-        for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column - 5 * (column + 1), self.y, self.w, self.h)
-            self.surface.blit(self.image, self.rect)
-        self.rect = pygame.Rect(self.w * self.timesx - 5 * (self.timesx + 1), self.y, self.w, self.h)
-        self.surface.blit(self.image, self.rect, self.areaendrect)
-
-
-class Power:
-    def __init__(self, game):
-        self.surface = game.screen
-        self.image = game.images.misc[4]
-        self.w = self.image.get_rect().w
-        self.h = self.image.get_rect().h
-        self.x = 0
-        self.fixedy = game.resolution[1] - self.h - game.background.groundsize + 14
-        self.y = self.fixedy + self.h
-        self.offset = 20
-        self.timesx = game.resolution[0] // (self.w - self.offset)
-        self.drawnout = False
-        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
-        self.arearect = pygame.Rect(0, self.h, self.w, self.h)
-        self.areaendrect = \
-            pygame.Rect(0, self.h, game.resolution[0] - self.w * self.timesx + self.offset * (self.timesx + 2), self.h)
-
-    def draw(self):
+    def update(self):
         if not self.drawnout:
-            if self.arearect.y > 0:
-                self.arearect.y -= 5
-                self.areaendrect.y -= 5
-                self.y -= 5
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
             else:
                 self.drawnout = True
-                self.y = self.fixedy
-        for column in range(int(self.timesx)):
-            self.rect = pygame.Rect(self.w * column - self.offset * (column + 2), self.y, self.w, self.h)
-            self.surface.blit(self.image, self.rect, self.arearect)
-        self.rect = pygame.Rect(self.w * self.timesx - self.offset * (self.timesx + 2), self.y, self.w, self.h)
-        self.surface.blit(self.image, self.rect, self.areaendrect)
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
+                self.dirty = 1
 
 
 class Cloud(pygame.sprite.DirtySprite):
