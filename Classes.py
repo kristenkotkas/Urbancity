@@ -34,7 +34,7 @@ class Game:
         self.power = Power(game, 1)
         self.watersupply = Watersupply(game, 0)
         self.pipe = Pipe(game, 0)
-        self.bar = Bar(game, 9)
+        self.bar = Bar(game, 6)
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -387,14 +387,14 @@ class Bar(pygame.sprite.DirtySprite):
 
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
 
-        # self.moneycounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
-        #                                  (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
-        #                                  self.drawdata, self.drawdata[2][0])
+        self.moneycounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
+                                         (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
+                                         self.drawdata, self.drawdata[2][0])
         game.add_new_renderable(self, self.layer)
 
     def update(self):
         self.money += 1
-        # self.moneycounter.process_update(self.money, (self.rect.x, self.rect.y))
+        self.moneycounter.process_update(self.money, (self.rect.x, self.rect.y))
         if self.rect.y < self.maxy:
             self.rect.y += 2
         else:
@@ -406,25 +406,22 @@ class RenderObject(pygame.sprite.DirtySprite):
         # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
-        self.rect = pygame.Rect(main_obj_xy[0], main_obj_xy[1], self.rect.w, self.rect.h)
-        self.image = self.old_obj = self.old_main_obj_xy = None
+        self.layer = 9
         self.middle = middle
-        self.new_obj = obj
-        self.main_obj_xy = main_obj_xy
-        self.inner_obj_wh = inner_obj_wh
+        self.end = end
         self.drawdata = drawdata
         self.txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
-        self.end = end
-        if inner_relative_xy == 0:
-            self.inner_obj_xy = main_obj_xy
-        else:
-            self.inner_obj_xy = (main_obj_xy[0] + inner_relative_xy[0], main_obj_xy[1] + inner_relative_xy[1])
+        self.image = self.rect = self.old_obj = self.old_main_obj_xy = None
+        self.new_obj = obj
+        self.main_obj_xy = main_obj_xy
+        self.innerrect = pygame.Rect(main_obj_xy[0] + inner_relative_xy[0], main_obj_xy[1] + inner_relative_xy[1],
+                                     inner_obj_wh[0], inner_obj_wh[1])
+        # self.update()
+        # self.rect = pygame.Rect(main_obj_xy[0], main_obj_xy[1], self.image.get_rect().w, self.image.get_rect().h)
         game.add_new_renderable(self, self.layer)
 
-        # todo rect suurused dirtyspritele on puudu, set dirty kui main obj xy muutub + uuenda rect
-
     def process_string(self, obj):
-        self.image = self.txt_font.render(obj, True, self.drawdata[1])
+        self.image = self.txt_font.render(obj, True, self.drawdata[0])
 
     def process_integer(self, obj):
         obj = str(format(obj, ",d"))
@@ -443,9 +440,9 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.main_obj_xy = main_obj_xy
 
     def update(self):
-        if self.new_obj != self.old_obj:
+        if self.old_obj != self.new_obj:
             self.old_obj = self.new_obj
-            self.old_main_obj_xy = self.main_obj_xy  # todo new
+            self.old_main_obj_xy = self.main_obj_xy
             self.dirty = 1
             if isinstance(self.new_obj, str):
                 self.process_string(self.new_obj)
@@ -455,6 +452,10 @@ class RenderObject(pygame.sprite.DirtySprite):
                 self.process_float(self.new_obj)
             else:
                 self.process_image(self.new_obj)
-        elif self.main_obj_xy != self.old_main_obj_xy:  # todo new
+            self.rect = pygame.Rect(self.main_obj_xy[0], self.main_obj_xy[1],
+                                    self.image.get_rect().w, self.image.get_rect().h)
+        elif self.old_main_obj_xy != self.main_obj_xy:
             self.old_main_obj_xy = self.main_obj_xy
+            self.rect.x = self.main_obj_xy[0]
+            self.rect.y = self.main_obj_xy[1]
             self.dirty = 1
