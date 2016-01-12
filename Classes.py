@@ -7,7 +7,7 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 class Game:
     def __init__(self):
-        self.fps_cap = 200
+        self.fps_cap = 120
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -16,25 +16,33 @@ class Game:
         self.difficulty = 1
 
         self.tax_buttons = []
+        self.right_buttons = []
         self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
         self.bar_amounts = [0, 0, 0, 0]
         self.taxes = [0, 0, 0]
 
+        self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
+        self.right_button_prices_fixed = [0, 0, 0, 0, 0]
+        self.right_button_prices = [0, 0, 0, 0, 0]
+        self.right_button_amounts = [0, 0, 0, 0, 0]
+
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
-            self.power = self.watersupply = self.bar = None
+            self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = None
         self.allsprites = pygame.sprite.LayeredDirty()
 
     def initialize_all(self, game):
         self.images = Images()
         self.sounds = Sounds()
         self.background = Background(game)
-        self.cursor = Cursor(game, 10)
+        self.cursor = Cursor(game, 50)
         self.cloud = Cloud(game, 0)
         # self.metro = Metro(game)
         self.fiber = Fiber(game, 0)
         self.power = Power(game, 1)
         self.watersupply = Watersupply(game, 0)
         self.pipe = Pipe(game, 0)
+        self.left_drawer = LeftDrawer(game)
+        self.right_drawer = RightDrawer(game)
         self.bar = Bar(game, 6)
 
     def add_new_renderable(self, obj, layer):
@@ -121,13 +129,19 @@ class Background:
 class Cursor(pygame.sprite.DirtySprite):
     def __init__(self, game, layer):
         pygame.sprite.DirtySprite.__init__(self)
-        self.dirty = 2
+        self.dirty = 1
         self.layer = layer
         self.image, self.rect = game.images.cursor
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
-        self.rect.topleft = pygame.mouse.get_pos()
+        # todo fix
+        # ei uuenda hiir piisavalt kiiresti?, või on mingi värk tausta ülekirjutamisega
+
+    def update(self, game):
+        pos = pygame.mouse.get_pos()
+        if self.rect.topleft != pos:
+            self.rect.topleft = pos
+            self.dirty = 1
 
 
 class Metro:
@@ -243,7 +257,7 @@ class Pipe(pygame.sprite.DirtySprite):
         self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
+    def update(self, game):
         if not self.drawnout:
             if self.source_rect.y > 0:
                 self.source_rect.y -= 5
@@ -276,7 +290,7 @@ class Fiber(pygame.sprite.DirtySprite):
         self.source_rect = pygame.Rect(0, 0, 0, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
+    def update(self, game):
         if not self.drawnout:
             if self.source_rect.w < self.rect.w:
                 self.source_rect.w += 5
@@ -308,7 +322,7 @@ class Watersupply(pygame.sprite.DirtySprite):
         self.source_rect = pygame.Rect(0, 0, 0, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
+    def update(self, game):
         if not self.drawnout:
             if self.source_rect.w < self.rect.w:
                 self.source_rect.w += 5
@@ -341,7 +355,7 @@ class Power(pygame.sprite.DirtySprite):
         self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
+    def update(self, game):
         if not self.drawnout:
             if self.source_rect.y > 0:
                 self.source_rect.y -= 5
@@ -364,11 +378,67 @@ class Cloud(pygame.sprite.DirtySprite):
         self.rect.y = game.resolution[1] - 660
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
+    def update(self, game):
         if self.rect.x < self.maxx:
             self.rect.x += 1
         else:
             self.rect.x = self.minx
+
+
+class LeftDrawer(pygame.sprite.DirtySprite):
+    def __init__(self, game):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 0
+        self.visible = 0
+        self.layer = 10
+        self.rect = pygame.Rect(0, 0, 280, game.resolution[1])
+        game.add_new_renderable(self, self.layer)
+
+    @staticmethod
+    def process_upgrade_buttons(game):
+        for button in game.upgrade_buttons:
+            if not button.active:
+                game.usedupgrades.append(button.name)
+                game.upgrade_buttons.remove(button)
+            else:
+                button.process_location(game)
+
+    def update(self, game):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            """for button in game.tax_buttons + game.upgrade_buttons:
+                if button.animatecounter > 0:
+                    button.animatein = False
+                if not button.animateout and not button.animatein:
+                    if button.x < button.maxx:
+                        button.x += 20
+        else:
+            for button in game.tax_buttons + game.upgrade_buttons:
+                if not button.animateout and not button.animatein:
+                    if button.x > button.minx:
+                        button.x -= 20"""
+
+
+class RightDrawer(pygame.sprite.DirtySprite):
+    def __init__(self, game):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 0
+        self.visible = 0
+        self.layer = 10
+        self.x = game.resolution[0] - 220
+        self.rect = pygame.Rect(self.x, 0, game.resolution[0] - self.x, game.resolution[1])
+        game.add_new_renderable(self, self.layer)
+
+    def update(self, game):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            """for button in game.right_buttons:
+                if not button.animatein:
+                    if button.x > button.minx:
+                        button.x -= 20
+        else:
+            for button in game.right_buttons:
+                if not button.animatein:
+                    if button.x < button.maxx:
+                        button.x += 20"""
 
 
 class Bar(pygame.sprite.DirtySprite):
@@ -400,7 +470,7 @@ class Bar(pygame.sprite.DirtySprite):
                                           self.drawdata, self.drawdata[2][1])
         game.add_new_renderable(self, self.layer)
 
-    def update(self):
+    def update(self, game):
         self.people += 1
         self.money += 1
         self.income += 1
@@ -449,7 +519,7 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.new_obj = obj
         self.main_obj_xy = main_obj_xy
 
-    def update(self):
+    def update(self, game):
         if self.old_main_obj_xy != self.main_obj_xy or self.old_obj != self.new_obj:
             self.dirty = 1
             if self.old_main_obj_xy != self.main_obj_xy:
