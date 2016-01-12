@@ -13,7 +13,7 @@ def main():
     clock = pygame.time.Clock()
 
     while game.running:
-        print(clock.tick(game.fps_cap))
+        clock.tick(game.fps_cap)
         pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
         update_events(game)
         game.allsprites.update()

@@ -1,14 +1,15 @@
 import pygame
 import os.path
 from random import randint
+
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
 class Game:
     def __init__(self):
-        self.fps_cap = 120
+        self.fps_cap = 200
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode((1600, 900))
+        self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.menu_running = True
@@ -380,21 +381,32 @@ class Bar(pygame.sprite.DirtySprite):
         self.rect.y = -self.rect.h
         self.maxy = 6
 
+        self.people = 0
         self.money = 0
+        self.income = 0
 
         self.objxy = ([26, 204, 469], 7)
         self.objwh = ([170, 249, 239], 21.621)
-
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
 
+        self.peoplecounter = RenderObject(game, True, self.people, (self.rect.x, self.rect.y),
+                                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
+                                          self.drawdata, False)
         self.moneycounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
                                          (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
                                          self.drawdata, self.drawdata[2][0])
+        self.incomecounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
+                                          (self.objxy[0][2], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
+                                          self.drawdata, self.drawdata[2][1])
         game.add_new_renderable(self, self.layer)
 
     def update(self):
+        self.people += 1
         self.money += 1
+        self.income += 1
+        self.peoplecounter.process_update(self.people, (self.rect.x, self.rect.y))
         self.moneycounter.process_update(self.money, (self.rect.x, self.rect.y))
+        self.incomecounter.process_update(self.income, (self.rect.x, self.rect.y))
         if self.rect.y < self.maxy:
             self.rect.y += 2
         else:
@@ -406,18 +418,16 @@ class RenderObject(pygame.sprite.DirtySprite):
         # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
-        self.layer = 9
+        self.layer = 20
         self.middle = middle
         self.end = end
         self.drawdata = drawdata
         self.txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
-        self.image = self.rect = self.old_obj = self.old_main_obj_xy = None
-        self.new_obj = obj
-        self.main_obj_xy = main_obj_xy
-        self.innerrect = pygame.Rect(main_obj_xy[0] + inner_relative_xy[0], main_obj_xy[1] + inner_relative_xy[1],
-                                     inner_obj_wh[0], inner_obj_wh[1])
-        # self.update()
-        # self.rect = pygame.Rect(main_obj_xy[0], main_obj_xy[1], self.image.get_rect().w, self.image.get_rect().h)
+        self.image = self.rect = self.new_obj = self.old_obj = self.main_obj_xy = self.old_main_obj_xy = \
+            self.innerrect = None
+        self.inner_relative_xy = inner_relative_xy
+        self.inner_obj_wh = inner_obj_wh
+        self.process_update(obj, main_obj_xy)
         game.add_new_renderable(self, self.layer)
 
     def process_string(self, obj):
@@ -425,7 +435,7 @@ class RenderObject(pygame.sprite.DirtySprite):
 
     def process_integer(self, obj):
         obj = str(format(obj, ",d"))
-        if self.end != 0:
+        if self.end:
             obj += self.end
         self.process_string(obj)
 
@@ -440,22 +450,27 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.main_obj_xy = main_obj_xy
 
     def update(self):
-        if self.old_obj != self.new_obj:
-            self.old_obj = self.new_obj
-            self.old_main_obj_xy = self.main_obj_xy
+        if self.old_main_obj_xy != self.main_obj_xy or self.old_obj != self.new_obj:
             self.dirty = 1
-            if isinstance(self.new_obj, str):
-                self.process_string(self.new_obj)
-            elif isinstance(self.new_obj, int):
-                self.process_integer(self.new_obj)
-            elif isinstance(self.new_obj, float):
-                self.process_float(self.new_obj)
+            if self.old_main_obj_xy != self.main_obj_xy:
+                self.old_main_obj_xy = self.main_obj_xy
+                self.innerrect = pygame.Rect(
+                    self.main_obj_xy[0] + self.inner_relative_xy[0], self.main_obj_xy[1] + self.inner_relative_xy[1],
+                    self.inner_obj_wh[0], self.inner_obj_wh[1])
+            if self.old_obj != self.new_obj:
+                self.old_obj = self.new_obj
+                if isinstance(self.new_obj, str):
+                    self.process_string(self.new_obj)
+                elif isinstance(self.new_obj, int):
+                    self.process_integer(self.new_obj)
+                elif isinstance(self.new_obj, float):
+                    self.process_float(self.new_obj)
+                else:
+                    self.process_image(self.new_obj)
+            imagerect = self.image.get_rect()
+            if self.middle:
+                self.rect = pygame.Rect(self.innerrect.x + (self.inner_obj_wh[0] - imagerect.w) / 2,
+                                        self.innerrect.y + (self.inner_obj_wh[1] - imagerect.h) / 2,
+                                        imagerect.w, imagerect.h)
             else:
-                self.process_image(self.new_obj)
-            self.rect = pygame.Rect(self.main_obj_xy[0], self.main_obj_xy[1],
-                                    self.image.get_rect().w, self.image.get_rect().h)
-        elif self.old_main_obj_xy != self.main_obj_xy:
-            self.old_main_obj_xy = self.main_obj_xy
-            self.rect.x = self.main_obj_xy[0]
-            self.rect.y = self.main_obj_xy[1]
-            self.dirty = 1
+                self.rect = pygame.Rect(self.innerrect.x, self.innerrect.y, imagerect.w, imagerect.h)
