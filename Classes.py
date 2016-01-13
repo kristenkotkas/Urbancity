@@ -1,7 +1,6 @@
 import pygame
 import os.path
-from random import randint
-
+from random import randint, sample
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -351,7 +350,7 @@ class Power(pygame.sprite.DirtySprite):
     def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = 0
+        self.layer = 6
         self.drawnout = False
         self.surface, self.rect = game.images.misc[4]
         self.fixedy = game.resolution[1] - self.rect.h - game.background.rect.h + 14
@@ -386,9 +385,9 @@ class Cloud(pygame.sprite.DirtySprite):
     def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = 0
+        self.layer = 1
         self.image, self.rect = game.images.misc[0]
-        self.x = self.minx = -self.rect.w
+        self.x = self.minx = self.rect.x = -self.rect.w
         self.maxx = game.resolution[0]
         self.rect.y = game.resolution[1] - 660
         game.add_new_renderable(self, self.layer)
@@ -398,22 +397,37 @@ class Cloud(pygame.sprite.DirtySprite):
             self.rect.x += 1
         else:
             self.rect.x = self.minx
+            self.randomize_layers(game, [0, 1])
+
+    def randomize_layers(self, game, value):
+        if isinstance(value, int):
+            layer = randint(0, 1)
+            if len(game.houses[value]) > 1:
+                if layer == game.houses[value][-1].layer == game.houses[value][-2].layer:
+                    layer = randint(0, 1)
+            return layer
+        elif isinstance(value, list):
+            spriteslist = game.allsprites.remove_sprites_of_layer(value[0])
+            spriteslist.extend(game.allsprites.remove_sprites_of_layer(value[1]))
+            for sprite in sample(spriteslist, len(spriteslist)):
+                if sprite == self:
+                    game.add_new_renderable(sprite, value[1])
+                else:
+                    game.add_new_renderable(sprite, sample(value, len(value))[0])
 
 
 class House(pygame.sprite.DirtySprite):
     def __init__(self, game, sizetype, randtype, people):
         pygame.sprite.DirtySprite.__init__(self)
         self.sizetype = sizetype
-        self.layer = 6 - self.sizetype
+        if self.sizetype == 4:
+            self.layer = game.cloud.randomize_layers(game, sizetype)
+        elif self.sizetype == 0:
+            self.layer = randint(5, 6)
+        else:
+            self.layer = 5 - self.sizetype
         self.dirty = 2
         self.visible = 1
-
-        """ if sizetype = 5 -> layer = 0 or 1 (cloudiga kombineerimis jama)
-            if sizetype = 4 -> layer = 2
-            if sizetype = 3 -> layer = 3
-            if sizetype = 2 -> layer = 4
-            if sizetype = 1 -> layer = 5 """
-
         self.drawnout = False
         self.peoplemax = people
         self.peoplecurrent = self.peoplemax
