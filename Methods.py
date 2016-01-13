@@ -15,3 +15,5 @@ def update_events(game):
                 game.running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             game.sounds.click.play()
+            for button in game.right_buttons:
+                button.mouse_click_check(game)

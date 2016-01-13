@@ -14,11 +14,11 @@ def main():
 
     while game.running:
         clock.tick(game.fps_cap)
-        pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)))
         update_events(game)
         game.allsprites.update(game)
         dirtyrects = game.allsprites.draw(game.screen)
         pygame.display.update(dirtyrects)
+        pygame.display.set_caption("FPS: " + str(round(clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
         if game.menu_running:
             pass
 

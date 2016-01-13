@@ -21,10 +21,22 @@ class Game:
         self.bar_amounts = [0, 0, 0, 0]
         self.taxes = [0, 0, 0]
 
+        self.houses = [[], [], [], [], []]
+        self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
+
+        self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
+                             ([5, [90, 96, 242]], [340, 335, 328]),
+                             ([-30, [103, 96, 170]], [255, 255, 250]),
+                             ([-10, [128, 180, 223]], [115, 130, 130]),
+                             ([-40, [170, 135, 150]], [73, 59, 41])]
+
+        self.houses_properties = [
+            (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
+        self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
 
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = None
@@ -34,16 +46,18 @@ class Game:
         self.images = Images()
         self.sounds = Sounds()
         self.background = Background(game)
-        self.cursor = Cursor(game, 50)
-        self.cloud = Cloud(game, 0)
+        self.cursor = Cursor(game)
+        self.cloud = Cloud(game)
         # self.metro = Metro(game)
-        self.fiber = Fiber(game, 0)
-        self.power = Power(game, 1)
-        self.watersupply = Watersupply(game, 0)
-        self.pipe = Pipe(game, 0)
+        self.fiber = Fiber(game)
+        self.watersupply = Watersupply(game)
+        self.pipe = Pipe(game)
+        self.power = Power(game)
         self.left_drawer = LeftDrawer(game)
         self.right_drawer = RightDrawer(game)
-        self.bar = Bar(game, 6)
+        self.bar = Bar(game)
+        for sizetype in range(5):
+            self.right_buttons.append(RightButton(game, sizetype))
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -127,10 +141,10 @@ class Background:
 
 
 class Cursor(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
-        self.layer = layer
+        self.layer = 30
         self.image, self.rect = game.images.cursor
         game.add_new_renderable(self, self.layer)
 
@@ -239,10 +253,10 @@ class Metro:
 
 
 class Pipe(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = layer
+        self.layer = 4
         self.drawnout = False
         self.surface, self.rect = game.images.misc[2]
         self.fixedy = game.resolution[1] - self.rect.h + 30
@@ -270,10 +284,10 @@ class Pipe(pygame.sprite.DirtySprite):
 
 
 class Fiber(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = layer
+        self.layer = 2
         self.drawnout = False
         self.surface, self.rect = game.images.misc[3]
         self.rect.y = game.resolution[1] - self.rect.h - 90
@@ -301,10 +315,10 @@ class Fiber(pygame.sprite.DirtySprite):
 
 
 class Watersupply(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = layer
+        self.layer = 3
         self.drawnout = False
         self.surface, self.rect = game.images.misc[5]
         self.shift = 6
@@ -333,10 +347,10 @@ class Watersupply(pygame.sprite.DirtySprite):
 
 
 class Power(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = layer
+        self.layer = 0
         self.drawnout = False
         self.surface, self.rect = game.images.misc[4]
         self.fixedy = game.resolution[1] - self.rect.h - game.background.rect.h + 14
@@ -368,10 +382,10 @@ class Power(pygame.sprite.DirtySprite):
 
 
 class Cloud(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = layer
+        self.layer = 0
         self.image, self.rect = game.images.misc[0]
         self.x = self.minx = -self.rect.w
         self.maxx = game.resolution[0]
@@ -430,22 +444,122 @@ class RightDrawer(pygame.sprite.DirtySprite):
 
     def update(self, game):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
-            """for button in game.right_buttons:
-                if not button.animatein:
-                    if button.x > button.minx:
-                        button.x -= 20
+            for button in game.right_buttons:
+                button.slide(-5)
         else:
             for button in game.right_buttons:
-                if not button.animatein:
-                    if button.x < button.maxx:
-                        button.x += 20"""
+                button.slide(5)
+
+
+class RightButton(pygame.sprite.DirtySprite):
+    def __init__(self, game, sizetype):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 0
+        self.layer = 11
+        self.sizetype = sizetype
+        self.image = self.old_image = self.old_x = None
+        self.drawdata = [(255, 255, 255), 14, " €"]
+        self.image_available, rect = game.images.right_button[0]
+        self.image_available_highlighted = game.images.right_button[1][0]
+        self.image_unavailable = game.images.right_button[2][0]
+        self.logo = game.images.right_button_logos[self.sizetype][0]
+        self.name = game.right_button_names[self.sizetype]
+        self.amount = game.right_button_amounts[self.sizetype]
+        if self.amount > 0:
+            self.price = game.right_button_prices[self.sizetype]
+        else:
+            self.price = game.right_button_prices_fixed[self.sizetype]
+        self.people = game.houses_properties[self.sizetype][0]
+        self.rect = pygame.Rect(game.resolution[0], 15 + 100 * self.sizetype, rect.w, rect.h)
+        self.minx = game.resolution[0] - 220
+        self.maxx = game.resolution[0] - 20
+        self.hidden = False
+        self.animatein = True
+        self.logo_obj = RenderObject(game, True, self.logo, self.rect.topleft, (7, 7), (47, 48), self.drawdata, False)
+        self.amount_obj = RenderObject(game, True, self.amount, self.rect.topleft,
+                                       (7, 62), (47, 19), self.drawdata, False)
+        self.name_obj = RenderObject(game, True, self.name, self.rect.topleft, (62, 7), (132, 19), self.drawdata, False)
+        self.people_obj = RenderObject(game, True, self.people, self.rect.topleft,
+                                       (77, 35), (44, 19), self.drawdata, False)
+        self.peopletotal_obj = RenderObject(game, True, self.calculate_peopletotal(game), self.rect.topleft,
+                                            (132, 34), (63, 19), self.drawdata, False)
+        self.price_obj = RenderObject(game, True, self.price, self.rect.topleft,
+                                      (62, 62), (132, 19), self.drawdata, self.drawdata[2])
+        game.add_new_renderable(self, self.layer)
+
+    def update(self, game):
+        self.logo_obj.process_update(self.logo, self.rect.topleft)
+        self.amount_obj.process_update(self.amount, self.rect.topleft)
+        self.name_obj.process_update(self.name, self.rect.topleft)
+        self.people_obj.process_update(self.people, self.rect.topleft)
+        self.peopletotal_obj.process_update(self.calculate_peopletotal(game), self.rect.topleft)
+        self.price_obj.process_update(self.price, self.rect.topleft)
+        if not self.hidden:
+            if self.animatein:
+                self.dirty = 1
+                if self.rect.x > self.maxx:
+                    self.rect.x -= 2
+                else:
+                    self.rect.x = self.maxx
+                    self.animatein = False
+            if game.bar.money >= self.price:
+                if self.rect.collidepoint(pygame.mouse.get_pos()):
+                    self.image = self.image_available_highlighted
+                else:
+                    self.image = self.image_available
+            else:
+                breakpoint = self.rect.w / 100 * game.bar.calculate_percentage(self.price)
+                # noinspection PyArgumentList
+                self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA).convert_alpha()
+                self.image.blit(self.image_available, pygame.Rect(0, 0, self.rect.w + breakpoint, self.rect.h),
+                                pygame.Rect(0, 0, breakpoint, self.rect.h))
+                self.image.blit(self.image_unavailable, pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
+                                pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h))
+
+            if self.old_image != self.image:
+                self.old_image = self.image
+                self.dirty = 1
+        else:
+            # if game.bar.peopletotal >= game.houses_properties[self.sizetype][2]:
+            if game.bar.people >= game.houses_properties[self.sizetype][2]:
+                self.hidden = False
+
+    def calculate_peopletotal(self, game):
+        people = 0
+        if len(game.houses) >= self.sizetype:
+            for house in game.houses[self.sizetype]:
+                people += house.peoplecurrent
+        return people
+
+    def mouse_click_check(self, game):
+        if not self.hidden:
+            if self.rect.collidepoint(pygame.mouse.get_pos()):
+                if game.bar.money >= self.price:
+                    # game.sounds.click.play()
+                    game.bar.money -= self.price
+                    self.amount += 1
+                    self.price = game.right_button_prices_fixed[
+                                     self.sizetype] * game.bar.house_multiplier ** self.amount
+                    # game.houses[self.sizetype].append(
+                    #     House(game, self.sizetype, None, game.houses_properties[self.sizetype][0]))
+
+    def slide(self, amount):
+        if not self.animatein:
+            if amount < 0:
+                if self.rect.x > self.minx:
+                    self.rect.x += amount
+                    self.dirty = 1
+            else:
+                if self.rect.x < self.maxx:
+                    self.rect.x += amount
+                    self.dirty = 1
 
 
 class Bar(pygame.sprite.DirtySprite):
-    def __init__(self, game, layer):
+    def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = layer
+        self.layer = 10
         self.image, self.rect = game.images.bar
         self.rect.x = (game.resolution[0] - self.rect.w) / 2 + 25
         self.rect.y = -self.rect.h
@@ -455,40 +569,45 @@ class Bar(pygame.sprite.DirtySprite):
         self.money = 0
         self.income = 0
 
+        self.house_multiplier = 1.15572735
+
         self.objxy = ([26, 204, 469], 7)
         self.objwh = ([170, 249, 239], 21.621)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
 
-        self.peoplecounter = RenderObject(game, True, self.people, (self.rect.x, self.rect.y),
-                                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
-                                          self.drawdata, False)
-        self.moneycounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
-                                         (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
-                                         self.drawdata, self.drawdata[2][0])
-        self.incomecounter = RenderObject(game, True, self.money, (self.rect.x, self.rect.y),
-                                          (self.objxy[0][2], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
-                                          self.drawdata, self.drawdata[2][1])
+        self.peoplecounter = RenderObject(game, True, self.people, self.rect.topleft, (self.objxy[0][0], self.objxy[1]),
+                                          (self.objwh[0][0], self.objwh[1]), self.drawdata, False)
+        self.moneycounter = RenderObject(game, True, self.money, self.rect.topleft, (self.objxy[0][1], self.objxy[1]),
+                                         (self.objwh[0][1], self.objwh[1]), self.drawdata, self.drawdata[2][0])
+        self.incomecounter = RenderObject(game, True, self.money, self.rect.topleft, (self.objxy[0][2], self.objxy[1]),
+                                          (self.objwh[0][2], self.objwh[1]), self.drawdata, self.drawdata[2][1])
         game.add_new_renderable(self, self.layer)
 
     def update(self, game):
-        self.people += 1
-        self.money += 1
+        self.people += 10
+        self.money += 10
         self.income += 1
-        self.peoplecounter.process_update(self.people, (self.rect.x, self.rect.y))
-        self.moneycounter.process_update(self.money, (self.rect.x, self.rect.y))
-        self.incomecounter.process_update(self.income, (self.rect.x, self.rect.y))
+        self.peoplecounter.process_update(self.people, self.rect.topleft)
+        self.moneycounter.process_update(self.money, self.rect.topleft)
+        self.incomecounter.process_update(self.income, self.rect.topleft)
         if self.rect.y < self.maxy:
             self.rect.y += 2
         else:
             self.rect.y = self.maxy
+            self.dirty = 1
+
+    def calculate_percentage(self, price):
+        if self.money == 0:
+            return 0
+        return self.money / price * 100
 
 
-class RenderObject(pygame.sprite.DirtySprite):
+class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
     def __init__(self, game, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
         # "game obj", keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
-        self.layer = 20
+        self.layer = 15
         self.middle = middle
         self.end = end
         self.drawdata = drawdata
