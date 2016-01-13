@@ -22,6 +22,7 @@ class Game:
         self.taxes = [0, 0, 0]
 
         self.houses = [[], [], [], [], []]
+        self.houses_states = [[], [], [], [], []]
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
@@ -399,6 +400,89 @@ class Cloud(pygame.sprite.DirtySprite):
             self.rect.x = self.minx
 
 
+class House(pygame.sprite.DirtySprite):
+    def __init__(self, game, sizetype, randtype, people):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.sizetype = sizetype
+        self.layer = 6 - self.sizetype
+        self.dirty = 2
+        self.visible = 1
+
+        """ if sizetype = 5 -> layer = 0 or 1 (cloudiga kombineerimis jama)
+            if sizetype = 4 -> layer = 2
+            if sizetype = 3 -> layer = 3
+            if sizetype = 2 -> layer = 4
+            if sizetype = 1 -> layer = 5 """
+
+        self.drawnout = False
+        self.peoplemax = people
+        self.peoplecurrent = self.peoplemax
+        self.taxmax1 = randint(15, 70)
+        self.taxmax2 = randint(10, 60)
+        self.taxmax3 = randint(20, 80)
+        if randtype is None:
+            game.bar.calculate_peopletotal(game, self.peoplemax)
+            game.bar.calculate_incometotal(game, self.peoplemax, self.sizetype)
+            # ajutine randtype määramine
+            if self.sizetype == 0:  # 1 tüüpi on 4 maja
+                self.randtype = randint(0, 3)
+            else:
+                self.randtype = randint(0, 2)
+            if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
+                self.last_randtype = game.houses[sizetype][-1].randtype
+                self.last2_randtype = game.houses[sizetype][-2].randtype
+                if self.randtype == self.last_randtype == self.last2_randtype:
+                    if self.sizetype == 0:  # 1 tüüpi on 4 maja
+                        self.randtype = randint(0, 3)
+                    else:
+                        self.randtype = randint(0, 2)
+        else:
+            self.randtype = randtype
+        self.image, rect = game.images.houses[self.sizetype][self.randtype]
+        self.x = game.houses_types[self.sizetype][0][0]
+        for house in game.houses[self.sizetype]:
+            self.x += game.houses_types[house.sizetype][0][1][house.randtype]
+        self.y = game.houses_types[self.sizetype][1][self.randtype] + game.resolution[1] - 720
+        # self.rect.y = self.y + self.rect.h
+        if rect.x > game.resolution[0]:
+            self.visible = 0
+            self.dirty = 0
+        self.rect = pygame.Rect(self.x, self.y + rect.h, rect.w, rect.h)
+        self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self, game):
+        if self.visible:
+            if not self.drawnout:
+                if self.source_rect.y > 0:
+                    self.source_rect.y -= 5
+                    self.rect.y -= 5
+                else:
+                    self.drawnout = True
+                    self.rect.y = self.y
+                    self.source_rect.y = 0
+                    self.dirty = 1
+
+    def calculate_current_people(self, game):
+        if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
+            self.peoplecurrent -= randint(0, 1) + game.difficulty
+        else:
+            fillrate = randint(0, 3) - game.difficulty
+            if fillrate < 0:
+                fillrate = 0
+            self.peoplecurrent += fillrate
+        if self.peoplecurrent < 0:
+            self.peoplecurrent = 0
+        elif self.peoplecurrent > self.peoplemax:
+            self.peoplecurrent = self.peoplemax
+        return self.peoplecurrent
+
+    def calculate_taxmax(self):
+        self.taxmax1 = randint(15, 70)
+        self.taxmax2 = randint(10, 60)
+        self.taxmax3 = randint(20, 80)
+
+
 class LeftDrawer(pygame.sprite.DirtySprite):
     def __init__(self, game):
         pygame.sprite.DirtySprite.__init__(self)
@@ -515,7 +599,6 @@ class RightButton(pygame.sprite.DirtySprite):
                                 pygame.Rect(0, 0, breakpoint, self.rect.h))
                 self.image.blit(self.image_unavailable, pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
                                 pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h))
-
             if self.old_image != self.image:
                 self.old_image = self.image
                 self.dirty = 1
@@ -540,8 +623,8 @@ class RightButton(pygame.sprite.DirtySprite):
                     self.amount += 1
                     self.price = game.right_button_prices_fixed[
                                      self.sizetype] * game.bar.house_multiplier ** self.amount
-                    # game.houses[self.sizetype].append(
-                    #     House(game, self.sizetype, None, game.houses_properties[self.sizetype][0]))
+                    game.houses[self.sizetype].append(
+                        House(game, self.sizetype, None, game.houses_properties[self.sizetype][0]))
 
     def slide(self, amount):
         if not self.animatein:
@@ -566,8 +649,10 @@ class Bar(pygame.sprite.DirtySprite):
         self.maxy = 6
 
         self.people = 0
-        self.money = 0
+        self.peopletotal = 0
+        self.money = 99999999999999
         self.income = 0
+        self.incometotal = 0
 
         self.house_multiplier = 1.15572735
 
@@ -600,6 +685,19 @@ class Bar(pygame.sprite.DirtySprite):
         if self.money == 0:
             return 0
         return self.money / price * 100
+
+    def calculate_incometotal(self, game, currentpeople, currentsizetype):
+        self.incometotal = currentpeople * game.bar.house_multiplier * game.houses_properties[currentsizetype][1]
+        for sizetype in game.houses:
+            for house in sizetype:
+                self.incometotal += \
+                    house.peoplemax * game.bar.house_multiplier * game.houses_properties[house.sizetype][1]
+
+    def calculate_peopletotal(self, game, currentpeople):
+        self.peopletotal = currentpeople
+        for sizetype in game.houses:
+            for house in sizetype:
+                self.peopletotal += house.peoplemax
 
 
 class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
