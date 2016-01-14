@@ -2,14 +2,15 @@
 import pygame
 import os.path
 from random import randint, sample
+
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
 class Game:
     def __init__(self):
         self.fps_cap = 120
-        # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode((1366, 768))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.menu_running = True
@@ -42,14 +43,17 @@ class Game:
         self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
 
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
-            self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = None
+            self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
+            self.clock = None
         self.allsprites = pygame.sprite.LayeredDirty()
+        # self.allsprites.set_timing_treshold(6)
         self.activeclouds = []
 
     def initialize_all(self):
         self.images = Images()
         self.sounds = Sounds()
         self.background = Background()
+        self.quick_menu = QuickMenu()
         self.cursor = Cursor()
         self.cloud = Cloud(10)
         # self.metro = Metro(game)
@@ -70,41 +74,41 @@ class Game:
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.init()
         pygame.mouse.set_visible(0)
+        self.clock = pygame.time.Clock()
         self.initialize_all()
-        clock = pygame.time.Clock()
 
         while self.running:
-            clock.tick(self.fps_cap)
+            self.clock.tick(self.fps_cap)
             self.process_events()
             self.allsprites.update()
             dirtyrects = self.allsprites.draw(self.screen)
             pygame.display.update(dirtyrects)
             pygame.display.set_caption(
-                "FPS: " + str(round(clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
+                "FPS: " + str(round(self.clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
             if self.menu_running:
                 pass
 
-            # todo 1. new layereddirty, get displaysurface, blur it, use as background
-            # todo fps läheb üliaeglaseks?
+                # todo 1. new layereddirty, get displaysurface, blur it, use as background
+                # todo fps läheb üliaeglaseks?
 
-            # http://stackoverflow.com/questions/30723253/blurring-in-pygame
+                # http://stackoverflow.com/questions/30723253/blurring-in-pygame
 
-            # todo 2. or make superclass, blur all objects when game.menu_running
-            # menu buttons n stuff on higher layers
+                # todo 2. or make superclass, blur all objects when game.menu_running
+                # menu buttons n stuff on higher layers
 
         pygame.time.wait(50)
         pygame.quit()
 
     def process_events(self):
         for event in pygame.event.get():
-            if event.type == pygame.USEREVENT+4:
+            if event.type == pygame.USEREVENT + 4:
                 if game.metro is not None:
                     game.metro.update_metro_counter()
             elif event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.running = False
+                    self.quick_menu.toggle()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self.sounds.click.play()
                 for button in self.right_buttons:
@@ -715,6 +719,28 @@ class RightButton(pygame.sprite.DirtySprite):
                     self.dirty = 1
 
 
+class QuickMenu(pygame.sprite.DirtySprite):
+    def __init__(self):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 0
+        self.visible = 0
+        self.layer = 20
+        # noinspection PyArgumentList
+        self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
+        self.image.fill((0, 0, 0, 76))
+        self.rect = self.image.get_rect()
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        pass
+
+    def toggle(self):
+        if self.visible == 0:  # todo function alpha override for all objects
+            self.visible = 1
+        else:
+            self.visible = 0
+
+
 class Bar(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
@@ -743,6 +769,8 @@ class Bar(pygame.sprite.DirtySprite):
                                          (self.objwh[0][1], self.objwh[1]), self.drawdata, self.drawdata[2][0])
         self.incomecounter = RenderObject(True, self.money, self.rect.topleft, (self.objxy[0][2], self.objxy[1]),
                                           (self.objwh[0][2], self.objwh[1]), self.drawdata, self.drawdata[2][1])
+        self.fpscounter = RenderObject(True, game.clock.get_fps(), self.rect.topleft, (670, 8),
+                                       (44, 22), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -752,6 +780,7 @@ class Bar(pygame.sprite.DirtySprite):
         self.peoplecounter.process_update(self.people, self.rect.topleft)
         self.moneycounter.process_update(self.money, self.rect.topleft)
         self.incomecounter.process_update(self.income, self.rect.topleft)
+        self.fpscounter.process_update(game.clock.get_fps(), self.rect.topleft)
         if self.rect.y < self.maxy:
             self.rect.y += 2
         else:
@@ -838,6 +867,7 @@ class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
                                         imagerect.w, imagerect.h)
             else:
                 self.rect = pygame.Rect(self.innerrect.x, self.innerrect.y, imagerect.w, imagerect.h)
+
 
 if __name__ == '__main__':
     game = Game()
