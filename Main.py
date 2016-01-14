@@ -113,7 +113,7 @@ class Game:
 
 class Images:
     def __init__(self):
-        self.background = Images.load_image("Background_plain.png")
+        self.background = Images.load_image("Background.png")
         self.cursor = Images.load_image("Cursor.png")
         self.right_button = [Images.load_image("Button_available.png"), Images.load_image("Button_available_hover.png"),
                              Images.load_image("Button_unavailable.png")]
