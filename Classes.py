@@ -41,13 +41,14 @@ class Game:
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = None
         self.allsprites = pygame.sprite.LayeredDirty()
+        self.activeclouds = []
 
     def initialize_all(self, game):
         self.images = Images()
         self.sounds = Sounds()
         self.background = Background(game)
         self.cursor = Cursor(game)
-        self.cloud = Cloud(game)
+        self.cloud = Cloud(game, 10)
         # self.metro = Metro(game)
         self.fiber = Fiber(game)
         self.watersupply = Watersupply(game)
@@ -353,7 +354,7 @@ class Power(pygame.sprite.DirtySprite):
         self.layer = 6
         self.drawnout = False
         self.surface, self.rect = game.images.misc[4]
-        self.fixedy = game.resolution[1] - self.rect.h - game.background.rect.h + 14
+        self.fixedy = game.resolution[1] - self.rect.h - game.background.rect.h + 10
         self.rect.y = self.fixedy + self.rect.h
         self.offset = 20
         self.timesx = game.resolution[0] // (self.rect.w - self.offset) + 1
@@ -382,24 +383,34 @@ class Power(pygame.sprite.DirtySprite):
 
 
 class Cloud(pygame.sprite.DirtySprite):
-    def __init__(self, game):
+    def __init__(self, game, cloudtype):
         pygame.sprite.DirtySprite.__init__(self)
-        self.dirty = 2
+        self.dirty = 1
         self.layer = 1
-        self.image, self.rect = game.images.misc[0]
-        self.x = self.minx = self.rect.x = -self.rect.w
+        self.cloudtype = cloudtype
+        self.image, rect = game.images.misc[0]
+        self.x = self.minx = -rect.w ** 1.15 * self.cloudtype
         self.maxx = game.resolution[0]
-        self.rect.y = game.resolution[1] - 660
+        self.speed = randint(1, 2) ** 1.15
+        self.rect = pygame.Rect(self.x, game.resolution[1] - 660, rect.w, rect.h)
+        game.activeclouds.append(self)
+        if self.cloudtype > 1:
+            Cloud(game, cloudtype - 1)
         game.add_new_renderable(self, self.layer)
 
     def update(self, game):
         if self.rect.x < self.maxx:
-            self.rect.x += 1
+            self.rect.x += self.speed
         else:
-            self.rect.x = self.minx
-            self.randomize_layers(game, [0, 1])
+            if self in game.activeclouds:
+                game.activeclouds.remove(self)
+                if len(game.activeclouds) == 0:
+                    self.randomize_layers(game, [0, 1])
+        if self.rect.left < game.resolution[0] and self.rect.right > 0:
+            self.dirty = 1
 
-    def randomize_layers(self, game, value):
+    @staticmethod
+    def randomize_layers(game, value):
         if isinstance(value, int):
             layer = randint(0, 1)
             if len(game.houses[value]) > 1:
@@ -410,10 +421,11 @@ class Cloud(pygame.sprite.DirtySprite):
             spriteslist = game.allsprites.remove_sprites_of_layer(value[0])
             spriteslist.extend(game.allsprites.remove_sprites_of_layer(value[1]))
             for sprite in sample(spriteslist, len(spriteslist)):
-                if sprite == self:
-                    game.add_new_renderable(sprite, value[1])
-                else:
-                    game.add_new_renderable(sprite, sample(value, len(value))[0])
+                if isinstance(sprite, Cloud):
+                    sprite.rect.x = sprite.minx
+                    sprite.speed = randint(1, 2) ** 1.15  # todo speed algorithm
+                    game.activeclouds.append(sprite)
+                game.add_new_renderable(sprite, sample(value, len(value))[0])
 
 
 class House(pygame.sprite.DirtySprite):
@@ -424,6 +436,9 @@ class House(pygame.sprite.DirtySprite):
             self.layer = game.cloud.randomize_layers(game, sizetype)
         elif self.sizetype == 0:
             self.layer = randint(5, 6)
+            if len(game.houses[sizetype]) > 1:
+                if self.layer == game.houses[sizetype][-1].layer == game.houses[sizetype][-2].layer:
+                    self.layer = randint(5, 6)
         else:
             self.layer = 5 - self.sizetype
         self.dirty = 2
