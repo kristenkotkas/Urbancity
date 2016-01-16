@@ -584,6 +584,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.visible = 0
         self.layer = 10
         self.rect = pygame.Rect(0, 0, 280, game.resolution[1])
+        self.startupcounter = 0
         self.upgrade_buttons = []
         self.used_upgrades = used_upgrades
         self.unlocked_upgrades = []
@@ -608,6 +609,8 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.watersupply = Watersupply()"""
 
     def process_upgrades(self):
+        if self.startupcounter > 0:
+            self.startupcounter -= 1
         for button in self.upgrade_buttons:
             if not button.active:
                 self.used_upgrades.append(button.name)
@@ -755,7 +758,6 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.animatemove = False
         self.animateout = False
         self.animatecounter = 150
-        self.startcounter = 50
         for item in game.upgrades:
             if item[0] == self.name:
                 multiplier = game.difficulty
@@ -788,7 +790,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 self.animatemove = False
         elif self.animatein:
             self.dirty = 1
-            if self.startcounter > 0:
+            if game.left_drawer.startupcounter > 0:
                 self.startcounter -= 1
                 if self.rect.x < self.minx:
                     self.rect.x += 2
