@@ -9,8 +9,8 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 class Game:
     def __init__(self):
         self.fps_cap = 120
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # self.screen = pygame.display.set_mode((1366, 768))
+        # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.menu_running = True
@@ -66,6 +66,8 @@ class Game:
         self.bar = Bar()
         for sizetype in range(5):
             self.right_buttons.append(RightButton(sizetype))
+        for sizetype in range(3):
+            self.tax_buttons.append(TaxButton(sizetype))
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -111,7 +113,7 @@ class Game:
                     self.quick_menu.toggle()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 self.sounds.click.play()
-                for button in self.right_buttons:
+                for button in self.right_buttons + self.tax_buttons + self.upgrade_buttons:
                     button.mouse_click_check()
 
 
@@ -584,17 +586,98 @@ class LeftDrawer(pygame.sprite.DirtySprite):
 
     def update(self):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
-            """for button in game.tax_buttons + game.upgrade_buttons:
+            for button in game.tax_buttons + game.upgrade_buttons:
                 if button.animatecounter > 0:
                     button.animatein = False
                 if not button.animateout and not button.animatein:
-                    if button.x < button.maxx:
-                        button.x += 20
+                    button.slide(5)
         else:
             for button in game.tax_buttons + game.upgrade_buttons:
                 if not button.animateout and not button.animatein:
-                    if button.x > button.minx:
-                        button.x -= 20"""
+                    button.slide(-5)
+
+
+class TaxButton(pygame.sprite.DirtySprite):
+    def __init__(self, sizetype):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 1
+        self.layer = 11
+        self.sizetype = sizetype
+        self.drawdata = [(255, 255, 255), 14]
+        self.image = self.old_image = None
+        self.image_regular, rect = game.images.left_button[0]
+        self.rect = pygame.Rect(-rect.w, 15 + 45 * self.sizetype, rect.w, rect.h)
+        self.image_minus = game.images.left_button[1][0]
+        self.image_plus = game.images.left_button[2][0]
+        self.taxtxt = game.taxnames[self.sizetype]
+        self.minx = 155 - self.rect.w
+        self.maxx = 0
+        self.clickable_rects = [pygame.Rect(self.minx + 206, self.rect.y + 7, 25, 20),
+                                pygame.Rect(self.minx + 234, self.rect.y + 7, 25, 20)]
+        self.active = True
+        self.animatein = True
+        self.animateout = False
+        self.animatecounter = 0
+        self.name_obj = RenderObject(True, self.taxtxt, self.rect.topleft, (10, 7), (132, 20), self.drawdata, False)
+        self.tax_obj = RenderObject(True, str(game.taxes[self.sizetype]) + "%", self.rect.topleft,
+                                    (149, 7), (52, 20), self.drawdata, False)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        self.name_obj.process_update(self.taxtxt, self.rect.topleft)
+        self.tax_obj.process_update(str(game.taxes[self.sizetype]) + "%", self.rect.topleft)
+        if self.animatein:
+            if self.rect.x < self.minx - 20:
+                self.dirty = 1
+                self.rect.x += 4
+            else:
+                self.rect.x = self.minx
+                self.animatein = False
+                self.dirty = 1
+        is_highlighted = self.mouse_hover_check()
+        if is_highlighted == "minus":
+            self.image = self.image_minus
+        elif is_highlighted == "plus":
+            self.image = self.image_plus
+        else:
+            self.image = self.image_regular
+        if self.old_image != self.image:
+            self.old_image = self.image
+            self.dirty = 1
+
+    def mouse_click_check(self):
+        for rect in self.clickable_rects:
+            if rect.collidepoint(pygame.mouse.get_pos()):
+                # game.sounds.click.play()
+                if self.clickable_rects.index(rect) == 1:
+                    if game.taxes[self.sizetype] < 100:
+                        game.taxes[self.sizetype] += 5
+                else:
+                    if game.taxes[self.sizetype] > 0:
+                        game.taxes[self.sizetype] -= 5
+
+    def mouse_hover_check(self):
+        for rect in self.clickable_rects:
+            if rect.collidepoint(pygame.mouse.get_pos()):
+                if self.clickable_rects.index(rect) == 0:
+                    return "minus"
+                else:
+                    return "plus"
+
+    def slide(self, amount):
+        if not self.animatein:
+            if amount > 0:
+                if self.rect.x < self.maxx:
+                    self.rect.x += amount
+                    for rect in self.clickable_rects:
+                        rect.x += amount
+                    self.dirty = 1
+            else:
+                if self.rect.x > self.minx:
+                    self.rect.x += amount
+                    for rect in self.clickable_rects:
+                        rect.x += amount
+                    self.dirty = 1
 
 
 class RightDrawer(pygame.sprite.DirtySprite):
@@ -621,8 +704,9 @@ class RightButton(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 0
         self.layer = 11
+        self.visible = 0
         self.sizetype = sizetype
-        self.image = self.old_image = self.old_x = None
+        self.old_image = self.old_x = None
         self.drawdata = [(255, 255, 255), 14, " €"]
         self.image_available, rect = game.images.right_button[0]
         self.image_available_highlighted = game.images.right_button[1][0]
@@ -635,31 +719,22 @@ class RightButton(pygame.sprite.DirtySprite):
         else:
             self.price = game.right_button_prices_fixed[self.sizetype]
         self.people = game.houses_properties[self.sizetype][0]
+        self.image = self.image_available
         self.rect = pygame.Rect(game.resolution[0], 15 + 100 * self.sizetype, rect.w, rect.h)
         self.minx = game.resolution[0] - 220
         self.maxx = game.resolution[0] - 20
-        self.hidden = False
         self.animatein = True
-        self.logo_obj = RenderObject(True, self.logo, self.rect.topleft, (7, 7), (47, 48), self.drawdata, False)
-        self.amount_obj = RenderObject(True, self.amount, self.rect.topleft,
-                                       (7, 62), (47, 19), self.drawdata, False)
-        self.name_obj = RenderObject(True, self.name, self.rect.topleft, (62, 7), (132, 19), self.drawdata, False)
-        self.people_obj = RenderObject(True, self.people, self.rect.topleft,
-                                       (77, 35), (44, 19), self.drawdata, False)
-        self.peopletotal_obj = RenderObject(True, self.calculate_peopletotal(), self.rect.topleft,
-                                            (132, 34), (63, 19), self.drawdata, False)
-        self.price_obj = RenderObject(True, self.price, self.rect.topleft,
-                                      (62, 62), (132, 19), self.drawdata, self.drawdata[2])
+        self.logo_obj = self.amount_obj = self.name_obj = self.people_obj = self.peopletotal_obj = self.price_obj = None
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        self.logo_obj.process_update(self.logo, self.rect.topleft)
-        self.amount_obj.process_update(self.amount, self.rect.topleft)
-        self.name_obj.process_update(self.name, self.rect.topleft)
-        self.people_obj.process_update(self.people, self.rect.topleft)
-        self.peopletotal_obj.process_update(self.calculate_peopletotal(), self.rect.topleft)
-        self.price_obj.process_update(self.price, self.rect.topleft)
-        if not self.hidden:
+        if self.visible:
+            self.logo_obj.process_update(self.logo, self.rect.topleft)
+            self.amount_obj.process_update(self.amount, self.rect.topleft)
+            self.name_obj.process_update(self.name, self.rect.topleft)
+            self.people_obj.process_update(self.people, self.rect.topleft)
+            self.peopletotal_obj.process_update(self.calculate_peopletotal(), self.rect.topleft)
+            self.price_obj.process_update(self.price, self.rect.topleft)
             if self.animatein:
                 self.dirty = 1
                 if self.rect.x > self.maxx:
@@ -686,7 +761,18 @@ class RightButton(pygame.sprite.DirtySprite):
         else:
             # if game.bar.peopletotal >= game.houses_properties[self.sizetype][2]:
             if game.bar.people >= game.houses_properties[self.sizetype][2]:
-                self.hidden = False
+                self.visible = 1
+                self.logo_obj = RenderObject(True, self.logo, self.rect.topleft, (7, 7), (47, 48), self.drawdata, False)
+                self.amount_obj = RenderObject(True, self.amount, self.rect.topleft,
+                                               (7, 62), (47, 19), self.drawdata, False)
+                self.name_obj = RenderObject(True, self.name, self.rect.topleft, (62, 7), (132, 19), self.drawdata,
+                                             False)
+                self.people_obj = RenderObject(True, self.people, self.rect.topleft,
+                                               (77, 35), (44, 19), self.drawdata, False)
+                self.peopletotal_obj = RenderObject(True, self.calculate_peopletotal(), self.rect.topleft,
+                                                    (132, 34), (63, 19), self.drawdata, False)
+                self.price_obj = RenderObject(True, self.price, self.rect.topleft,
+                                              (62, 62), (132, 19), self.drawdata, self.drawdata[2])
 
     def calculate_peopletotal(self):
         people = 0
@@ -696,7 +782,7 @@ class RightButton(pygame.sprite.DirtySprite):
         return people
 
     def mouse_click_check(self):
-        if not self.hidden:
+        if self.visible:
             if self.rect.collidepoint(pygame.mouse.get_pos()):
                 if game.bar.money >= self.price:
                     # game.sounds.click.play()
@@ -806,12 +892,13 @@ class Bar(pygame.sprite.DirtySprite):
                 self.peopletotal += house.peoplemax
 
 
-class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
+class RenderObject(pygame.sprite.DirtySprite):
     def __init__(self, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
         # keskel, tekst/pilt, suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.layer = 15
+        self.visible = 1
         self.middle = middle
         self.end = end
         self.drawdata = drawdata
@@ -821,7 +908,11 @@ class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
         self.inner_relative_xy = inner_relative_xy
         self.inner_obj_wh = inner_obj_wh
         self.process_update(obj, main_obj_xy)
+        self.draw()
         game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        self.draw()
 
     def process_string(self, obj):
         self.image = self.txt_font.render(obj, True, self.drawdata[0])
@@ -842,7 +933,7 @@ class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
         self.new_obj = obj
         self.main_obj_xy = main_obj_xy
 
-    def update(self):
+    def draw(self):
         if self.old_main_obj_xy != self.main_obj_xy or self.old_obj != self.new_obj:
             self.dirty = 1
             if self.old_main_obj_xy != self.main_obj_xy:
@@ -867,7 +958,10 @@ class RenderObject(pygame.sprite.DirtySprite):  # todo add hidden var?
                                         imagerect.w, imagerect.h)
             else:
                 self.rect = pygame.Rect(self.innerrect.x, self.innerrect.y, imagerect.w, imagerect.h)
-
+            if self.rect.right < 0 or self.rect.left > game.resolution[0]:
+                self.visible = 0
+            else:
+                self.visible = 1
 
 if __name__ == '__main__':
     game = Game()
