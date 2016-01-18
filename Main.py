@@ -9,7 +9,7 @@ class Game:
     def __init__(self):
         self.fps_cap = 120
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode((1600, 900))
+        self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.menu_running = True
@@ -57,7 +57,7 @@ class Game:
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
             self.clock = None
         self.allsprites = pygame.sprite.LayeredDirty()
-        # self.allsprites.set_timing_treshold(6)
+        self.allsprites.set_timing_treshold(10000)
         self.activeclouds = []
 
     def initialize_all(self):
@@ -810,7 +810,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
             else:
                 self.animateout = False
                 self.active = False
-                self.kill()  # todo debug
+                self.kill()
         if game.bar.money >= self.cost:
             if self.rect.collidepoint(pygame.mouse.get_pos()):
                 self.image = self.image_highlighted
@@ -998,7 +998,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 0
         self.visible = 0
-        self.layer = 20
+        self.layer = 2
         # noinspection PyArgumentList
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 76))
@@ -1009,7 +1009,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
         pass
 
     def toggle(self):
-        if self.visible == 0:  # todo function alpha override for all objects
+        if self.visible == 0:
             self.visible = 1
         else:
             self.visible = 0
