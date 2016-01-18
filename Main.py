@@ -180,14 +180,25 @@ class Sounds:
         self.click = Sounds.load_sound("Mouse_press.ogg", "sound")
 
     @staticmethod
+    def toggle_mute():
+        if pygame.mixer.get_num_channels() > 0:
+            pygame.mixer.set_num_channels(0)
+            pygame.mixer.music.pause()
+        else:
+            pygame.mixer.set_num_channels(8)
+            pygame.mixer.music.unpause()
+
+    @staticmethod
     def load_sound(file, soundtype):
         file = os.path.join(main_dir, 'data\\test_helid', file)
         if soundtype == "music":
             pygame.mixer.music.load(file)
             # pygame.mixer.music.play(-1)
+            # pygame.mixer.music.set_volume(0.1)
         else:
             try:
                 loaded_sound = pygame.mixer.Sound(file)
+                loaded_sound.set_volume(0.5)
             except pygame.error:
                 raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
             return loaded_sound
@@ -1031,8 +1042,12 @@ class QuickMenu(pygame.sprite.DirtySprite):
     def mouse_click_check(self):
         if self.visible:
             for rect in self.rects:
-                if rect.collidepoint(pygame.mouse.get_pos()):   # todo more stuff
-                    if rect == self.rects[2]:
+                if rect.collidepoint(pygame.mouse.get_pos()):
+                    if rect == self.rects[0]:
+                        game.sounds.toggle_mute()
+                    elif rect == self.rects[1]:
+                        game.menu_running = True
+                    elif rect == self.rects[2]:
                         game.running = False
 
     def toggle(self):
