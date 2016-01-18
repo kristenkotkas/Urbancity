@@ -56,7 +56,7 @@ class Game:
 
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
-            self.clock = None
+            self.clock = self.menu = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.activeclouds = []
@@ -80,6 +80,7 @@ class Game:
             self.right_buttons.append(RightButton(sizetype))
         for sizetype in range(3):
             self.tax_buttons.append(TaxButton(sizetype))
+        self.menu = Menu()
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -123,6 +124,9 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.quick_menu.toggle()
+                elif event.key == pygame.K_q:
+                    self.menu_running = False
+                    self.menu.toggle()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 self.sounds.click.play()
@@ -693,9 +697,9 @@ class TaxButton(pygame.sprite.DirtySprite):
         self.animatein = True
         self.animateout = False
         self.animatecounter = 0
-        self.name_obj = RenderObject(15, True, True, self.taxtxt, self.rect.topleft,
+        self.name_obj = RenderObject(self.layer + 1, True, True, self.taxtxt, self.rect.topleft,
                                      (10, 7), (132, 20), self.drawdata, False)
-        self.tax_obj = RenderObject(15, True, True, str(game.taxes[self.sizetype]) + "%", self.rect.topleft,
+        self.tax_obj = RenderObject(self.layer + 1, True, True, str(game.taxes[self.sizetype]) + "%", self.rect.topleft,
                                     (149, 7), (52, 20), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
@@ -789,11 +793,11 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 else:
                     self.end = 0
                 self.reward = item[2][1]
-        self.name_obj = RenderObject(15, True, True, self.name, self.rect.topleft, (10, 7), (192, 20),
+        self.name_obj = RenderObject(self.layer + 1, True, True, self.name, self.rect.topleft, (10, 7), (192, 20),
                                      self.drawdata, False)
-        self.cost_obj = RenderObject(15, True, True, self.cost, self.rect.topleft, (12, 35), (98, 20),
+        self.cost_obj = RenderObject(self.layer + 1, True, True, self.cost, self.rect.topleft, (12, 35), (98, 20),
                                      self.drawdata, self.drawdata[2])
-        self.reward_obj = RenderObject(15, True, True, self.reward, self.rect.topleft, (117, 35), (87, 20),
+        self.reward_obj = RenderObject(self.layer + 1, True, True, self.reward, self.rect.topleft, (117, 35), (87, 20),
                                        self.drawdata, self.drawdata[3])
         game.add_new_renderable(self, self.layer)
         self.update()
@@ -927,17 +931,17 @@ class RightButton(pygame.sprite.DirtySprite):
         self.minx = game.resolution[0] - 220
         self.maxx = game.resolution[0] - 20
         self.animatein = True
-        self.logo_obj = RenderObject(15, False, True, self.logo, self.rect.topleft,
+        self.logo_obj = RenderObject(self.layer + 1, self.visible, True, self.logo, self.rect.topleft,
                                      (7, 7), (47, 48), self.drawdata, False)
-        self.amount_obj = RenderObject(15, False, True, self.amount, self.rect.topleft,
+        self.amount_obj = RenderObject(self.layer + 1, self.visible, True, self.amount, self.rect.topleft,
                                        (7, 62), (47, 19), self.drawdata, False)
-        self.name_obj = RenderObject(15, False, True, self.name, self.rect.topleft,
+        self.name_obj = RenderObject(self.layer + 1, self.visible, True, self.name, self.rect.topleft,
                                      (62, 7), (132, 19), self.drawdata, False)
-        self.people_obj = RenderObject(15, False, True, self.people, self.rect.topleft,
+        self.people_obj = RenderObject(self.layer + 1, self.visible, True, self.people, self.rect.topleft,
                                        (77, 35), (44, 19), self.drawdata, False)
-        self.peopletotal_obj = RenderObject(15, False, True, self.calculate_peopletotal(), self.rect.topleft,
-                                            (132, 34), (63, 19), self.drawdata, False)
-        self.price_obj = RenderObject(15, False, True, self.price, self.rect.topleft,
+        self.peopletotal_obj = RenderObject(self.layer + 1, self.visible, True, self.calculate_peopletotal(),
+                                            self.rect.topleft, (132, 34), (63, 19), self.drawdata, False)
+        self.price_obj = RenderObject(self.layer + 1, self.visible, True, self.price, self.rect.topleft,
                                       (62, 62), (132, 19), self.drawdata, self.drawdata[2])
         game.add_new_renderable(self, self.layer)
 
@@ -1008,13 +1012,113 @@ class RightButton(pygame.sprite.DirtySprite):
                     self.dirty = 1
 
 
+class Menu(pygame.sprite.DirtySprite):
+    def __init__(self):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.visible = 1
+        self.layer = 25
+
+        self.button_amount = 5
+        # self.names = ["new game", "continue", "easy", "normal", "insane"]
+        self.names = ["'q' toggles", "'q' toggles", "easy", "normal", "insane"]
+        self.xmodifier = [-20, 20, -92, 0, 92]
+        self.y = [200, 200, 280, 280, 280]
+        self.sizetype = [0, 0, 2, 2, 2]
+        self.buttons = []
+        self.is_highlighted_button = game.difficulty + 2
+
+        for i in range(self.button_amount):
+            self.buttons.append(MenuButton((self.xmodifier[i], game.resolution[1] * self.y[i] / 720), self.sizetype[i],
+                                           i, self.names[i]))
+
+        self.logo, rect = game.images.menu[0][0]
+        self.rect = game.screen.get_rect()
+        # noinspection PyArgumentList
+        self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
+        self.image.fill((100, 0, 0, 76))
+        self.image.blit(self.logo, ((game.resolution[0] - rect.w) / 2, game.resolution[1] * 90 / 720))
+
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        pass
+
+    def toggle(self):  # todo toggle function which toggles blur for all objects
+        if self.visible == 0:
+            self.visible = True
+        else:
+            self.visible = False
+        for button in self.buttons:
+            button.toggle()
+
+
+class MenuButton(pygame.sprite.DirtySprite):
+    def __init__(self, xy, sizetype, stype, name):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.visible = 1
+        self.dirty = 1
+        self.layer = 26
+        self.sizetype = sizetype
+        self.stype = stype
+        self.drawdata = []
+        if self.sizetype == 0:
+            self.drawdata.append((61, 61, 61))
+        else:
+            self.drawdata.append((255, 255, 255))
+        self.drawdata.append(26)
+        self.name = name
+        self.image = self.old_image = None
+        self.image_normal, rect = game.images.menu[1][self.sizetype]
+        self.image_highlighted = game.images.menu[1][self.sizetype + 1][0]
+        if xy[0] > 0:
+            self.x = (game.resolution[0] / 2) + xy[0]
+        elif xy[0] < 0:
+            self.x = (game.resolution[0] / 2) - rect.w + xy[0]
+        else:
+            self.x = (game.resolution[0] - rect.w) / 2
+        self.rect = pygame.Rect(self.x, xy[1], rect.w, rect.h)
+        self.name_obj = RenderObject(self.layer + 1, self.visible, True, self.name, (self.rect.x, self.rect.y - 3),
+                                     (0, 0), (rect.w, rect.h), self.drawdata, 0)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        self.name_obj.process_update(self.visible, self.name, (self.rect.x, self.rect.y - 3))
+        if self.rect.collidepoint(pygame.mouse.get_pos()) or self.stype == game.menu.is_highlighted_button:
+            self.image = self.image_highlighted
+        else:
+            self.image = self.image_normal
+        if self.old_image != self.image:
+            self.old_image = self.image
+            self.dirty = 1
+
+    def mouse_click_check(self, x, y):
+        if self.rect.collidepoint(x, y):
+            # game.sounds.click.play()
+            if self.stype == 0:
+                # game.initialize_game("new")
+                game.menu_running = False
+            elif self.stype == 1:
+                if game.bar_amounts[0] == 0 and game.bar_amounts[0] == 0:
+                    pass
+                else:
+                    # game.initialize_game("load")
+                    game.menu_running = False
+            else:
+                game.difficulty = self.stype - 2
+                game.menu.is_highlighted_button = self.stype
+
+    def toggle(self):
+        if self.visible == 0:
+            self.visible = True
+        else:
+            self.visible = False
+
+
 class QuickMenu(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
-        self.dirty = 0
         self.visible = 0
         self.layer = 18
-        self.drawdata = [(255, 255, 255), 14]
         # noinspection PyArgumentList
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 76))
@@ -1026,8 +1130,8 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.rects = [pygame.Rect(self.innerxy[0] + 14, self.innerxy[1] + 9, 267, 42),
                       pygame.Rect(self.innerxy[0] + 14, self.innerxy[1] + 62, 267, 42),
                       pygame.Rect(self.innerxy[0] + 14, self.innerxy[1] + 115, 267, 42)]
-        self.quick_menu_obj = RenderObject(20, False, True, self.images[0], self.innerxy, (0, 0), (298, 170),
-                                           self.drawdata, 0)
+        self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.images[0], self.innerxy,
+                                           (0, 0), (298, 170), 0, 0)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -1080,17 +1184,17 @@ class Bar(pygame.sprite.DirtySprite):
         self.objwh = ([170, 249, 239], 21.621)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
 
-        self.peoplecounter = RenderObject(15, True, True, self.people, self.rect.topleft,
+        self.peoplecounter = RenderObject(self.layer + 1, True, True, self.people, self.rect.topleft,
                                           (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
                                           self.drawdata, False)
-        self.moneycounter = RenderObject(15, True, True, self.money, self.rect.topleft,
+        self.moneycounter = RenderObject(self.layer + 1, True, True, self.money, self.rect.topleft,
                                          (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
                                          self.drawdata, self.drawdata[2][0])
-        self.incomecounter = RenderObject(15, True, True, self.money, self.rect.topleft,
+        self.incomecounter = RenderObject(self.layer + 1, True, True, self.money, self.rect.topleft,
                                           (self.objxy[0][2], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
                                           self.drawdata, self.drawdata[2][1])
-        self.fpscounter = RenderObject(15, True, True, game.clock.get_fps(), self.rect.topleft, (670, 8), (44, 22),
-                                       self.drawdata, False)
+        self.fpscounter = RenderObject(self.layer + 1, True, True, game.clock.get_fps(), self.rect.topleft,
+                                       (670, 8), (44, 22), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -1137,7 +1241,8 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.middle = middle
         self.end = end
         self.drawdata = drawdata
-        self.txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
+        if drawdata != 0:
+            self.txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
         self.image = self.rect = self.new_obj = self.old_obj = self.main_obj_xy = self.old_main_obj_xy = \
             self.innerrect = None
         self.inner_relative_xy = inner_relative_xy
