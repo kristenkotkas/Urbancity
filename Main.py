@@ -119,8 +119,9 @@ class Game:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    self.quick_menu.toggle()
                     if not game.menu.visible:
-                        self.quick_menu.toggle()
+                        pass
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if game.quick_menu.mouse_click_check():
                     self.sounds.click.play()
@@ -144,7 +145,7 @@ class Images:
         self.right_button_logos = [self.load_image("House_1_logo.png"), self.load_image("House_2_logo.png"),
                                    self.load_image("House_3_logo.png"), self.load_image("House_4_logo.png"),
                                    self.load_image("House_5_logo.png")]
-        self.left_button = [self.load_image("Tax.png"), Images.load_image("Tax_hover_minus.png"),
+        self.left_button = [self.load_image("Tax.png"), self.load_image("Tax_hover_minus.png"),
                             self.load_image("Tax_hover_plus.png")]
         self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
                                self.load_image("Upgrade_available_hover.png")]
@@ -163,8 +164,7 @@ class Images:
         self.menu = [[self.load_image("Urbancity_logo.png")],
                      [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
                       self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
-        self.quick_menu = [self.load_image("Quick_menu_normal.png"),
-                           self.load_image("Quick_menu_hover_mute.png"),
+        self.quick_menu = [self.load_image("Quick_menu_normal.png"), self.load_image("Quick_menu_hover_mute.png"),
                            self.load_image("Quick_menu_hover_main_menu.png"),
                            self.load_image("Quick_menu_hover_quit.png")]
 
@@ -242,22 +242,15 @@ class Cursor(pygame.sprite.DirtySprite):
             self.dirty = 1
 
 
-class Metro:
+class Metro(pygame.sprite.DirtySprite):
     def __init__(self):
-        self.surface = game.screen
-        self.image_metro = game.images.metro[0]
-        self.image_train = game.images.metro[1]
-        self.metrow = self.image_metro.get_rect().w
-        self.metroh = self.image_metro.get_rect().h
-        self.metrox = (game.resolution[0] - self.metrow) / 2
-        self.metroy = game.resolution[1] - 111
-        self.metrorect = pygame.Rect(self.metrox, self.metroy + self.metroh, self.metrow, self.metroh)
-        self.trainx = self.metrox
-        self.trainy = self.metroy + 50
-        self.trainw = self.image_train.get_rect().w - 2
-        self.trainh = self.image_train.get_rect().h
-        self.trainstop = self.metrox + 20
-        self.trainrect = pygame.Rect(self.metrox, self.metroy + 50, self.trainw, self.trainh)
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 1
+        self.layer = 5
+        self.image, rect = game.images.metro[0]
+
+        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2, game.resolution[1] - 111, rect.w, rect.h)
+
         self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
         self.speed = 4
         self.time_from_beginning = 0
@@ -267,6 +260,8 @@ class Metro:
         self.trainstopwaiting = True
         self.terroristevent = False
         self.terroristcounter = 0
+
+        self.train_obj = MetroTrain(self.layer + 1, self.rect.topleft)
 
     def draw(self):
         self.draw_metro_background()
@@ -335,6 +330,17 @@ class Metro:
 
     def draw_moving_metro(self):
         self.surface.blit(self.image_train, self.trainrect, self.arearect)
+
+
+class MetroTrain(pygame.sprite.DirtySprite):
+    def __init__(self, layer, xy):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 1
+        self.layer = layer
+        self.image, rect = game.images.metro[1]
+        self.rect = pygame.Rect(xy[0], xy[1] + 50, rect.w - 2, rect.h)
+
+        self.trainstop = self.metrox + 20
 
 
 class Pipe(pygame.sprite.DirtySprite):
@@ -1043,25 +1049,21 @@ class Menu(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.layer = 25
-
-        self.button_amount = 5
         self.names = ["new game", "continue", "easy", "normal", "insane"]
-        self.xmodifier = [-20, 20, -92, 0, 92]
-        self.y = [200, 200, 280, 280, 280]
+        self.xmod = [-20, 20, -92, 0, 92]
+        self.ymod = [-65, -65, 15, 15, 15]
         self.sizetype = [0, 0, 2, 2, 2]
         self.buttons = []
         self.is_highlighted_button = game.difficulty + 2
-
-        for i in range(self.button_amount):
-            self.buttons.append(MenuButton((self.xmodifier[i], game.resolution[1] * self.y[i] / 720), self.sizetype[i],
+        for i in range(5):
+            self.buttons.append(MenuButton((self.xmod[i], game.resolution[1] / 2 + self.ymod[i]), self.sizetype[i],
                                            i, self.names[i]))
-
         self.logo, rect = game.images.menu[0][0]
         self.rect = game.screen.get_rect()
         # noinspection PyArgumentList
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
-        self.image.fill((100, 0, 0, 76))
-        self.image.blit(self.logo, ((game.resolution[0] - rect.w) / 2, game.resolution[1] * 90 / 720))
+        self.image.fill((0, 0, 0, 89))
+        self.image.blit(self.logo, ((game.resolution[0] - rect.w) / 2, game.resolution[1] / 2 - 275))
         game.toggle_interactables()
         game.add_new_renderable(self, self.layer)
 
@@ -1151,7 +1153,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.layer = 18
         # noinspection PyArgumentList
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
-        self.image.fill((0, 0, 0, 76))
+        self.image.fill((0, 0, 0, 127))
         self.images = [game.images.quick_menu[0][0], game.images.quick_menu[1][0], game.images.quick_menu[2][0],
                        game.images.quick_menu[3][0]]
         self.rect = game.screen.get_rect()
