@@ -2,13 +2,14 @@
 import pygame
 import os.path
 from random import randint, sample
-
+from PIL import Image, ImageFilter
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
 class Game:
     def __init__(self):
         self.fps_cap = 120
+        self.gaussianblur_radius = 2
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode((1600, 900))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
@@ -138,45 +139,57 @@ class Game:
 
 class Images:
     def __init__(self):
-        self.background = Images.load_image("Background.png")
-        self.cursor = Images.load_image("Cursor.png")
-        self.right_button = [Images.load_image("Button_available.png"), Images.load_image("Button_available_hover.png"),
-                             Images.load_image("Button_unavailable.png")]
-        self.right_button_logos = [Images.load_image("House_1_logo.png"), Images.load_image("House_2_logo.png"),
-                                   Images.load_image("House_3_logo.png"), Images.load_image("House_4_logo.png"),
-                                   Images.load_image("House_5_logo.png")]
-        self.left_button = [Images.load_image("Tax.png"), Images.load_image("Tax_hover_minus.png"),
-                            Images.load_image("Tax_hover_plus.png")]
-        self.upgrade_button = [Images.load_image("Upgrade_available.png"), Images.load_image("Upgrade_unavailable.png"),
-                               Images.load_image("Upgrade_available_hover.png")]
-        self.bar = Images.load_image("Bar.png")
-        self.misc = [Images.load_image("Cloud.png"), Images.load_image("Breaking_news.png"),
-                     Images.load_image("Pipe.png"), Images.load_image("Google_Fiber.png"),
-                     Images.load_image("Electricity.png"), Images.load_image("Water.png")]
+        self.background = self.load_image("Background.png")
+        self.cursor = self.load_image("Cursor.png")
+        self.right_button = [self.load_image("Button_available.png"), self.load_image("Button_available_hover.png"),
+                             self.load_image("Button_unavailable.png")]
+        self.right_button_logos = [self.load_old_image("House_1_logo.png"), self.load_old_image("House_2_logo.png"),
+                                   self.load_old_image("House_3_logo.png"), self.load_old_image("House_4_logo.png"),
+                                   self.load_old_image("House_5_logo.png")]
+        self.left_button = [self.load_image("Tax.png"), Images.load_image("Tax_hover_minus.png"),
+                            self.load_image("Tax_hover_plus.png")]
+        self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
+                               self.load_image("Upgrade_available_hover.png")]
+        self.bar = self.load_image("Bar.png")
+        self.misc = [self.load_old_image("Cloud.png"), self.load_image("Breaking_news.png"),
+                     self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
+                     self.load_image("Electricity.png"), self.load_old_image("Water.png")]
         self.houses = [
-            [Images.load_image("House_11.png"), Images.load_image("House_12.png"), Images.load_image("House_13.png"),
-             Images.load_image("House_14.png")],
-            [Images.load_image("House_21.png"), Images.load_image("House_22.png"), Images.load_image("House_23.png")],
-            [Images.load_image("House_31.png"), Images.load_image("House_32.png"), Images.load_image("House_33.png")],
-            [Images.load_image("House_41.png"), Images.load_image("House_42.png"), Images.load_image("House_43.png")],
-            [Images.load_image("House_51.png"), Images.load_image("House_52.png"), Images.load_image("House_53.png")]]
-        self.metro = [Images.load_image("Metro.png"), Images.load_image("Metro_train.png")]
-        self.menu = [[Images.load_image("Urbancity_logo.png")],
-                     [Images.load_image("Menu_big_button.png"), Images.load_image("Menu_big_button_hover.png"),
-                      Images.load_image("Menu_small_button.png"), Images.load_image("Menu_small_button_hover.png")]]
-        self.quick_menu = [Images.load_image("Quick_menu_normal.png"),
-                           Images.load_image("Quick_menu_hover_mute.png"),
-                           Images.load_image("Quick_menu_hover_main_menu.png"),
-                           Images.load_image("Quick_menu_hover_quit.png")]
+            [self.load_image("House_11.png"), self.load_image("House_12.png"), self.load_image("House_13.png"),
+             self.load_image("House_14.png")],
+            [self.load_image("House_21.png"), self.load_image("House_22.png"), self.load_image("House_23.png")],
+            [self.load_image("House_31.png"), self.load_image("House_32.png"), self.load_image("House_33.png")],
+            [self.load_image("House_41.png"), self.load_old_image("House_42.png"), self.load_image("House_43.png")],
+            [self.load_image("House_51.png"), self.load_old_image("House_52.png"), self.load_image("House_53.png")]]
+        self.metro = [self.load_old_image("Metro.png"), self.load_image("Metro_train.png")]
+        self.menu = [[self.load_old_image("Urbancity_logo.png")],
+                     [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
+                      self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
+        self.quick_menu = [self.load_image("Quick_menu_normal.png"),
+                           self.load_image("Quick_menu_hover_mute.png"),
+                           self.load_image("Quick_menu_hover_main_menu.png"),
+                           self.load_image("Quick_menu_hover_quit.png")]
 
     @staticmethod
-    def load_image(file):
+    def load_old_image(file):
         file = os.path.join(main_dir, 'data', file)
         try:
             loaded_image = pygame.image.load(file).convert_alpha()
         except:
             raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
         return loaded_image, loaded_image.get_rect()
+
+    @staticmethod
+    def load_image(file):
+        file = os.path.join(main_dir, 'data', file)
+        try:
+            pygame_image = pygame.image.load(file).convert_alpha()
+            rect = pygame_image.get_rect()
+            pil_image = Image.open(file).filter(ImageFilter.GaussianBlur(radius = game.gaussianblur_radius))
+            blur_image = pygame.image.fromstring(pil_image.tobytes("raw", 'RGBA'), rect.size, 'RGBA')
+        except:
+            raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
+        return blur_image, rect
 
 
 class Sounds:
