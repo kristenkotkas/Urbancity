@@ -87,7 +87,6 @@ class Game:
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
         self.initialize()
-
         while self.running:
             self.clock.tick(self.fps_cap)
             self.process_events()
@@ -96,17 +95,6 @@ class Game:
             pygame.display.update(dirtyrects)
             pygame.display.set_caption(
                 "FPS: " + str(round(self.clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
-            if self.running:
-                pass
-
-                # todo 1. new layereddirty, get displaysurface, blur it, use as background
-                # todo fps läheb üliaeglaseks?
-
-                # http://stackoverflow.com/questions/30723253/blurring-in-pygame
-
-                # todo 2. or make superclass, blur all objects when game.menu_running
-                # menu buttons n stuff on higher layers
-
         pygame.time.wait(50)
         pygame.quit()
 
@@ -122,6 +110,7 @@ class Game:
                     if not game.menu.visible:
                         self.quick_menu.toggle()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                print(pygame.mouse.get_pos())
                 if game.quick_menu.mouse_click_check():
                     self.sounds.click.play()
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
@@ -163,7 +152,7 @@ class Images:
         self.menu = [[self.load_image("Urbancity_logo.png")],
                      [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
                       self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
-        self.quick_menu = [self.load_image("Quick_menu_normal.png"), self.load_image("Quick_menu_highlighted.png")]
+        self.quick_menu = [self.load_image("Quick_menu.png"), self.load_image("Quick_menu_highlighted.png")]
 
     @staticmethod
     def load_image(file):
@@ -1067,7 +1056,7 @@ class Menu(pygame.sprite.DirtySprite):
     def update(self):
         pass
 
-    def toggle(self, full):  # todo toggle function which toggles blur for all objects
+    def toggle(self, full):
         if self.visible:
             self.visible = False
         else:
@@ -1154,16 +1143,16 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.rect = game.screen.get_rect()
         rect = game.images.quick_menu[0][1]
         self.innerxy = [(self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2]
-        self.rectdata = [13, [10, 62, 114], 267, 42]
+        self.rectsxy = [14, [17, 69, 121, 173]]
         self.main_image = game.images.quick_menu[0][0]
         self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.main_image,
-                                           self.innerxy, (0, 0), (298, 170), 0, 0)
+                                           self.innerxy, (0, 0), self.main_image.get_rect().size, 0, 0)
         self.h_image, h_rect = game.images.quick_menu[1]
         self.highlight_objs = []
-        for i in range(3):
+        for i in range(4):
             self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
-                                                    (self.innerxy[0] + self.rectdata[0],
-                                                     self.innerxy[1] + self.rectdata[1][i]), (0, 0), h_rect.size, 0, 0))
+                                                    (self.innerxy[0] + self.rectsxy[0],
+                                                     self.innerxy[1] + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
         self.muted = False
         game.add_new_renderable(self, self.layer)
 
@@ -1195,9 +1184,11 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         else:
                             self.muted = True
                     elif obj == self.highlight_objs[1]:
+                        pass  # todo tutorial
+                    elif obj == self.highlight_objs[2]:
                         self.visible = False
                         game.menu.toggle(False)
-                    elif obj == self.highlight_objs[2]:
+                    elif obj == self.highlight_objs[3]:
                         game.running = False
                     return True
 
