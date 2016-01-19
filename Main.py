@@ -119,9 +119,8 @@ class Game:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.quick_menu.toggle()
                     if not game.menu.visible:
-                        pass
+                        self.quick_menu.toggle()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if game.quick_menu.mouse_click_check():
                     self.sounds.click.play()
@@ -164,9 +163,7 @@ class Images:
         self.menu = [[self.load_image("Urbancity_logo.png")],
                      [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
                       self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
-        self.quick_menu = [self.load_image("Quick_menu_normal.png"), self.load_image("Quick_menu_hover_mute.png"),
-                           self.load_image("Quick_menu_hover_main_menu.png"),
-                           self.load_image("Quick_menu_hover_quit.png")]
+        self.quick_menu = [self.load_image("Quick_menu_normal.png"), self.load_image("Quick_menu_highlighted.png")]
 
     @staticmethod
     def load_image(file):
@@ -1154,37 +1151,53 @@ class QuickMenu(pygame.sprite.DirtySprite):
         # noinspection PyArgumentList
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 127))
-        self.images = [game.images.quick_menu[0][0], game.images.quick_menu[1][0], game.images.quick_menu[2][0],
-                       game.images.quick_menu[3][0]]
         self.rect = game.screen.get_rect()
         rect = game.images.quick_menu[0][1]
         self.innerxy = [(self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2]
-        self.rects = [pygame.Rect(self.innerxy[0] + 14, self.innerxy[1] + 9, 267, 42),
-                      pygame.Rect(self.innerxy[0] + 14, self.innerxy[1] + 62, 267, 42),
-                      pygame.Rect(self.innerxy[0] + 14, self.innerxy[1] + 115, 267, 42)]
-        self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.images[0], self.innerxy,
-                                           (0, 0), (298, 170), 0, 0)
+        self.rectdata = [13, [10, 62, 114], 267, 42]
+        self.main_image = game.images.quick_menu[0][0]
+        self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.main_image,
+                                           self.innerxy, (0, 0), (298, 170), 0, 0)
+        self.h_image, h_rect = game.images.quick_menu[1]
+        self.highlight_objs = []
+        for i in range(3):
+            self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
+                                                    (self.innerxy[0] + self.rectdata[0],
+                                                     self.innerxy[1] + self.rectdata[1][i]), (0, 0), h_rect.size, 0, 0))
+        self.muted = False
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        self.quick_menu_obj.process_update(self.visible, self.mouse_hover_check(), self.innerxy)
+        self.quick_menu_obj.process_update(self.visible, self.main_image, self.innerxy)
+        self.mouse_hover_check()
 
     def mouse_hover_check(self):
-        for rect in self.rects:
-            if rect.collidepoint(pygame.mouse.get_pos()):
-                return self.images[self.rects.index(rect) + 1]
-        return self.images[0]
+        for obj in self.highlight_objs:
+            if self.visible:
+                if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                    visible = True
+                else:
+                    visible = False
+            else:
+                visible = False
+            if self.visible and obj == self.highlight_objs[0] and self.muted:
+                visible = True
+            obj.process_update(visible, self.h_image, (0, 0))
 
     def mouse_click_check(self):
         if self.visible:
-            for rect in self.rects:
-                if rect.collidepoint(pygame.mouse.get_pos()):
-                    if rect == self.rects[0]:
+            for obj in self.highlight_objs:
+                if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                    if obj == self.highlight_objs[0]:
                         game.sounds.toggle_mute()
-                    elif rect == self.rects[1]:
+                        if self.muted:
+                            self.muted = False
+                        else:
+                            self.muted = True
+                    elif obj == self.highlight_objs[1]:
                         self.visible = False
                         game.menu.toggle(False)
-                    elif rect == self.rects[2]:
+                    elif obj == self.highlight_objs[2]:
                         game.running = False
                     return True
 
@@ -1315,7 +1328,8 @@ class RenderObject(pygame.sprite.DirtySprite):
         if self.global_visible != visible:
             self.global_visible = self.visible = visible
         self.new_obj = obj
-        self.main_obj_xy = main_obj_xy
+        if main_obj_xy != (0, 0):
+            self.main_obj_xy = main_obj_xy
 
     def update(self):
         if self.old_main_obj_xy != self.main_obj_xy or self.old_obj != self.new_obj:
