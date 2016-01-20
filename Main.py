@@ -2,6 +2,7 @@
 import pygame
 import os.path
 from random import randint, sample
+
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -64,7 +65,7 @@ class Game:
         self.quick_menu = QuickMenu()
         self.cursor = Cursor()
         self.cloud = Cloud(10)
-        # self.metro = Metro(game)
+        self.metro = Metro()
         self.fiber = Fiber()
         self.watersupply = Watersupply()
         self.pipe = Pipe()
@@ -111,7 +112,7 @@ class Game:
                         self.quick_menu.toggle()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
-                if game.quick_menu.mouse_click_check():
+                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
                     self.sounds.click.play()
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
@@ -137,7 +138,7 @@ class Images:
                             self.load_image("Tax_hover_plus.png")]
         self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
                                self.load_image("Upgrade_available_hover.png")]
-        self.bar = self.load_image("Bar.png")
+        self.bar = [self.load_image("Bar.png"), self.load_image("Bar_highlight.png")]
         self.misc = [self.load_image("Cloud.png"), self.load_image("Breaking_news.png"),
                      self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
                      self.load_image("Electricity.png"), self.load_image("Water.png")]
@@ -231,42 +232,60 @@ class Cursor(pygame.sprite.DirtySprite):
 class Metro(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
-        self.dirty = 1
+        self.dirty = 2
         self.layer = 5
         self.image, rect = game.images.metro[0]
+        self.fixedy = game.resolution[1] - rect.h
+        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2, game.resolution[1], rect.w, rect.h)
+        self.source_rect = pygame.Rect(0, rect.h, rect.w, rect.h)
+        self.drawnout = False
+        # self.train_obj = MetroTrain(self.layer + 1, self.rect.topleft)
+        game.add_new_renderable(self, self.layer)
 
-        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2, game.resolution[1] - 111, rect.w, rect.h)
+    def update(self):
+        if self.drawnout:
+            # self.train_obj.process_update()
+            pass
+        else:
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
+            else:
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
+                self.dirty = 1
+                self.drawnout = True
 
-        self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
+
+class MetroTrain(pygame.sprite.DirtySprite):
+    def __init__(self, layer, xy):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 1
+        self.layer = layer
+        self.image, rect = game.images.metro[1]
+        # self.rect = pygame.Rect(xy[0], xy[1] + 50, rect.w - 2, rect.h)
+        self.rect = pygame.Rect(xy[0], xy[1] + 50, rect.w, rect.h)
+
+        self.trainstop = self.metrox + 20
+
+        # self.arearect = pygame.Rect(self.trainw, 0, self.trainw, self.trainh)
         self.speed = 4
         self.time_from_beginning = 0
-        self.drawnoutarea = pygame.Rect(0, self.metroh, self.metrow, self.metroh)
-        self.drawnout = False
+        # self.drawnoutarea = pygame.Rect(0, self.metroh, self.metrow, self.metroh)
         self.waiting = False
         self.trainstopwaiting = True
         self.terroristevent = False
         self.terroristcounter = 0
 
-        self.train_obj = MetroTrain(self.layer + 1, self.rect.topleft)
+        game.add_new_renderable(self, self.layer)
 
-    def draw(self):
-        self.draw_metro_background()
-        if self.drawnout:
-            self.update_metro()
-            self.draw_moving_metro()
+        # if self.drawnout:
+        #     self.update_metro()
 
-    def draw_metro_background(self):
-        if self.drawnout:
-            self.surface.blit(self.image_metro, self.metrorect)
-        else:
-            if self.drawnoutarea.y > 0:
-                self.drawnoutarea.y -= 5
-                self.metrorect.y -= 5
-                self.surface.blit(self.image_metro, self.metrorect, self.drawnoutarea)
-            else:
-                self.drawnout = True
-                self.metrorect.y = self.metroy
-                self.surface.blit(self.image_metro, self.metrorect)
+    def update(self):
+        if game.metro.drawnout:
+            if not self.waiting:
+                pass
 
     def update_metro(self):
         if self.terroristevent:
@@ -316,18 +335,6 @@ class Metro(pygame.sprite.DirtySprite):
 
     def draw_moving_metro(self):
         self.surface.blit(self.image_train, self.trainrect, self.arearect)
-
-
-class MetroTrain(pygame.sprite.DirtySprite):
-    def __init__(self, layer, xy):
-        pygame.sprite.DirtySprite.__init__(self)
-        self.dirty = 1
-        self.layer = layer
-        self.image, rect = game.images.metro[1]
-        self.rect = pygame.Rect(xy[0], xy[1] + 50, rect.w - 2, rect.h)
-
-        self.trainstop = self.metrox + 20
-
 
 class Pipe(pygame.sprite.DirtySprite):
     def __init__(self):
@@ -1207,7 +1214,8 @@ class Bar(pygame.sprite.DirtySprite):
         self.visible = True
         self.layer = 10
         self.animatein = True
-        self.image, self.rect = game.images.bar
+        self.image, self.rect = game.images.bar[0]
+        self.h_image, h_rect = game.images.bar[1]
         self.rect.x = (game.resolution[0] - self.rect.w) / 2 + 25
         self.rect.y = -self.rect.h
         self.maxy = 6
@@ -1221,31 +1229,33 @@ class Bar(pygame.sprite.DirtySprite):
 
         self.house_multiplier = 1.15572735
 
-        self.objxy = ([26, 204, 469], 7)
-        self.objwh = ([170, 249, 239], 21.621)
+        self.objxy = ([5, 48, 234, 498], 7)
+        self.objwh = ([170, 249, 238], 22)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
-
-        self.peoplecounter = RenderObject(self.layer + 1, self.visible, True, self.people, self.rect.topleft,
-                                          (self.objxy[0][0], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
-                                          self.drawdata, False)
-        self.moneycounter = RenderObject(self.layer + 1, self.visible, True, self.money, self.rect.topleft,
-                                         (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
-                                         self.drawdata, self.drawdata[2][0])
-        self.incomecounter = RenderObject(self.layer + 1, self.visible, True, self.money, self.rect.topleft,
-                                          (self.objxy[0][2], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
-                                          self.drawdata, self.drawdata[2][1])
-        self.fpscounter = RenderObject(self.layer + 1, self.visible, True, game.clock.get_fps(), self.rect.topleft,
-                                       (670, 8), (44, 22), self.drawdata, False)
+        self.highlight_obj = RenderObject(self.layer + 1, self.visible, False, self.h_image, self.rect.topleft,
+                                          (self.objxy[0][0], self.objxy[1]), h_rect.size, 0, 0)
+        self.people_obj = RenderObject(self.layer + 1, self.visible, True, self.people, self.rect.topleft,
+                                       (self.objxy[0][1], self.objxy[1]), (self.objwh[0][0], self.objwh[1]),
+                                       self.drawdata, False)
+        self.money_obj = RenderObject(self.layer + 1, self.visible, True, self.money, self.rect.topleft,
+                                      (self.objxy[0][2], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
+                                      self.drawdata, self.drawdata[2][0])
+        self.income_obj = RenderObject(self.layer + 1, self.visible, True, self.money, self.rect.topleft,
+                                       (self.objxy[0][3], self.objxy[1]), (self.objwh[0][2], self.objwh[1]),
+                                       self.drawdata, self.drawdata[2][1])
+        self.fps_obj = RenderObject(self.layer + 1, self.visible, True, game.clock.get_fps(), self.rect.topleft,
+                                    (700, self.objxy[1]), (44, self.objwh[1]), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
         self.people += 10
         self.money += 10
         self.income += 1
-        self.peoplecounter.process_update(self.visible, self.people, self.rect.topleft)
-        self.moneycounter.process_update(self.visible, self.money, self.rect.topleft)
-        self.incomecounter.process_update(self.visible, self.income, self.rect.topleft)
-        self.fpscounter.process_update(self.visible, game.clock.get_fps(), self.rect.topleft)
+        self.mouse_hover_check()
+        self.people_obj.process_update(self.visible, self.people, self.rect.topleft)
+        self.money_obj.process_update(self.visible, self.money, self.rect.topleft)
+        self.income_obj.process_update(self.visible, self.income, self.rect.topleft)
+        self.fps_obj.process_update(self.visible, game.clock.get_fps(), self.rect.topleft)
         if self.animatein:
             self.dirty = 1
             if self.rect.y < self.maxy:
@@ -1271,6 +1281,21 @@ class Bar(pygame.sprite.DirtySprite):
         for sizetype in game.houses:
             for house in sizetype:
                 self.peopletotal += house.peoplemax
+
+    def mouse_hover_check(self):
+        if self.visible:
+            if self.highlight_obj.rect.collidepoint(pygame.mouse.get_pos()):
+                visible = True
+            else:
+                visible = False
+        else:
+            visible = False
+        self.highlight_obj.process_update(visible, self.h_image, self.rect.topleft)
+
+    def mouse_click_check(self):
+        if self.visible:
+            if self.highlight_obj.rect.collidepoint(pygame.mouse.get_pos()):
+                return True  # todo settings menu
 
     def toggle(self):
         if self.visible:
