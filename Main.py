@@ -2,8 +2,7 @@
 import pygame
 import os.path
 import shelve
-from random import randint, sample
-
+from random import randint, sample, shuffle
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -46,13 +45,9 @@ class Game:
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
 
-        self.houses_properties = [
-            (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
-        self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
-
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
-            self.clock = self.tick = self.menu = None
+            self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.activeclouds = []
@@ -67,22 +62,23 @@ class Game:
         self.filesystem_do("load_state")
         self.left_drawer = LeftDrawer(self.used_upgrades)
         self.right_drawer = RightDrawer()
-        for sizetype in range(3):
-            self.left_drawer.tax_buttons.append(TaxButton(sizetype))
-        for sizetype in range(5):
-            self.right_drawer.right_buttons.append(RightButton(sizetype))
         for upgrade in self.left_drawer.used_upgrades:
             game.left_drawer.init_unlock(upgrade)
-        # todo add tutorial init here
         self.bar = Bar()
         self.menu = Menu()
 
     def init_game(self, state):
         if state == "New":
+            # todo add tutorial init here
             self.difficulty = game.menu.is_highlighted_button - 2
-        else:
-            self.set_loaded_states()
-
+        elif state == "Load":
+            # self.set_loaded_states()
+            pass
+        self.set_difficulty(self.difficulty)
+        for sizetype in range(3):
+            self.left_drawer.tax_buttons.append(TaxButton(sizetype))
+        for sizetype in range(5):
+            self.right_drawer.right_buttons.append(RightButton(sizetype))
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
         pygame.time.set_timer(pygame.USEREVENT + 2, 100)
 
@@ -120,7 +116,11 @@ class Game:
                         self.quick_menu.toggle()
                 elif event.key == pygame.K_SPACE:
                     game.bar.add_manual_money()
-                    self.sounds.click.play()  # todo add sound?
+                    self.sounds.click.play()  # todo add different sound?
+                elif event.key == pygame.K_k:
+                    game.bar.money += game.bar.money * 133700
+                elif event.key == pygame.K_l:
+                    game.bar.money = 0
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
@@ -166,6 +166,21 @@ class Game:
             d["usedupgrades"] = self.used_upgrades
             d["taxes"] = self.taxes
             d.close()
+
+    def set_difficulty(self, difficulty):
+        # houses_properties = sizetype(people, per people modifier, minpeople)
+        if difficulty == 0:  # easy
+            self.houses_properties = [
+                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
+            self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
+        elif difficulty == 1:  # normal
+            self.houses_properties = [
+                (100, 0.1, 0), (450, 0.2, 700), (1280, 0.5, 4000), (3600, 0.9, 18000), (6750, 3, 40000)]
+            self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
+        elif difficulty == 2:  # insane
+            self.houses_properties = [
+                (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
+            self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
 
     def get_current_states(self):
         for button in range(len(game.right_drawer.right_buttons)):
@@ -517,7 +532,16 @@ class Power(pygame.sprite.DirtySprite):
             self.image.blit(self.surface, rect, arearect)
         self.rect.w = game.resolution[0]
         self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
-        game.add_new_renderable(self, self.layer)
+
+    def shuffle_layer(self):
+        if len(game.allsprites.get_sprites_from_layer(self.layer)) > 0:
+            spriteslist = game.allsprites.remove_sprites_of_layer(self.layer)
+            shuffle(spriteslist)
+            spriteslist.insert(0, self)
+            for sprite in spriteslist:
+                game.add_new_renderable(sprite, sprite.layer)
+        else:
+            game.add_new_renderable(self, self.layer)
 
     def update(self):
         if not self.drawnout:
@@ -541,7 +565,7 @@ class Cloud(pygame.sprite.DirtySprite):
         self.x = self.minx = -rect.w ** 1.15 * self.cloudtype
         self.maxx = game.resolution[0]
         self.speed = randint(1, 2) ** 1.15
-        self.rect = pygame.Rect(self.x, game.resolution[1] - 630 + randint(1, 60), rect.w, rect.h)
+        self.rect = pygame.Rect(self.x, game.resolution[1] - 700 + randint(1, 80), rect.w, rect.h)
         game.activeclouds.append(self)
         if self.cloudtype > 1:
             Cloud(cloudtype - 1)
@@ -691,6 +715,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.fiber = Fiber()
         elif unlockname == "Power":
             game.power = Power()
+            game.power.shuffle_layer()
         elif unlockname == "Water":
             game.watersupply = Watersupply()
 
@@ -962,7 +987,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         if self.rewardtype == "income":
             game.bar.incomereward += self.reward
         elif self.rewardtype == "unlock":
-            game.left_drawer.initialize_unlock(self.reward)
+            game.left_drawer.init_unlock(self.reward)
 
 
 class RightDrawer(pygame.sprite.DirtySprite):
