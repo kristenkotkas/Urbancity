@@ -15,6 +15,7 @@ class Game:
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.difficulty = 1
+        self.test = False
 
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
@@ -57,7 +58,7 @@ class Game:
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.activeclouds = []
-        self.interactables_visible = False
+        self.interactables_visible = True
 
     def init_menu(self):
         self.images = Images()
@@ -138,6 +139,11 @@ class Game:
                     game.bar.money += game.bar.money * 133700
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
+                elif event.key == pygame.K_j:
+                    if self.test:
+                        self.test = False
+                    else:
+                        self.test = True
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
@@ -148,6 +154,10 @@ class Game:
                         self.sounds.click.play()
 
     def toggle_interactables(self):
+        if self.interactables_visible:
+            self.interactables_visible = False
+        else:
+            self.interactables_visible = True
         self.left_drawer.toggle()
         self.bar.toggle()
         self.right_drawer.toggle()
@@ -799,6 +809,7 @@ class TaxButton(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.layer = 10
+        self.layer_mod = self.layer + 1
         self.visible = True
         self.sizetype = sizetype
         self.drawdata = [(255, 255, 255), 14]
@@ -816,15 +827,16 @@ class TaxButton(pygame.sprite.DirtySprite):
         self.animatein = True
         self.animateout = False
         self.animatecounter = 0
-        self.name_obj = RenderObject(self.layer + 1, self.visible, True, self.taxtxt, self.rect.topleft,
+        self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.taxtxt, self.rect.topleft,
                                      (10, 7), (132, 20), self.drawdata, False)
-        self.tax_obj = RenderObject(self.layer + 1, self.visible, True, str(game.taxes[self.sizetype]) + "%",
+        self.tax_obj = RenderObject(self.layer_mod, self.visible, True, str(game.taxes[self.sizetype]) + "%",
                                     self.rect.topleft, (149, 7), (52, 20), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        self.name_obj.process_update(self.visible, self.layer, self.taxtxt, self.rect.topleft)
-        self.tax_obj.process_update(self.visible, self.layer, str(game.taxes[self.sizetype]) + "%", self.rect.topleft)
+        self.name_obj.process_update(self.visible, self.layer_mod, self.taxtxt, self.rect.topleft)
+        self.tax_obj.process_update(self.visible, self.layer_mod, str(game.taxes[self.sizetype]) + "%",
+                                    self.rect.topleft)
         if self.animatein:
             if self.rect.x < self.minx - 20:
                 self.dirty = 1
@@ -843,6 +855,9 @@ class TaxButton(pygame.sprite.DirtySprite):
         if self.old_image != self.image:
             self.old_image = self.image
             self.dirty = 1
+
+    def return_objs_layer(self):
+        self.layer_mod = self.layer + 1
 
     def mouse_click_check(self):
         for rect in self.clickable_rects:
@@ -885,6 +900,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.layer = 10
+        self.layer_mod = self.layer + 1
         if game.left_drawer.drawer_visible:
             self.visible = True
         else:
@@ -917,19 +933,19 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 else:
                     self.end = 0
                 self.reward = item[2][1]
-        self.name_obj = RenderObject(self.layer + 1, self.visible, True, self.name, self.rect.topleft,
+        self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.name, self.rect.topleft,
                                      (10, 7), (192, 20), self.drawdata, False)
-        self.cost_obj = RenderObject(self.layer + 1, self.visible, True, self.cost, self.rect.topleft,
+        self.cost_obj = RenderObject(self.layer_mod, self.visible, True, self.cost, self.rect.topleft,
                                      (12, 35), (98, 20), self.drawdata, self.drawdata[2])
-        self.reward_obj = RenderObject(self.layer + 1, self.visible, True, self.reward, self.rect.topleft,
+        self.reward_obj = RenderObject(self.layer_mod, self.visible, True, self.reward, self.rect.topleft,
                                        (117, 35), (87, 20), self.drawdata, self.drawdata[3])
         game.add_new_renderable(self, self.layer)
         self.update()
 
     def update(self):
-        self.name_obj.process_update(self.visible, self.layer, self.name, self.rect.topleft)
-        self.cost_obj.process_update(self.visible, self.layer, self.cost, self.rect.topleft)
-        self.reward_obj.process_update(self.visible, self.layer, self.reward, self.rect.topleft)
+        self.name_obj.process_update(self.visible, self.layer_mod, self.name, self.rect.topleft)
+        self.cost_obj.process_update(self.visible, self.layer_mod, self.cost, self.rect.topleft)
+        self.reward_obj.process_update(self.visible, self.layer_mod, self.reward, self.rect.topleft)
         if self.animatemove:
             self.dirty = 1
             if self.rect.y > self.miny:
@@ -976,6 +992,9 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         if self.old_image != self.image:
             self.old_image = self.image
             self.dirty = 1
+
+    def return_objs_layer(self):
+        self.layer_mod = self.layer + 1
 
     def slide(self, amount):
         if not self.animatein:
@@ -1049,6 +1068,7 @@ class RightButton(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 0
         self.layer = 10
+        self.layer_mod = self.layer + 1
         self.visible = self.global_visible = False
         self.sizetype = sizetype
         self.old_image = self.old_x = None
@@ -1069,27 +1089,28 @@ class RightButton(pygame.sprite.DirtySprite):
         self.minx = game.resolution[0] - 220
         self.maxx = game.resolution[0] - 20
         self.animatein = True
-        self.logo_obj = RenderObject(self.layer + 1, self.visible, True, self.logo, self.rect.topleft,
+        self.logo_obj = RenderObject(self.layer_mod, self.visible, True, self.logo, self.rect.topleft,
                                      (7, 7), (47, 48), self.drawdata, False)
-        self.amount_obj = RenderObject(self.layer + 1, self.visible, True, self.amount, self.rect.topleft,
+        self.amount_obj = RenderObject(self.layer_mod, self.visible, True, self.amount, self.rect.topleft,
                                        (7, 62), (47, 19), self.drawdata, False)
-        self.name_obj = RenderObject(self.layer + 1, self.visible, True, self.name, self.rect.topleft,
+        self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.name, self.rect.topleft,
                                      (62, 7), (132, 19), self.drawdata, False)
-        self.people_obj = RenderObject(self.layer + 1, self.visible, True, self.people, self.rect.topleft,
+        self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.people, self.rect.topleft,
                                        (77, 35), (44, 19), self.drawdata, False)
-        self.peopletotal_obj = RenderObject(self.layer + 1, self.visible, True, self.calculate_peopletotal(),
+        self.peopletotal_obj = RenderObject(self.layer_mod, self.visible, True, self.calculate_peopletotal(),
                                             self.rect.topleft, (132, 34), (63, 19), self.drawdata, False)
-        self.price_obj = RenderObject(self.layer + 1, self.visible, True, self.price, self.rect.topleft,
+        self.price_obj = RenderObject(self.layer_mod, self.visible, True, self.price, self.rect.topleft,
                                       (62, 62), (132, 19), self.drawdata, self.drawdata[2])
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        self.logo_obj.process_update(self.visible, self.layer, self.logo, self.rect.topleft)
-        self.amount_obj.process_update(self.visible, self.layer, self.amount, self.rect.topleft)
-        self.name_obj.process_update(self.visible, self.layer, self.name, self.rect.topleft)
-        self.people_obj.process_update(self.visible, self.layer, self.people, self.rect.topleft)
-        self.peopletotal_obj.process_update(self.visible, self.layer, self.calculate_peopletotal(), self.rect.topleft)
-        self.price_obj.process_update(self.visible, self.layer, self.price, self.rect.topleft)
+        self.logo_obj.process_update(self.visible, self.layer_mod, self.logo, self.rect.topleft)
+        self.amount_obj.process_update(self.visible, self.layer_mod, self.amount, self.rect.topleft)
+        self.name_obj.process_update(self.visible, self.layer_mod, self.name, self.rect.topleft)
+        self.people_obj.process_update(self.visible, self.layer_mod, self.people, self.rect.topleft)
+        self.peopletotal_obj.process_update(self.visible, self.layer_mod, self.calculate_peopletotal(),
+                                            self.rect.topleft)
+        self.price_obj.process_update(self.visible, self.layer_mod, self.price, self.rect.topleft)
         if self.visible:
             if self.animatein:
                 self.dirty = 1
@@ -1120,6 +1141,9 @@ class RightButton(pygame.sprite.DirtySprite):
                 self.global_visible = True
                 if game.right_drawer.drawer_visible:
                     self.visible = True
+
+    def return_objs_layer(self):
+        self.layer_mod = self.layer + 1
 
     def calculate_peopletotal(self):
         people = 0
@@ -1185,8 +1209,7 @@ class Menu(pygame.sprite.DirtySprite):
             self.visible = True
         for button in self.buttons:
             button.toggle()
-        if not game.interactables_visible:
-            game.toggle_interactables()
+        game.toggle_interactables()
 
 
 class MenuButton(pygame.sprite.DirtySprite):
@@ -1307,7 +1330,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         self.toggle()
                         game.tutorial.toggle()
                     elif obj == self.highlight_objs[2]:
-                        self.visible = False
+                        self.toggle()
                         game.menu.toggle()
                     elif obj == self.highlight_objs[3]:
                         game.running = False
@@ -1318,8 +1341,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
             self.visible = False
         else:
             self.visible = True
-        if not game.interactables_visible:
-            game.toggle_interactables()
+        game.toggle_interactables()
 
 
 class Tutorial(pygame.sprite.DirtySprite):
@@ -1331,13 +1353,10 @@ class Tutorial(pygame.sprite.DirtySprite):
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 127))
         self.rect = game.screen.get_rect()
-        self.tutorial_guide = TutorialGuide(self.layer + 1)
+        self.tutorial_guide = TutorialGuide(self.layer)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        pass
-
-    def modify_layers(self):
         pass
 
     def toggle(self):
@@ -1354,7 +1373,7 @@ class TutorialGuide(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.visible = False
-        self.layer = layer
+        self.layer = layer + 2
         self.tutscreen = self.oldscreen = 0
         self.image = self.rect = None
         spaceimage, spacerect = game.images.tutorial[0]
@@ -1364,40 +1383,73 @@ class TutorialGuide(pygame.sprite.DirtySprite):
         upgradeimage, upgraderect = game.images.tutorial[4]
         self.images = [spaceimage, barimage, rightimage, taximage, upgradeimage]
         self.objxy = [((game.resolution[0] - spacerect.w) / 2, game.resolution[1] - 125),
-                      ((game.resolution[0] - barrect.w) / 2 - 25, 35),
-                      (game.right_drawer.x - 310, 25),
-                      (70, 110),
-                      (31, 159)]  # todo
+                      ((game.resolution[0] - barrect.w) / 2 - 25, 35), (game.right_drawer.x - 318, 22),
+                      (133, 108), (65, 127)]
         self.objwh = [spacerect.size, barrect.size, rightrect.size, taxrect.size, upgraderect.size]
         self.update_screen()
         # 0 - space, 1 - bar, 2 - right button, 3 - tax, 4 - upgrade (ei ole lahti veel vb)
         game.add_new_renderable(self, self.layer)
 
+    def modify_layers(self):
+        sprites = game.allsprites.remove_sprites_of_layer(13)
+        if len(sprites) > 0:
+            sprite = sprites[0]
+            print(self.layer, game.tutorial.layer, sprite, len(sprites), sprite.layer, sprite.layer_mod)
+            sprite.return_objs_layer()
+            game.add_new_renderable(sprite, sprite.layer)
+            print(self.layer, game.tutorial.layer, sprite, len(sprites), sprite.layer, sprite.layer_mod)
+
+        if self.tutscreen == 1:
+            sprite = game.bar
+        elif self.tutscreen == 2:
+            sprite = game.right_drawer.right_buttons[0]
+        elif self.tutscreen == 3:
+            sprite = game.left_drawer.tax_buttons[2]
+        elif self.tutscreen == 4:
+            sprite = game.left_drawer.upgrade_buttons[0]
+        else:
+            sprite = 0
+        if sprite != 0:
+            game.allsprites.remove(sprite)
+            game.add_new_renderable(sprite, 13)
+            game.bar.layer_mod = 14
+
     def update(self):
-        pass
+        if self.visible:
+            self.manage_drawers()
+            if self.tutscreen > self.get_max_screens():
+                self.switch_tutorial(-1)
 
     def switch_tutorial(self, direction):
         if direction > 0:
-            if self.tutscreen < 4:
+            if self.tutscreen < self.get_max_screens():
                 self.tutscreen += direction
                 self.update_screen()
+                self.modify_layers()
         else:
             if self.tutscreen > 0:
                 self.tutscreen += direction
                 self.update_screen()
+                self.modify_layers()
 
     def update_screen(self):
         self.dirty = 1
         self.image = self.images[self.tutscreen]
         self.rect = pygame.Rect(self.objxy[self.tutscreen], self.objwh[self.tutscreen])
-        self.toggle_drawer()
 
-    def toggle_drawer(self):
+    @staticmethod
+    def get_max_screens():
+        maxscreen = 3
+        if len(game.left_drawer.upgrade_buttons) > 0:
+            maxscreen = 4
+        return maxscreen
+
+    def manage_drawers(self):
         if self.tutscreen == 2:
             game.right_drawer.open = True
         elif self.oldscreen == 2:
             game.right_drawer.open = False
-        if self.tutscreen >= 3:
+        if self.tutscreen == 3 or (self.tutscreen == 4 == self.get_max_screens()):
             game.left_drawer.open = True
         elif self.oldscreen >= 3:
             game.left_drawer.open = False
@@ -1410,6 +1462,7 @@ class Bar(pygame.sprite.DirtySprite):
         self.dirty = 1
         self.visible = True
         self.layer = 10
+        self.layer_mod = self.layer + 1
         self.animatein = True
         self.image, self.rect = game.images.bar[0]
         self.h_image, h_rect = game.images.bar[1]
@@ -1430,29 +1483,30 @@ class Bar(pygame.sprite.DirtySprite):
         self.objwh = ([181, 261, 239], 22)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
 
-        self.people_obj = RenderObject(self.layer + 1, self.visible, True, self.get_people("total"),
+        self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.get_people("total"),
                                        self.rect.topleft, (self.objxy[0][0], self.objxy[1]),
                                        (self.objwh[0][0], self.objwh[1]), self.drawdata, False)
-        self.money_obj = RenderObject(self.layer + 1, self.visible, True, self.money, self.rect.topleft,
+        self.money_obj = RenderObject(self.layer_mod, self.visible, True, self.money, self.rect.topleft,
                                       (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
                                       self.drawdata, self.drawdata[2][0])
-        self.income_obj = RenderObject(self.layer + 1, self.visible, True, self.get_income("total"),
+        self.income_obj = RenderObject(self.layer_mod, self.visible, True, self.get_income("total"),
                                        self.rect.topleft, (self.objxy[0][2], self.objxy[1]),
                                        (self.objwh[0][2], self.objwh[1]), self.drawdata, self.drawdata[2][1])
-        self.highlight_obj = RenderObject(self.layer + 1, self.visible, False, self.h_image, self.rect.topleft,
+        self.highlight_obj = RenderObject(self.layer_mod, self.visible, False, self.h_image, self.rect.topleft,
                                           (self.objxy[0][3], self.objxy[1]), h_rect.size, 0, 0)
 
-        self.fps_obj = RenderObject(self.layer + 1, self.visible, True, game.clock.get_fps(), self.rect.topleft,
+        self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
                                     (660, self.objxy[1]), (44, self.objwh[1]), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
         self.income_manual_time += game.tick
         self.mouse_hover_check()
-        self.people_obj.process_update(self.visible, self.layer, self.get_people("total"), self.rect.topleft)
-        self.money_obj.process_update(self.visible, self.layer, self.money, self.rect.topleft)
-        self.income_obj.process_update(self.visible, self.layer, self.get_income("total"), self.rect.topleft)
-        self.fps_obj.process_update(self.visible, self.layer, game.clock.get_fps(), self.rect.topleft)
+        print(self.layer, self.layer_mod)
+        self.people_obj.process_update(self.visible, self.layer_mod, self.get_people("total"), self.rect.topleft)
+        self.money_obj.process_update(self.visible, self.layer_mod, self.money, self.rect.topleft)
+        self.income_obj.process_update(self.visible, self.layer_mod, self.get_income("total"), self.rect.topleft)
+        self.fps_obj.process_update(self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft)
         if self.animatein:
             self.dirty = 1
             if self.rect.y < self.maxy:
@@ -1460,6 +1514,9 @@ class Bar(pygame.sprite.DirtySprite):
             else:
                 self.rect.y = self.maxy
                 self.animatein = False
+
+    def return_objs_layer(self):
+        self.layer_mod = self.layer + 1
 
     def get_people(self, peopletype):
         if peopletype == "current":
@@ -1537,7 +1594,7 @@ class Bar(pygame.sprite.DirtySprite):
                 visible = False
         else:
             visible = False
-        self.highlight_obj.process_update(visible, self.layer, self.h_image, self.rect.topleft)
+        self.highlight_obj.process_update(visible, self.layer + 1, self.h_image, self.rect.topleft)
 
     def mouse_click_check(self):
         if self.visible:
@@ -1592,10 +1649,14 @@ class RenderObject(pygame.sprite.DirtySprite):
         if self.global_visible != visible:
             self.global_visible = self.visible = visible
         self.new_obj = obj
-        if layer != 0:
-            self.layer = layer
         if main_obj_xy != (0, 0):
             self.main_obj_xy = main_obj_xy
+        if game.test and self.inner_obj_wh[0] == 44 and self.main_obj_xy[1] < 10:
+            print(self.main_obj_xy, self.layer, layer)
+        if layer != 0 and self.layer != layer:
+            game.allsprites.remove(self)
+            game.add_new_renderable(self, layer)
+            self.layer = layer
 
     def update(self):
         if self.old_main_obj_xy != self.main_obj_xy or self.old_obj != self.new_obj:
