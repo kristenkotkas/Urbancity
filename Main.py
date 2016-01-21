@@ -29,6 +29,10 @@ class Game:
                          ("5G", 47540139, ("income", 15893), ("incometotal", 822)),
                          ("Li-Fi", 174887578, ("income", 58466), ("incometotal", 959)),
                          ("World Peace", 743554611, ("income", 248575), ("incometotal", 1100))]
+        # rewards = (name, reward, (unlock type, amount))
+        self.rewards = [("people 50k", 100000, ("peopletotal", 50000)),
+                        ("people 75k", 300000, ("peopletotal", 75000))
+                        ]
 
         self.bar_amounts = [0, 0, 0, 0]
 
@@ -1359,10 +1363,10 @@ class TutorialGuide(pygame.sprite.DirtySprite):
         taximage, taxrect = game.images.tutorial[3]
         upgradeimage, upgraderect = game.images.tutorial[4]
         self.images = [spaceimage, barimage, rightimage, taximage, upgradeimage]
-        self.objxy = [((game.resolution[0] - spacerect.w) / 2, game.resolution[1] - 300),
+        self.objxy = [((game.resolution[0] - spacerect.w) / 2, game.resolution[1] - 125),
                       ((game.resolution[0] - barrect.w) / 2 - 25, 35),
                       (game.right_drawer.x - 310, 25),
-                      (50, 120),
+                      (70, 110),
                       (31, 159)]  # todo
         self.objwh = [spacerect.size, barrect.size, rightrect.size, taxrect.size, upgraderect.size]
         self.update_screen()
