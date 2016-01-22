@@ -13,6 +13,7 @@ class Game:
         self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
+        self.tutorial_mode = True
         self.difficulty = 1
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.taxes = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
@@ -83,7 +84,8 @@ class Game:
     def init_new(self):
         self.init_load("new_state")
         game.toggle_interactables()
-        game.tutorial.toggle()
+        if self.tutorial_mode:
+            game.tutorial.toggle()
 
     def init_load(self, state):
         self.init_purge()
@@ -149,7 +151,7 @@ class Game:
                 if event.key == pygame.K_ESCAPE:
                     if game.tutorial is not None and game.tutorial.visible:  # todo not needed?
                         game.tutorial.toggle()
-                    if not game.menu.visible:
+                    elif not game.menu.visible:
                         self.quick_menu.toggle()
                 elif event.key == pygame.K_SPACE:
                     game.bar.add_manual_money()
@@ -750,6 +752,8 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.upgrade_buttons = []
         self.used_upgrades = used_upgrades
         self.unlocked_upgrades = []
+        if len(self.used_upgrades) > 0:
+            game.tutorial_mode = False
         for name in self.used_upgrades:
             for upgrade in game.upgrades:
                 if upgrade[0] == name:
@@ -798,6 +802,12 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                     self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
                     self.unlocked_upgrades.append(upgrade)
                     break
+        if game.tutorial_mode:
+            if not game.menu.visible and len(self.upgrade_buttons) > 0:
+                game.tutorial.toggle()
+                game.tutorial.tutorial_guide.tutscreen = 4
+                game.tutorial.tutorial_guide.update_screen()
+                game.tutorial_mode = False
         for upgrade in game.upgrades:
             if upgrade in self.unlocked_upgrades:
                 game.upgrades.remove(upgrade)
