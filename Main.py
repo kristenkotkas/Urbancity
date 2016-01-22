@@ -223,7 +223,7 @@ class Game:
             d["incometotal"] = self.bar.incometotal
             d["incomereward"] = self.bar.incomereward
             d["difficulty"] = self.difficulty
-            d["usedupgrades"] = self.used_upgrades
+            d["usedupgrades"] = game.left_drawer.used_upgrades
             d["taxes"] = self.taxes
             d.close()
         elif action == "new_state":
@@ -760,14 +760,14 @@ class LeftDrawer(pygame.sprite.DirtySprite):
     def init_unlock(unlockname):
         if unlockname == "Metro":
             game.metro = Metro()
-        elif unlockname == "Pipe":
+        elif unlockname == "Plumbing":
             game.pipe = Pipe()
-        elif unlockname == "Fiber":
+        elif unlockname == "Moogle Fiber":
             game.fiber = Fiber()
-        elif unlockname == "Power":
+        elif unlockname == "Electricity":
             game.power = Power()
             game.power.shuffle_layer()
-        elif unlockname == "Water":
+        elif unlockname == "Water Supply":
             game.watersupply = Watersupply()
 
     def process_upgrades(self):
