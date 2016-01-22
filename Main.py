@@ -198,7 +198,7 @@ class Game:
                         self.quick_menu.toggle()
                 elif event.key == pygame.K_SPACE:
                     game.bar.add_manual_money()
-                    self.sounds.click.play()  # todo add different sound?
+                    self.sounds.space[randint(0, 9)].play()
                 elif event.key == pygame.K_LEFT:
                     game.tutorial.tutorial_guide.switch_tutorial(-1)
                 elif event.key == pygame.K_RIGHT:
@@ -338,8 +338,13 @@ class Images:
 
 class Sounds:
     def __init__(self):
-        Sounds.load_sound("house_lo.ogg", "music")
-        self.click = Sounds.load_sound("Mouse_press.ogg", "sound")
+        # Sounds.load_sound("house_lo.ogg", 0)
+        self.click = Sounds.load_sound("Mouse_press.ogg", 1)
+        self.space = [Sounds.load_sound("space_1.ogg", 1), Sounds.load_sound("space_2.ogg", 1),
+                      Sounds.load_sound("space_3.ogg", 1), Sounds.load_sound("space_4.ogg", 1),
+                      Sounds.load_sound("space_5.ogg", 1), Sounds.load_sound("space_6.ogg", 1),
+                      Sounds.load_sound("space_8.ogg", 1), Sounds.load_sound("space_9.ogg", 1),
+                      Sounds.load_sound("space_10.ogg", 1), Sounds.load_sound("space_11.ogg", 1)]
 
     @staticmethod
     def toggle_mute():
@@ -352,8 +357,8 @@ class Sounds:
 
     @staticmethod
     def load_sound(file, soundtype):
-        file = os.path.join(main_dir, 'data\\test_helid', file)
-        if soundtype == "music":
+        file = os.path.join(main_dir, 'data\\sounds', file)
+        if soundtype == 0:
             pygame.mixer.music.load(file)
             # pygame.mixer.music.play(-1)
             # pygame.mixer.music.set_volume(0.1)
