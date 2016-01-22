@@ -10,7 +10,7 @@ class Game:
     def __init__(self):
         self.fps_cap = 120
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode((1600, 900))
+        self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.difficulty = 1
@@ -25,7 +25,7 @@ class Game:
         self.allsprites.set_timing_treshold(10000)
         self.interactables_visible = True
 
-    def load_config(self, difficulty):
+    def init_loadconfig(self, difficulty):
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
@@ -87,7 +87,7 @@ class Game:
 
     def init_load(self, state):
         self.init_purge()
-        self.load_config(self.difficulty)
+        self.init_loadconfig(self.difficulty)
         self.filesystem_do(state, self.difficulty)
         self.cloud = Cloud(10)
         self.left_drawer = LeftDrawer(self.used_upgrades)
@@ -163,7 +163,7 @@ class Game:
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                print(pygame.mouse.get_pos())
+                # print(pygame.mouse.get_pos())
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
@@ -473,9 +473,9 @@ class Pipe(pygame.sprite.DirtySprite):
         self.dirty = 2
         self.layer = 4
         self.drawnout = False
-        self.surface, self.rect = game.images.misc[2]
-        self.fixedy = game.resolution[1] - self.rect.h + 30
-        self.rect.y = self.fixedy + self.rect.h
+        self.surface, rect = game.images.misc[2]
+        self.fixedy = game.resolution[1] - rect.h + 30
+        self.rect = pygame.Rect(0, self.fixedy + rect.h, rect.w, rect.h)
         # noinspection PyArgumentList
         self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
         rect = pygame.Rect(-10, 0, self.rect.w, self.rect.h)
@@ -504,8 +504,8 @@ class Fiber(pygame.sprite.DirtySprite):
         self.dirty = 2
         self.layer = 2
         self.drawnout = False
-        self.surface, self.rect = game.images.misc[3]
-        self.rect.y = game.resolution[1] - self.rect.h - 90
+        self.surface, rect = game.images.misc[3]
+        self.rect = pygame.Rect(0, game.resolution[1] - rect.h - 90, rect.w, rect.h)
         self.timesx = game.resolution[0] // self.rect.w + 1
         # noinspection PyArgumentList
         self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
@@ -535,9 +535,9 @@ class Watersupply(pygame.sprite.DirtySprite):
         self.dirty = 2
         self.layer = 3
         self.drawnout = False
-        self.surface, self.rect = game.images.misc[5]
+        self.surface, rect = game.images.misc[5]
         self.shift = 6
-        self.rect.y = game.resolution[1] - self.rect.h + 5
+        self.rect = pygame.Rect(0, game.resolution[1] - rect.h + 5, rect.w, rect.h)
         self.timesx = game.resolution[0] // self.rect.w + 1
         # noinspection PyArgumentList
         self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
@@ -567,9 +567,9 @@ class Power(pygame.sprite.DirtySprite):
         self.dirty = 2
         self.layer = 6
         self.drawnout = False
-        self.surface, self.rect = game.images.misc[4]
-        self.fixedy = game.resolution[1] - self.rect.h - game.background.rect.h + 10
-        self.rect.y = self.fixedy + self.rect.h
+        self.surface, rect = game.images.misc[4]
+        self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 10
+        self.rect = pygame.Rect(0, self.fixedy + rect.h, rect.w, rect.h)
         self.offset = 20
         self.timesx = round(game.resolution[0] / (self.rect.w - self.offset)) + 1
         # noinspection PyArgumentList
@@ -1053,7 +1053,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         if self.rewardtype == "income":
             game.bar.incomereward += self.reward
         elif self.rewardtype == "unlock":
-            game.left_drawer.init_unlock(self.reward)
+            game.left_drawer.init_unlock(self.name)
 
 
 class RightDrawer(pygame.sprite.DirtySprite):
@@ -1469,10 +1469,9 @@ class Bar(pygame.sprite.DirtySprite):
         self.layer = 10
         self.layer_mod = self.layer + 1
         self.animatein = True
-        self.image, self.rect = game.images.bar[0]
+        self.image, rect = game.images.bar[0]
         self.h_image, h_rect = game.images.bar[1]
-        self.rect.x = (game.resolution[0] - self.rect.w) / 2 + 25
-        self.rect.y = -self.rect.h
+        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2 + 25, -rect.h, rect.w, rect.h)
         self.maxy = 6
 
         self.income = self.houses_income = 0
