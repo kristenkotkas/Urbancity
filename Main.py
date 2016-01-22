@@ -3,7 +3,6 @@ import pygame
 import os.path
 import shelve
 from random import randint, sample, shuffle
-
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -15,7 +14,18 @@ class Game:
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.difficulty = 1
+        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.taxes = []
+        self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
+            self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
+            self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
+            self.tutorial = self.used_upgrades = self.rewards = self.bar_amounts = self.houses_properties = \
+            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = \
+            self.right_button_amounts = None
+        self.allsprites = pygame.sprite.LayeredDirty()
+        self.allsprites.set_timing_treshold(10000)
+        self.interactables_visible = True
 
+    def load_config(self, difficulty):
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
         # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
@@ -31,11 +41,8 @@ class Game:
                          ("World Peace", 743554611, ("income", 248575), ("incometotal", 1100))]
         # rewards = (name, reward, (unlock type, amount))
         self.rewards = [("people 50k", 100000, ("peopletotal", 50000)),
-                        ("people 75k", 300000, ("peopletotal", 75000))
-                        ]
-
+                        ("people 75k", 300000, ("peopletotal", 75000))]
         self.bar_amounts = [0, 0, 0, 0]
-
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
@@ -45,67 +52,86 @@ class Game:
                              ([-30, [103, 96, 170]], [255, 255, 250]),
                              ([-10, [128, 180, 223]], [115, 130, 130]),
                              ([-40, [170, 135, 150]], [73, 59, 41])]
-
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
+        # houses_properties = sizetype(people, per people modifier, minpeople)
+        if difficulty == 0:
+            self.houses_properties = [
+                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
+            self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
+        elif difficulty == 1:
+            self.houses_properties = [
+                (100, 0.1, 0), (450, 0.2, 700), (1280, 0.5, 4000), (3600, 0.9, 18000), (6750, 3, 40000)]
+            self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
+        elif difficulty == 2:
+            self.houses_properties = [
+                (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
+            self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
 
-        self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
-            self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
-            self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
-            self.tutorial = None
-        self.allsprites = pygame.sprite.LayeredDirty()
-        self.allsprites.set_timing_treshold(10000)
-        self.activeclouds = []
-        self.interactables_visible = True
-
-    def init_menu(self):
+    def initialize(self):
+        pygame.time.set_timer(pygame.USEREVENT + 1, 10)
+        pygame.time.set_timer(pygame.USEREVENT + 2, 100)
         self.images = Images()
         self.sounds = Sounds()
         self.background = Background()
-        self.quick_menu = QuickMenu()
         self.cursor = Cursor()
+        self.quick_menu = QuickMenu()
+        self.menu = Menu()
+        self.init_load("load_state")
+
+    def init_new(self):
+        self.init_load("new_state")
+        game.toggle_interactables()
+        game.tutorial.toggle()
+
+    def init_load(self, state):
+        self.init_purge()
+        self.load_config(self.difficulty)
+        self.filesystem_do(state, self.difficulty)
         self.cloud = Cloud(10)
-        self.filesystem_do("load_state")
         self.left_drawer = LeftDrawer(self.used_upgrades)
         self.right_drawer = RightDrawer()
         for upgrade in self.left_drawer.used_upgrades:
             game.left_drawer.init_unlock(upgrade)
         self.bar = Bar()
-        self.menu = Menu()
-
-    def init_game(self, state):
-        if state == "New":
-            # todo add tutorial init here
-            self.difficulty = game.menu.is_highlighted_button - 2
-        elif state == "Load":
-            # self.set_loaded_states()
-            pass
-        self.set_difficulty(self.difficulty)
         for sizetype in range(3):
             self.left_drawer.tax_buttons.append(TaxButton(sizetype))
         for sizetype in range(5):
             self.right_drawer.right_buttons.append(RightButton(sizetype))
+        game.toggle_interactables()
         self.tutorial = Tutorial()
-        pygame.time.set_timer(pygame.USEREVENT + 1, 10)
-        pygame.time.set_timer(pygame.USEREVENT + 2, 100)
+        self.set_loaded_states()
+
+    def init_purge(self):
+        if self.bar is not None:
+            game.toggle_interactables()
+        for i in range(20):
+            sprites = self.allsprites.remove_sprites_of_layer(i)
+            for sprite in sprites:
+                sprite.kill()
+        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.taxes = []
+        self.cloud = self.metro = self.pipe = self.fiber = self.power = self.watersupply = self.bar = \
+            self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
+            self.tutorial = self.used_upgrades = self.rewards = self.bar_amounts = self.houses_properties = \
+            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = \
+            self.right_button_amounts = None
 
     def run(self):
         pygame.mixer.pre_init(44100, -16, 2, 2048)
         pygame.init()
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
-        self.init_menu()
+        self.initialize()
         while self.running:
             self.tick = self.clock.tick(self.fps_cap)
             self.process_events()
             self.allsprites.update()
             dirtyrects = self.allsprites.draw(self.screen)
-            # print(dirtyrects)
             pygame.display.update(dirtyrects)
             pygame.display.set_caption(
                 "FPS: " + str(round(self.clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
-        # self.filesystem_do("save_state")
+        self.filesystem_do("save_state", self.difficulty)
         pygame.time.wait(50)
         pygame.quit()
 
@@ -121,7 +147,7 @@ class Game:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    if game.tutorial is not None and game.tutorial.visible:
+                    if game.tutorial is not None and game.tutorial.visible:  # todo not needed?
                         game.tutorial.toggle()
                     if not game.menu.visible:
                         self.quick_menu.toggle()
@@ -129,23 +155,21 @@ class Game:
                     game.bar.add_manual_money()
                     self.sounds.click.play()  # todo add different sound?
                 elif event.key == pygame.K_LEFT:
-                    if game.tutorial.visible:
-                        game.tutorial.tutorial_guide.switch_tutorial(-1)
+                    game.tutorial.tutorial_guide.switch_tutorial(-1)
                 elif event.key == pygame.K_RIGHT:
-                    if game.tutorial.visible:
-                        game.tutorial.tutorial_guide.switch_tutorial(1)
+                    game.tutorial.tutorial_guide.switch_tutorial(1)
                 elif event.key == pygame.K_k:
                     game.bar.money += game.bar.money * 133700
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
-                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
-                    self.sounds.click.play()
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
                         self.sounds.click.play()
+                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
+                    self.sounds.click.play()
 
     def toggle_interactables(self):
         if self.interactables_visible:
@@ -160,7 +184,7 @@ class Game:
         self.allsprites.add(obj, layer = layer)
 
     @staticmethod
-    def change_layer(obj, mylayer, mylayermod, tutscreen):
+    def toggle_tutorial_layer(obj, mylayer, mylayermod, tutscreen):
         if game.tutorial.visible and game.tutorial.tutorial_guide.tutscreen == tutscreen:
             layer = game.tutorial.layer + 1
             game.allsprites.remove(obj)
@@ -174,8 +198,8 @@ class Game:
             else:
                 return mylayermod
 
-    def filesystem_do(self, action):
-        file = os.path.join(main_dir, 'data', "save_game")
+    def filesystem_do(self, action, savetype):
+        file = os.path.join(main_dir, 'data', "save_game" + str(savetype))
         if action == "load_state":
             d = shelve.open(file)
             keylist = d.keys()
@@ -202,21 +226,8 @@ class Game:
             d["usedupgrades"] = self.used_upgrades
             d["taxes"] = self.taxes
             d.close()
-
-    def set_difficulty(self, difficulty):
-        # houses_properties = sizetype(people, per people modifier, minpeople)
-        if difficulty == 0:  # easy
-            self.houses_properties = [
-                (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
-            self.right_button_prices_fixed = [750, 9000, 40000, 486000, 2531250]
-        elif difficulty == 1:  # normal
-            self.houses_properties = [
-                (100, 0.1, 0), (450, 0.2, 700), (1280, 0.5, 4000), (3600, 0.9, 18000), (6750, 3, 40000)]
-            self.right_button_prices_fixed = [1500, 18000, 80000, 972000, 5062500]
-        elif difficulty == 2:  # insane
-            self.houses_properties = [
-                (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
-            self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
+        elif action == "new_state":
+            pass
 
     def get_current_states(self):
         for button in range(len(game.right_drawer.right_buttons)):
@@ -868,7 +879,7 @@ class TaxButton(pygame.sprite.DirtySprite):
 
     def check_layer_change(self):
         if game.tutorial is not None and game.left_drawer.tax_buttons[2] == self:
-            self.layer_mod = game.change_layer(self, self.layer, self.layer_mod, 3)
+            self.layer_mod = game.toggle_tutorial_layer(self, self.layer, self.layer_mod, 3)
 
     def mouse_click_check(self):
         for rect in self.clickable_rects:
@@ -1008,7 +1019,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
     def check_layer_change(self):
         if game.tutorial is not None and (len(game.left_drawer.upgrade_buttons) > 0) and \
                         game.left_drawer.upgrade_buttons[0] == self:
-            self.layer_mod = game.change_layer(self, self.layer, self.layer_mod, 4)
+            self.layer_mod = game.toggle_tutorial_layer(self, self.layer, self.layer_mod, 4)
 
     def slide(self, amount):
         if not self.animatein:
@@ -1159,7 +1170,7 @@ class RightButton(pygame.sprite.DirtySprite):
 
     def check_layer_change(self):
         if game.tutorial is not None and game.right_drawer.right_buttons[0] == self:
-            self.layer_mod = game.change_layer(self, self.layer, self.layer_mod, 2)
+            self.layer_mod = game.toggle_tutorial_layer(self, self.layer, self.layer_mod, 2)
 
     def calculate_peopletotal(self):
         people = 0
@@ -1212,7 +1223,6 @@ class Menu(pygame.sprite.DirtySprite):
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 89))
         self.image.blit(self.logo, ((game.resolution[0] - rect.w) / 2, game.resolution[1] / 2 - 275))
-        game.toggle_interactables()
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -1271,17 +1281,18 @@ class MenuButton(pygame.sprite.DirtySprite):
         if self.visible:
             if self.rect.collidepoint(pygame.mouse.get_pos()):
                 if self.stype == 0:
-                    game.init_game("New")  # todo add tutorial here
                     game.menu.toggle()
+                    game.init_new()
                 elif self.stype == 1:
                     if game.bar_amounts[0] == 0 and game.bar_amounts[0] == 0:
                         return False
                     else:
-                        game.init_game("Load")
                         game.menu.toggle()
                 else:
+                    game.filesystem_do("save_state", game.difficulty)
                     game.difficulty = self.stype - 2
                     game.menu.is_highlighted_button = self.stype
+                    game.init_load("load_state")
                 return True
 
     def toggle(self):
@@ -1295,7 +1306,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
         self.visible = False
-        self.layer = 18
+        self.layer = 21
         # noinspection PyArgumentList
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 127))
@@ -1416,14 +1427,15 @@ class TutorialGuide(pygame.sprite.DirtySprite):
             game.right_drawer.open = False
 
     def switch_tutorial(self, direction):
-        if direction > 0:
-            if self.tutscreen < self.get_max_screens():
-                self.tutscreen += direction
-                self.update_screen()
-        else:
-            if self.tutscreen > 0:
-                self.tutscreen += direction
-                self.update_screen()
+        if self.visible:
+            if direction > 0:
+                if self.tutscreen < self.get_max_screens():
+                    self.tutscreen += direction
+                    self.update_screen()
+            else:
+                if self.tutscreen > 0:
+                    self.tutscreen += direction
+                    self.update_screen()
 
     def update_screen(self):
         self.dirty = 1
@@ -1510,7 +1522,7 @@ class Bar(pygame.sprite.DirtySprite):
 
     def check_layer_change(self):
         if game.tutorial is not None:
-            self.layer_mod = game.change_layer(self, self.layer, self.layer_mod, 1)
+            self.layer_mod = game.toggle_tutorial_layer(self, self.layer, self.layer_mod, 1)
 
     def get_people(self, peopletype):
         if peopletype == "current":
