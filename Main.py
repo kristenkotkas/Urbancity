@@ -29,17 +29,18 @@ class Game:
     def init_loadconfig(self, difficulty):
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
-        # upgrades = name{box}, cost{box}, (reward type{box}, amount/reward), (unlock type{priv}, amount{priv})
-        self.upgrades = [("Electricity", 300000, ("unlock", "Power"), ("incometotal", 100)),
-                         ("Plumbing", 400712, ("unlock", "Pipe"), ("incometotal", 160)),
-                         ("Water Supply", 618584, ("unlock", "Water"), ("incometotal", 243)),
-                         ("Metro", 1103622, ("unlock", "Metro"), ("incometotal", 341)),
-                         ("Santa Claus", 2275607, ("income", 761), ("incometotal", 449)),
-                         ("Wi-Fi", 5422875, ("income", 1813), ("incometotal", 567)),
-                         ("Moogle Fiber", 14935416, ("unlock", "Fiber"), ("incometotal", 692)),
-                         ("5G", 47540139, ("income", 15893), ("incometotal", 822)),
-                         ("Li-Fi", 174887578, ("income", 58466), ("incometotal", 959)),
-                         ("World Peace", 743554611, ("income", 248575), ("incometotal", 1100))]
+        # upgrades = name{box}, cost{box}, unlock amount{priv}, income reward{box}
+        self.upgrades = [("Electricity", 300000, 2400, 9999),
+                         ("Plumbing", 400712, 2400, 9999),
+                         ("Water Supply", 618584, 2400, 9999),
+                         ("Metro", 1103622, 42000, 9999),
+                         ("Santa Claus", 2275607, 42000, 761),
+                         ("Wi-Fi", 5422875, 12000, 1813),
+                         ("Moogle Fiber", 14935416, 42000, 9999),
+                         ("Wireless electricity", 0, 100000, 9999),
+                         ("5G", 47540139, 100000, 15893),
+                         ("Li-Fi", 174887578, 225000, 58466),
+                         ("World Peace", 743554611, 750000, 248575)]
         # rewards = (name, reward, (unlock type, amount))
         self.rewards = [("people 50k", 100000, ("peopletotal", 50000)),
                         ("people 75k", 300000, ("peopletotal", 75000))]
@@ -539,7 +540,8 @@ class Watersupply(pygame.sprite.DirtySprite):
         self.drawnout = False
         self.surface, rect = game.images.misc[5]
         self.shift = 6
-        self.rect = pygame.Rect(0, game.resolution[1] - rect.h + 5, rect.w, rect.h)
+        self.fixedy = game.resolution[1] - rect.h + 5
+        self.rect = pygame.Rect(0, self.fixedy + rect.h, rect.w, rect.h)
         self.timesx = game.resolution[0] // self.rect.w + 1
         # noinspection PyArgumentList
         self.image = pygame.Surface((game.resolution[0], self.rect.h), pygame.SRCALPHA).convert_alpha()
@@ -550,16 +552,18 @@ class Watersupply(pygame.sprite.DirtySprite):
                 arearect.w = game.resolution[0] - self.rect.w * column + self.shift * self.timesx
             self.image.blit(self.surface, rect, arearect)
         self.rect.w = game.resolution[0]
-        self.source_rect = pygame.Rect(0, 0, 0, self.rect.h)
+        self.source_rect = pygame.Rect(0, self.rect.h, self.rect.w, self.rect.h)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
         if not self.drawnout:
-            if self.source_rect.w < self.rect.w:
-                self.source_rect.w += 5
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
             else:
                 self.drawnout = True
-                self.source_rect.w = self.rect.w
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
                 self.dirty = 1
 
 
@@ -761,7 +765,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     @staticmethod
-    def init_unlock(unlockname):
+    def init_unlock(unlockname):  # todo add all unlockable buildings
         if unlockname == "Metro":
             game.metro = Metro()
         elif unlockname == "Plumbing":
@@ -784,24 +788,10 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             else:
                 button.process_location()
         for upgrade in game.upgrades:
-            if upgrade[3][0] == "peopletotal":
-                if game.bar.people_total >= upgrade[3][1]:
-                    self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
-                    self.unlocked_upgrades.append(upgrade)
-                    break
-            elif upgrade[3][0] == "houses":
-                houses = 0
-                for sizetype in game.houses:
-                    houses += len(sizetype)
-                if houses >= upgrade[3][1]:
-                    self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
-                    self.unlocked_upgrades.append(upgrade)
-                    break
-            elif upgrade[3][0] == "incometotal":
-                if game.bar.income >= upgrade[3][1]:
-                    self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
-                    self.unlocked_upgrades.append(upgrade)
-                    break
+            if game.bar.people_total >= upgrade[2]:
+                self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
+                self.unlocked_upgrades.append(upgrade)
+                break
         if game.tutorial_mode:
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
                 game.tutorial.toggle()
@@ -953,18 +943,13 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.animatemove = False
         self.animateout = False
         self.animatecounter = 150
-        for item in game.upgrades:
-            if item[0] == self.name:
+        for upgrade in game.upgrades:
+            if upgrade[0] == self.name:
                 multiplier = game.difficulty
                 if multiplier == 0:
                     multiplier = 0.5
-                self.cost = int(item[1] * multiplier)
-                self.rewardtype = item[2][0]
-                if self.rewardtype == "income":
-                    self.end = self.drawdata[2]
-                else:
-                    self.end = 0
-                self.reward = item[2][1]
+                self.cost = int(upgrade[1] * multiplier)
+                self.reward = upgrade[3]
         self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.name, self.rect.topleft,
                                      (10, 7), (192, 20), self.drawdata, False)
         self.cost_obj = RenderObject(self.layer_mod, self.visible, True, self.cost, self.rect.topleft,
@@ -988,7 +973,6 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         elif self.animatein:
             self.dirty = 1
             if game.left_drawer.startupcounter > 0:
-                self.startcounter -= 1
                 if self.rect.x < self.minx:
                     self.rect.x += 2
                 else:
@@ -1054,16 +1038,14 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             if game.bar.money >= self.cost:
                 game.bar.money -= self.cost
-                self.process_rewards()
+                self.award_rewards()
                 self.animateout = True
                 self.animatecounter = 0
                 return True
 
-    def process_rewards(self):
-        if self.rewardtype == "income":
-            game.bar.incomereward += self.reward
-        elif self.rewardtype == "unlock":
-            game.left_drawer.init_unlock(self.name)
+    def award_rewards(self):
+        game.bar.incomereward += self.reward
+        game.left_drawer.init_unlock(self.name)
 
 
 class RightDrawer(pygame.sprite.DirtySprite):
@@ -1585,7 +1567,7 @@ class Bar(pygame.sprite.DirtySprite):
             self.income = taxed_income
         elif incometype == "total":
             return str(format(round(self.income + self.income_manual + self.calculate_incomereward()), ",d")) + \
-                   "/" + str(format(round(self.houses_income), ",d") + " €/s")
+                   "/" + str(format(round(self.houses_income + self.calculate_incomereward()), ",d") + " €/s")
 
     def calculate_incomereward(self):
         if self.people_total == 0:
