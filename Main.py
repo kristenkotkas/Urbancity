@@ -3,6 +3,7 @@ import pygame
 import os.path
 import shelve
 from random import randint, sample, shuffle
+
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
@@ -15,11 +16,11 @@ class Game:
         self.running = True
         self.tutorial_mode = True
         self.difficulty = 1
-        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.taxes = []
+        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
             self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
-            self.tutorial = self.used_upgrades = self.rewards = self.bar_amounts = self.houses_properties = \
+            self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = \
             self.right_button_amounts = None
         self.allsprites = pygame.sprite.LayeredDirty()
@@ -29,21 +30,36 @@ class Game:
     def init_loadconfig(self, difficulty):
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
-        # upgrades = name{box}, cost{box}, unlock amount{priv}, income reward{box}
-        self.upgrades = [("Electricity", 300000, 2400, 9999),
-                         ("Plumbing", 400712, 2400, 9999),
-                         ("Water Supply", 618584, 2400, 9999),
-                         ("Metro", 1103622, 42000, 9999),
-                         ("Santa Claus", 2275607, 42000, 761),
-                         ("Wi-Fi", 5422875, 12000, 1813),
-                         ("Moogle Fiber", 14935416, 42000, 9999),
-                         ("Wireless electricity", 0, 100000, 9999),
-                         ("5G", 47540139, 100000, 15893),
-                         ("Li-Fi", 174887578, 225000, 58466),
-                         ("World Peace", 743554611, 750000, 248575)]
-        # rewards = (name, reward, (unlock type, amount))
-        self.rewards = [("people 50k", 100000, ("peopletotal", 50000)),
-                        ("people 75k", 300000, ("peopletotal", 75000))]
+        self.used_bonuses = []
+        # upgrades = name{box}, cost amount{box}, unlock amount{priv}, income reward amount{box}
+        self.upgrades = [("Electricity", 84000, 2400, 84),
+                         ("Water Supply", 121500, 2400, 140),
+                         ("Plumbing", 178000, 2400, 160),
+                         ("Wi-Fi", 411000, 12000, 480),
+                         ("Metro", 2095000, 42000, 2440),
+                         ("Santa Claus", 3672500, 42000, 4280),
+                         ("Moogle Fiber", 5128000, 42000, 5980),
+                         ("Wireless electricity", 10890000, 100000, 12700),
+                         ("5G", 17786500, 100000, 20720),
+                         ("Li-Fi", 50120000, 225000, 57750),
+                         ("World Peace", 500000000, 750000, 583333)]
+        # money_bonus = (name{priv}, reward{box}, unlock amount{priv})
+        self.money_bonuses = [(0, 4000, 1000),
+                              (1, 15000, 2400),
+                              (2, 35000, 10000),
+                              (3, 65000, 12000),
+                              (4, 500000, 25000),
+                              (5, 1000000, 42000),
+                              (6, 2000000, 50000),
+                              (7, 4000000, 75000),
+                              (8, 8000000, 100000),
+                              (9, 12000000, 150000),
+                              (10, 20000000, 225000),
+                              (11, 22000000, 250000),
+                              (12, 45000000, 400000),
+                              (13, 55000000, 500000),
+                              (14, 90000000, 750000),
+                              (15, 100000000, 1000000)]
         self.bar_amounts = [0, 0, 0, 0]
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
@@ -97,7 +113,7 @@ class Game:
         self.right_drawer = RightDrawer()
         for upgrade in self.left_drawer.used_upgrades:
             game.left_drawer.init_unlock(upgrade)
-        self.bar = Bar()
+        self.bar = Bar(self.used_bonuses)
         for sizetype in range(3):
             self.left_drawer.tax_buttons.append(TaxButton(sizetype))
         for sizetype in range(5):
@@ -116,8 +132,8 @@ class Game:
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.taxes = []
         self.cloud = self.metro = self.pipe = self.fiber = self.power = self.watersupply = self.bar = \
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
-            self.tutorial = self.used_upgrades = self.rewards = self.bar_amounts = self.houses_properties = \
-            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = \
+            self.tutorial = self.used_upgrades = self.money_bonuses = self.bar_amounts = self.houses_properties = \
+            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_bonuses = \
             self.right_button_amounts = None
 
     def run(self):
@@ -145,12 +161,13 @@ class Game:
                 # 10ms time
             elif event.type == pygame.USEREVENT + 2:
                 game.bar.calculate_manual_income()
+                game.bar.process_money_bonus()
                 # 100ms time
             elif event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    if game.tutorial is not None and game.tutorial.visible:  # todo not needed?
+                    if game.tutorial is not None and game.tutorial.visible:
                         game.tutorial.toggle()
                     elif not game.menu.visible:
                         self.quick_menu.toggle()
@@ -213,6 +230,7 @@ class Game:
                 self.right_button_prices = d["right_button_prices"]
                 self.bar_amounts = [d["peopletotal"], d["money"], d["incometotal"], d["incomereward"]]
                 self.used_upgrades = d["usedupgrades"]
+                self.used_bonuses = d["usedbonuses"]
                 self.taxes = d["taxes"]
             d.close()
         elif action == "save_state":
@@ -227,6 +245,7 @@ class Game:
             d["incomereward"] = self.bar.incomereward
             d["difficulty"] = self.difficulty
             d["usedupgrades"] = game.left_drawer.used_upgrades
+            d["usedbonuses"] = game.bar.used_bonuses
             d["taxes"] = self.taxes
             d.close()
         elif action == "new_state":
@@ -791,6 +810,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             if game.bar.people_total >= upgrade[2]:
                 self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
                 self.unlocked_upgrades.append(upgrade)
+                game.upgrades.remove(upgrade)
                 break
         if game.tutorial_mode:
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
@@ -798,9 +818,6 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                 game.tutorial.tutorial_guide.tutscreen = 4
                 game.tutorial.tutorial_guide.update_screen()
                 game.tutorial_mode = False
-        for upgrade in game.upgrades:
-            if upgrade in self.unlocked_upgrades:
-                game.upgrades.remove(upgrade)
 
     def update(self):
         self.process_upgrades()
@@ -1379,7 +1396,7 @@ class Tutorial(pygame.sprite.DirtySprite):
         pass
 
     def toggle(self):
-        if self.visible:
+        if self.visible:  # todo not needed?
             self.visible = False
             self.tutorial_guide.visible = False
         else:
@@ -1454,7 +1471,7 @@ class TutorialGuide(pygame.sprite.DirtySprite):
 
 
 class Bar(pygame.sprite.DirtySprite):
-    def __init__(self):
+    def __init__(self, used_bonuses):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.visible = True
@@ -1465,7 +1482,6 @@ class Bar(pygame.sprite.DirtySprite):
         self.h_image, h_rect = game.images.bar[1]
         self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2 + 25, -rect.h, rect.w, rect.h)
         self.maxy = 6
-
         self.income = self.houses_income = 0
         self.people_total = game.bar_amounts[0]
         self.money = game.bar_amounts[1]
@@ -1474,11 +1490,14 @@ class Bar(pygame.sprite.DirtySprite):
         self.income_manual = self.income_manual_time = 0
         self.income_manual_data = []
         self.house_multiplier = 1.15572735
-
+        self.used_bonuses = used_bonuses
+        for item in self.used_bonuses:
+            for bonus in game.money_bonuses:
+                if item[0] == bonus[0]:
+                    game.money_bonuses.remove(item)
         self.objxy = ([7, 192, 456, 700], 7)
         self.objwh = ([181, 261, 239], 22)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
-
         self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.get_people("total"),
                                        self.rect.topleft, (self.objxy[0][0], self.objxy[1]),
                                        (self.objwh[0][0], self.objwh[1]), self.drawdata, False)
@@ -1536,6 +1555,15 @@ class Bar(pygame.sprite.DirtySprite):
         elif randomevent == 800:
             self.money *= 10
             # todo news event
+
+    def process_money_bonus(self):
+        for bonus in game.money_bonuses:
+            if game.bar.people_total >= bonus[2]:
+                print("unlocked:", bonus)
+                self.money += bonus[1]
+                self.used_bonuses.append(bonus)
+                game.money_bonuses.remove(bonus)
+                break
 
     def process_income(self):
         self.get_income("current")
