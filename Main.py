@@ -16,12 +16,13 @@ class Game:
         self.running = True
         self.tutorial_mode = True
         self.difficulty = 1
-        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = []
+        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
+            self.notifications = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
             self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
-            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = \
+            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
             self.right_button_amounts = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
@@ -31,6 +32,7 @@ class Game:
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
         self.used_bonuses = []
+        self.used_notifications = []
         # upgrades = name{box}, cost amount{box}, unlock amount{priv}, income reward amount{box}
         self.upgrades = [("Electricity", 84000, 2400, 84),
                          ("Water Supply", 121500, 2400, 140),
@@ -86,6 +88,27 @@ class Game:
             self.houses_properties = [
                 (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
+        # notifications = (name{box}, unlock amount{priv})
+        self.notifications = [
+            ("First people are moving in.", 10),
+            ("Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2]),
+            ("Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2]),
+            ("You are one step closer to Urbancity. Status update: Town.", 2400),
+            ("Your city is growing. Luxury unlocked.", self.houses_properties[3][2]),
+            ("You are one step closer to Urbancity. Status update: City.", 12000),
+            ("Finally a skyscraper, let the world domination begin. Skyscrapers unlocked.",
+             self.houses_properties[4][2]),
+            ("You are one step closer to Urbancity. Status update: Urban area.", 42000),
+            ("You are one step closer to Urbancity. Status update: Metropolis.", 100000),
+            ("Only few steps to Urbancity. Status update: Megacity.", 225000),
+            ("Only one step left to Urbancity. Status update: Megapolis.", 400000),
+            ("You have reached to the top. Status update: Urbancity.", 750000),
+            ("“Metro transports people faster through city.”", self.upgrades[4][2]),
+            ("“Santa is real! I told you, Santa was real!”", self.upgrades[5][2]),
+            ("“What’s better than wireless Internet? Wireless electricity of course.”", self.upgrades[7][2]),
+            ("“Faster Internet means happier people”.", self.upgrades[3][2]),
+            ("“With great power comes great responsibility.”", self.upgrades[0][2]),
+            ("“Now you can surf at the speed of light.”", self.upgrades[9][2])]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -113,7 +136,7 @@ class Game:
         self.right_drawer = RightDrawer()
         for upgrade in self.left_drawer.used_upgrades:
             game.left_drawer.init_unlock(upgrade)
-        self.bar = Bar(self.used_bonuses)
+        self.bar = Bar(self.used_bonuses, self.used_notifications)
         for sizetype in range(3):
             self.left_drawer.tax_buttons.append(TaxButton(sizetype))
         for sizetype in range(5):
@@ -129,11 +152,12 @@ class Game:
             sprites = self.allsprites.remove_sprites_of_layer(i)
             for sprite in sprites:
                 sprite.kill()
-        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.taxes = []
+        self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
+            self.notifications = []
         self.cloud = self.metro = self.pipe = self.fiber = self.power = self.watersupply = self.bar = \
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
-            self.tutorial = self.used_upgrades = self.money_bonuses = self.bar_amounts = self.houses_properties = \
-            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_bonuses = \
+            self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
+            self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
             self.right_button_amounts = None
 
     def run(self):
@@ -161,7 +185,8 @@ class Game:
                 # 10ms time
             elif event.type == pygame.USEREVENT + 2:
                 game.bar.calculate_manual_income()
-                game.bar.process_money_bonus()
+                game.bar.process_money_bonuses()
+                game.bar.process_notifications()
                 # 100ms time
             elif event.type == pygame.QUIT:
                 self.running = False
@@ -183,7 +208,7 @@ class Game:
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                # print(pygame.mouse.get_pos())
+                print(pygame.mouse.get_pos())
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
@@ -231,6 +256,7 @@ class Game:
                 self.bar_amounts = [d["peopletotal"], d["money"], d["incometotal"], d["incomereward"]]
                 self.used_upgrades = d["usedupgrades"]
                 self.used_bonuses = d["usedbonuses"]
+                self.used_notifications = d["usednotifications"]
                 self.taxes = d["taxes"]
             d.close()
         elif action == "save_state":
@@ -246,6 +272,7 @@ class Game:
             d["difficulty"] = self.difficulty
             d["usedupgrades"] = game.left_drawer.used_upgrades
             d["usedbonuses"] = game.bar.used_bonuses
+            d["usednotifications"] = game.bar.used_notifications
             d["taxes"] = self.taxes
             d.close()
         elif action == "new_state":
@@ -1471,7 +1498,7 @@ class TutorialGuide(pygame.sprite.DirtySprite):
 
 
 class Bar(pygame.sprite.DirtySprite):
-    def __init__(self, used_bonuses):
+    def __init__(self, used_bonuses, used_notifications):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.visible = True
@@ -1495,23 +1522,33 @@ class Bar(pygame.sprite.DirtySprite):
             for bonus in game.money_bonuses:
                 if item[0] == bonus[0]:
                     game.money_bonuses.remove(item)
-        self.objxy = ([7, 192, 456, 700], 7)
-        self.objwh = ([181, 261, 239], 22)
+        self.used_notifications = used_notifications
+        self.notification_txt = ""
+        if len(self.used_notifications) > 0:
+            self.notification_txt = self.used_notifications[-1][0]
+        for item in self.used_notifications:
+            for notification in game.notifications:
+                if item[0] == notification[0]:
+                    game.notifications.remove(item)
+        self.objxy = ([7, 192, 456, 700], [7, 33])
+        self.objwh = ([181, 261, 239, 733], 22)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
         self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.get_people("total"),
-                                       self.rect.topleft, (self.objxy[0][0], self.objxy[1]),
+                                       self.rect.topleft, (self.objxy[0][0], self.objxy[1][0]),
                                        (self.objwh[0][0], self.objwh[1]), self.drawdata, False)
         self.money_obj = RenderObject(self.layer_mod, self.visible, True, self.money, self.rect.topleft,
-                                      (self.objxy[0][1], self.objxy[1]), (self.objwh[0][1], self.objwh[1]),
+                                      (self.objxy[0][1], self.objxy[1][0]), (self.objwh[0][1], self.objwh[1]),
                                       self.drawdata, self.drawdata[2][0])
         self.income_obj = RenderObject(self.layer_mod, self.visible, True, self.get_income("total"),
-                                       self.rect.topleft, (self.objxy[0][2], self.objxy[1]),
+                                       self.rect.topleft, (self.objxy[0][2], self.objxy[1][0]),
                                        (self.objwh[0][2], self.objwh[1]), self.drawdata, self.drawdata[2][1])
         self.highlight_obj = RenderObject(self.layer_mod, self.visible, False, self.h_image, self.rect.topleft,
-                                          (self.objxy[0][3], self.objxy[1]), h_rect.size, 0, 0)
-
+                                          (self.objxy[0][3], self.objxy[1][0]), h_rect.size, 0, False)
+        self.notification_obj = RenderObject(self.layer, self.visible, True, self.notification_txt, self.rect.topleft,
+                                             (self.objxy[0][0], self.objxy[1][1]), (self.objwh[0][3], self.objwh[1]),
+                                             self.drawdata, False)
         self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
-                                    (660, self.objxy[1]), (44, self.objwh[1]), self.drawdata, False)
+                                    (660, self.objxy[1][0]), (44, self.objwh[1]), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -1521,6 +1558,7 @@ class Bar(pygame.sprite.DirtySprite):
         self.people_obj.process_update(self.visible, self.layer_mod, self.get_people("total"), self.rect.topleft)
         self.money_obj.process_update(self.visible, self.layer_mod, self.money, self.rect.topleft)
         self.income_obj.process_update(self.visible, self.layer_mod, self.get_income("total"), self.rect.topleft)
+        self.notification_obj.process_update(self.visible, self.layer_mod, self.notification_txt, self.rect.topleft)
         self.fps_obj.process_update(self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft)
         if self.animatein:
             self.dirty = 1
@@ -1556,10 +1594,19 @@ class Bar(pygame.sprite.DirtySprite):
             self.money *= 10
             # todo news event
 
-    def process_money_bonus(self):
+    def process_notifications(self):
+        for notification in game.notifications:
+            if self.people_total >= notification[1]:
+                print("new notification:", notification)
+                self.notification_txt = notification[0]
+                self.used_notifications.append(notification)
+                game.notifications.remove(notification)
+                break
+
+    def process_money_bonuses(self):
         for bonus in game.money_bonuses:
-            if game.bar.people_total >= bonus[2]:
-                print("unlocked:", bonus)
+            if self.people_total >= bonus[2]:
+                print("new bonus:", bonus)
                 self.money += bonus[1]
                 self.used_bonuses.append(bonus)
                 game.money_bonuses.remove(bonus)
