@@ -15,7 +15,6 @@ class Game:
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.difficulty = 1
-        self.test = False
 
         self.taxes = [0, 0, 0]
         self.used_upgrades = []
@@ -122,7 +121,7 @@ class Game:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    if game.tutorial.visible:
+                    if game.tutorial is not None and game.tutorial.visible:
                         game.tutorial.toggle()
                     if not game.menu.visible:
                         self.quick_menu.toggle()
@@ -139,11 +138,6 @@ class Game:
                     game.bar.money += game.bar.money * 133700
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
-                elif event.key == pygame.K_j:
-                    if self.test:
-                        self.test = False
-                    else:
-                        self.test = True
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
@@ -1417,6 +1411,9 @@ class TutorialGuide(pygame.sprite.DirtySprite):
             self.manage_drawers()
             if self.tutscreen > self.get_max_screens():
                 self.switch_tutorial(-1)
+        else:
+            game.left_drawer.open = False
+            game.right_drawer.open = False
 
     def switch_tutorial(self, direction):
         if direction > 0:
@@ -1596,6 +1593,8 @@ class Bar(pygame.sprite.DirtySprite):
     def mouse_click_check(self):
         if self.visible:
             if self.highlight_obj.rect.collidepoint(pygame.mouse.get_pos()):
+                if game.tutorial.visible:
+                    game.tutorial.toggle()
                 game.quick_menu.toggle()
                 return True
 
@@ -1648,8 +1647,6 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.new_obj = obj
         if main_obj_xy != (0, 0):
             self.main_obj_xy = main_obj_xy
-        if game.test and self.inner_obj_wh[0] == 44 and self.main_obj_xy[1] < 10:
-            print(self.main_obj_xy, self.layer, layer)
         if layer != 0 and self.layer != layer:
             game.allsprites.remove(self)
             game.add_new_renderable(self, layer)
