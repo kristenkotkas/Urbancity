@@ -23,7 +23,7 @@ class Game:
             self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
-            self.right_button_amounts = None
+            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.interactables_visible = True
@@ -158,7 +158,7 @@ class Game:
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
-            self.right_button_amounts = None
+            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = None
 
     def run(self):
         pygame.mixer.pre_init(44100, -16, 2, 2048)
@@ -309,7 +309,8 @@ class Images:
         self.bar = [self.load_image("Bar.png"), self.load_image("Bar_hover.png")]
         self.misc = [self.load_image("Cloud.png"), self.load_image("Breaking_news.png"),
                      self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
-                     self.load_image("Electricity.png"), self.load_image("Water.png")]
+                     self.load_image("Electricity.png"), self.load_image("Water.png"),
+                     self.load_image("Wifi_tower.png"), self.load_image("5G_tower.png")]
         self.houses = [
             [self.load_image("House_11.png"), self.load_image("House_12.png"), self.load_image("House_13.png"),
              self.load_image("House_14.png")],
@@ -519,6 +520,66 @@ class MetroTrain(pygame.sprite.DirtySprite):
                 self.terroristevent = True
         self.waiting = False
         pygame.time.set_timer(pygame.USEREVENT + 4, 0)
+
+
+class FiveGTower(pygame.sprite.DirtySprite):
+    def __init__(self):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 2
+        self.layer = 3
+        self.drawnout = False
+        self.image, rect = game.images.misc[7]
+        self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 10
+        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 4, self.fixedy + rect.h, rect.w, rect.h)
+        self.source_rect = pygame.Rect(0, rect.h, rect.w, rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        if game.allsprites.get_sprites_from_layer(self.layer)[-1] != self:
+            spriteslist = game.allsprites.remove_sprites_of_layer(self.layer)
+            spriteslist.remove(self)
+            spriteslist.append(self)
+            for sprite in spriteslist:
+                game.add_new_renderable(sprite, sprite.layer)
+        if not self.drawnout:
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
+            else:
+                self.drawnout = True
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
+                self.dirty = 1
+
+
+class WifiTower(pygame.sprite.DirtySprite):
+    def __init__(self):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 2
+        self.layer = 4
+        self.drawnout = False
+        self.image, rect = game.images.misc[6]
+        self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 12
+        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 4 * 3, self.fixedy + rect.h, rect.w, rect.h)
+        self.source_rect = pygame.Rect(0, rect.h, rect.w, rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        if game.allsprites.get_sprites_from_layer(self.layer)[-1] != self:
+            spriteslist = game.allsprites.remove_sprites_of_layer(self.layer)
+            spriteslist.remove(self)
+            spriteslist.append(self)
+            for sprite in spriteslist:
+                game.add_new_renderable(sprite, sprite.layer)
+        if not self.drawnout:
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
+            else:
+                self.drawnout = True
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
+                self.dirty = 1
 
 
 class Pipe(pygame.sprite.DirtySprite):
@@ -828,6 +889,10 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.power.shuffle_layer()
         elif unlockname == "Water Supply":
             game.watersupply = Watersupply()
+        elif unlockname == "Wi-Fi":
+            game.wifi_tower = WifiTower()
+        elif unlockname == "5G":
+            game.fiveg_tower = FiveGTower()
 
     def process_upgrades(self):
         if self.startupcounter > 0:
