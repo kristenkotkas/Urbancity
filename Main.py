@@ -88,7 +88,7 @@ class Game:
             self.houses_properties = [
                 (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
-        # notifications = (name{box}, unlock amount{priv})
+        # notifications = (name{box}, unlock{priv})
         self.notifications = [
             ("First people are moving in.", 10),
             ("Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2]),
@@ -103,12 +103,12 @@ class Game:
             ("Only few steps to Urbancity. Status update: Megacity.", 225000),
             ("Only one step left to Urbancity. Status update: Megapolis.", 400000),
             ("You have reached to the top. Status update: Urbancity.", 750000),
-            ("“Metro transports people faster through city.”", self.upgrades[4][2]),
-            ("“Santa is real! I told you, Santa was real!”", self.upgrades[5][2]),
-            ("“What’s better than wireless Internet? Wireless electricity of course.”", self.upgrades[7][2]),
-            ("“Faster Internet means happier people”.", self.upgrades[3][2]),
-            ("“With great power comes great responsibility.”", self.upgrades[0][2]),
-            ("“Now you can surf at the speed of light.”", self.upgrades[9][2])]
+            ("Metro transports people faster through city.", self.upgrades[4]),
+            ("Santa is real! I told you Santa was real!", self.upgrades[5]),
+            ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7]),
+            ("Faster Internet means happier people.", self.upgrades[3]),
+            ("With great power comes great responsibility.", self.upgrades[0]),
+            ("Now you can surf at the speed of light.", self.upgrades[9])]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -1601,12 +1601,20 @@ class Bar(pygame.sprite.DirtySprite):
 
     def process_notifications(self):
         for notification in game.notifications:
-            if self.people_total >= notification[1]:
-                print("new notification:", notification)
-                self.notification_txt = notification[0]
-                self.used_notifications.append(notification)
-                game.notifications.remove(notification)
-                break
+            if isinstance(notification[1], int):
+                if self.people_total >= notification[1]:
+                    self.notify(notification)
+                    break
+            else:
+                if notification[1][0] in game.left_drawer.used_upgrades:
+                    self.notify(notification)
+                    break
+
+    def notify(self, notification):
+        print("new notification:", notification)
+        self.notification_txt = notification[0]
+        self.used_notifications.append(notification)
+        game.notifications.remove(notification)
 
     def process_money_bonuses(self):
         for bonus in game.money_bonuses:
