@@ -23,7 +23,7 @@ class Game:
             self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
-            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = None
+            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.fonts = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.interactables_visible = True
@@ -114,6 +114,7 @@ class Game:
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
         pygame.time.set_timer(pygame.USEREVENT + 2, 100)
         self.images = Images()
+        self.fonts = Fonts()
         self.sounds = Sounds()
         self.background = Background()
         self.cursor = Cursor()
@@ -226,6 +227,8 @@ class Game:
         self.left_drawer.toggle()
         self.bar.toggle()
         self.right_drawer.toggle()
+        if self.right_drawer.tap_pad_global_visible:
+            self.right_drawer.tap_pad_toggle()
 
     def add_new_renderable(self, obj, layer):
         self.allsprites.add(obj, layer = layer)
@@ -338,6 +341,17 @@ class Images:
         except:
             raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
         return loaded_image, loaded_image.get_rect()
+
+
+class Fonts:
+    @staticmethod
+    def load_font(file, size):
+        file = os.path.join(main_dir, 'data', file)
+        try:
+            loaded_font = pygame.font.Font(file, size)
+        except:
+            raise SystemExit("Could not load font " + file + ", " + pygame.get_error())
+        return loaded_font
 
 
 class Sounds:
@@ -1171,14 +1185,15 @@ class RightDrawer(pygame.sprite.DirtySprite):
         self.dirty = 0
         self.visible = False
         self.drawer_visible = True
+        self.tap_pad_global_visible = False
         self.layer = 10
         self.x = game.resolution[0] - 220
-        self.rect = pygame.Rect(self.x, 0, game.resolution[0] - self.x, 530)
+        self.rect = pygame.Rect(self.x, 0, game.resolution[0] - self.x, game.resolution[1])
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         self.right_buttons = []
         self.open = False
         self.tapimage, rect = game.images.right_drawer[0]
-        self.tapy = [540, 545]
+        self.tapy = [game.resolution[1] - rect.h - 18, game.resolution[1] - rect.h - 13]
         self.taprect = pygame.Rect(game.resolution[0] - rect.w - 5, self.tapy[0], rect.w, rect.h)
         self.tap_pad_visible = False
         self.tapcounter = 0
@@ -1214,6 +1229,12 @@ class RightDrawer(pygame.sprite.DirtySprite):
             self.tap_pad_visible = False
         else:
             self.tap_pad_visible = True
+
+    def tap_pad_global_toggle(self):
+        if self.tap_pad_global_visible:
+            self.tap_pad_global_visible = False
+        else:
+            self.tap_pad_global_visible = True
 
     def toggle(self):
         if self.drawer_visible:
@@ -1470,7 +1491,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
     def mouse_hover_check(self):
         for obj in self.highlight_objs:
             if self.visible:
-                if obj == self.highlight_objs[1] and game.right_drawer.tap_pad_visible:
+                if obj == self.highlight_objs[1] and game.right_drawer.tap_pad_global_visible:
                     visible = True
                 else:
                     if obj.rect.collidepoint(pygame.mouse.get_pos()):
@@ -1492,7 +1513,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         else:
                             self.muted = True
                     elif obj == self.highlight_objs[1]:
-                        game.right_drawer.tap_pad_toggle()
+                        game.right_drawer.tap_pad_global_toggle()
                     elif obj == self.highlight_objs[2]:
                         self.toggle()
                         game.tutorial.toggle()
@@ -1551,7 +1572,7 @@ class TutorialGuide(pygame.sprite.DirtySprite):
         taximage, taxrect = game.images.tutorial[3]
         upgradeimage, upgraderect = game.images.tutorial[4]
         self.images = [spaceimage, barimage, rightimage, taximage, upgradeimage]
-        self.objxy = [((game.resolution[0] - spacerect.w) / 2, game.resolution[1] - 125),
+        self.objxy = [((game.resolution[0] - spacerect.w) / 2, game.resolution[1] - 248),
                       ((game.resolution[0] - barrect.w) / 2 - 25, 35), (game.right_drawer.x - 318, 22),
                       (133, 108), (65, 127)]
         self.objwh = [spacerect.size, barrect.size, rightrect.size, taxrect.size, upgraderect.size]
@@ -1809,7 +1830,7 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.end = end
         self.drawdata = drawdata
         if drawdata != 0:
-            self.txt_font = pygame.font.SysFont("centurygothic", drawdata[1], True)
+            self.txt_font = game.fonts.load_font("GOTHICB.TTF", drawdata[1])
         self.image = self.rect = self.new_obj = self.old_obj = self.main_obj_xy = self.old_main_obj_xy = \
             self.innerrect = None
         self.inner_relative_xy = inner_relative_xy
