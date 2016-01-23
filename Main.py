@@ -62,7 +62,7 @@ class Game:
                               (13, 55000000, 500000),
                               (14, 90000000, 750000),
                               (15, 100000000, 1000000)]
-        self.bar_amounts = [0, 0, 0, 0]
+        self.bar_amounts = [0, 0]
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
@@ -200,7 +200,6 @@ class Game:
                         self.quick_menu.toggle()
                 elif event.key == pygame.K_SPACE:
                     game.bar.add_manual_money()
-                    self.sounds.space[randint(0, 9)].play()
                 elif event.key == pygame.K_LEFT:
                     game.tutorial.tutorial_guide.switch_tutorial(-1)
                 elif event.key == pygame.K_RIGHT:
@@ -211,12 +210,13 @@ class Game:
                     game.bar.money = 0
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
+                game.right_drawer.tap_pad_click_check()
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
                         self.sounds.click.play()
-                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check() or \
-                        game.right_drawer.tap_pad_click_check():
+                        break
+                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
                     self.sounds.click.play()
 
     def toggle_interactables(self):
@@ -258,7 +258,7 @@ class Game:
                 self.houses_states = d["houses_states"]
                 self.right_button_amounts = d["right_button_amounts"]
                 self.right_button_prices = d["right_button_prices"]
-                self.bar_amounts = [d["peopletotal"], d["money"], d["incometotal"], d["incomereward"]]
+                self.bar_amounts = [d["money"], d["incomereward"]]
                 self.used_upgrades = d["usedupgrades"]
                 self.used_bonuses = d["usedbonuses"]
                 self.used_notifications = d["usednotifications"]
@@ -270,9 +270,7 @@ class Game:
             d["houses_states"] = self.houses_states
             d["right_button_amounts"] = self.right_button_amounts
             d["right_button_prices"] = self.right_button_prices
-            d["peopletotal"] = self.bar.people_total
             d["money"] = self.bar.money
-            d["incometotal"] = self.bar.incometotal
             d["incomereward"] = self.bar.incomereward
             d["difficulty"] = self.difficulty
             d["usedupgrades"] = game.left_drawer.used_upgrades
@@ -928,7 +926,8 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                 break
         if game.tutorial_mode:
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
-                game.tutorial.toggle()
+                if not game.tutorial.visible:
+                    game.tutorial.toggle()
                 game.tutorial.tutorial_guide.tutscreen = 4
                 game.tutorial.tutorial_guide.update_screen()
                 game.tutorial_mode = False
@@ -1223,6 +1222,7 @@ class RightDrawer(pygame.sprite.DirtySprite):
             self.tapcounter = 0
             if self.taprect.y != self.tapy[1]:
                 self.taprect.y = self.tapy[1]
+            return True
 
     def tap_pad_toggle(self):
         if self.tap_pad_visible:
@@ -1442,7 +1442,7 @@ class MenuButton(pygame.sprite.DirtySprite):
                     game.menu.toggle()
                     game.init_new()
                 elif self.stype == 1:
-                    if game.bar_amounts[0] == 0 and game.bar_amounts[0] == 0:
+                    if game.bar.money == 0:
                         return False
                     else:
                         game.menu.toggle()
@@ -1576,8 +1576,8 @@ class TutorialGuide(pygame.sprite.DirtySprite):
                       ((game.resolution[0] - barrect.w) / 2 - 25, 35), (game.right_drawer.x - 318, 22),
                       (133, 108), (65, 127)]
         self.objwh = [spacerect.size, barrect.size, rightrect.size, taxrect.size, upgraderect.size]
+        #   self.tutorial_buttons_obj = RenderObject()
         self.update_screen()
-        # 0 - space, 1 - bar, 2 - right button, 3 - tax, 4 - upgrade (ei ole lahti veel vb)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -1636,11 +1636,9 @@ class Bar(pygame.sprite.DirtySprite):
         self.h_image, h_rect = game.images.bar[1]
         self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2 + 25, -rect.h, rect.w, rect.h)
         self.maxy = 6
-        self.income = self.houses_income = 0
-        self.people_total = game.bar_amounts[0]
-        self.money = game.bar_amounts[1]
-        self.incometotal = game.bar_amounts[2]
-        self.incomereward = game.bar_amounts[3]
+        self.people_total = self.income = self.houses_income = 0
+        self.money = game.bar_amounts[0]
+        self.incomereward = game.bar_amounts[1]
         self.income_manual = self.income_manual_time = 0
         self.income_manual_data = []
         self.house_multiplier = 1.15572735
@@ -1710,6 +1708,7 @@ class Bar(pygame.sprite.DirtySprite):
             return str(format(self.get_people("current"), ",d")) + "/" + str(format(self.people_total, ",d"))
 
     def add_manual_money(self):
+        game.sounds.space[randint(0, 9)].play()
         manual_income = 100 + (self.income + self.people_total) / 15
         self.money += manual_income
         self.income_manual_data.append((manual_income, self.income_manual_time))
