@@ -182,6 +182,7 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.USEREVENT + 1:
                 game.bar.process_income()
+                game.right_drawer.process_tap_pad()
                 # 10ms time
             elif event.type == pygame.USEREVENT + 2:
                 game.bar.calculate_manual_income()
@@ -213,7 +214,8 @@ class Game:
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
                         self.sounds.click.play()
-                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
+                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check() or \
+                        game.right_drawer.tap_pad_click_check():
                     self.sounds.click.play()
 
     def toggle_interactables(self):
@@ -302,6 +304,7 @@ class Images:
         self.right_button_logos = [self.load_image("House_1_logo.png"), self.load_image("House_2_logo.png"),
                                    self.load_image("House_3_logo.png"), self.load_image("House_4_logo.png"),
                                    self.load_image("House_5_logo.png")]
+        self.right_drawer = [self.load_image("Tap_pad.png")]
         self.left_button = [self.load_image("Tax.png"), self.load_image("Tax_hover_minus.png"),
                             self.load_image("Tax_hover_plus.png")]
         self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
@@ -1174,15 +1177,43 @@ class RightDrawer(pygame.sprite.DirtySprite):
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         self.right_buttons = []
         self.open = False
+        self.tapimage, rect = game.images.right_drawer[0]
+        self.tapy = [540, 545]
+        self.taprect = pygame.Rect(game.resolution[0] - rect.w - 5, self.tapy[0], rect.w, rect.h)
+        self.tap_pad_visible = False
+        self.tapcounter = 0
+        self.tap_pad_obj = RenderObject(self.layer, self.tap_pad_visible, False, self.tapimage, self.taprect.topleft,
+                                        (0, 0), self.taprect.size, 0, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
+        self.tap_pad_obj.process_update(self.tap_pad_visible, self.layer, self.tapimage, self.taprect.topleft)
         if self.rect.collidepoint(pygame.mouse.get_pos()) or self.open:
             for button in self.right_buttons:
                 button.slide(-5)
         else:
             for button in self.right_buttons:
                 button.slide(5)
+
+    def process_tap_pad(self):
+        if self.taprect.y == self.tapy[1]:
+            self.tapcounter += 1
+            if self.tapcounter >= 10:
+                self.taprect.y = self.tapy[0]
+                self.tapcounter = 0
+
+    def tap_pad_click_check(self):
+        if self.tap_pad_visible and self.taprect.collidepoint(pygame.mouse.get_pos()):
+            game.bar.add_manual_money()
+            self.tapcounter = 0
+            if self.taprect.y != self.tapy[1]:
+                self.taprect.y = self.tapy[1]
+
+    def tap_pad_toggle(self):
+        if self.tap_pad_visible:
+            self.tap_pad_visible = False
+        else:
+            self.tap_pad_visible = True
 
     def toggle(self):
         if self.drawer_visible:
@@ -1439,14 +1470,15 @@ class QuickMenu(pygame.sprite.DirtySprite):
     def mouse_hover_check(self):
         for obj in self.highlight_objs:
             if self.visible:
-                if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                if obj == self.highlight_objs[1] and game.right_drawer.tap_pad_visible:
                     visible = True
                 else:
-                    visible = False
+                    if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                        visible = True
+                    else:
+                        visible = False
             else:
                 visible = False
-            # if self.visible and obj == self.highlight_objs[0] and self.muted:
-            #     visible = True
             obj.process_update(visible, 0, self.h_image, (0, 0))
 
     def mouse_click_check(self):
@@ -1460,7 +1492,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         else:
                             self.muted = True
                     elif obj == self.highlight_objs[1]:
-                        pass  # todo space bar on
+                        game.right_drawer.tap_pad_toggle()
                     elif obj == self.highlight_objs[2]:
                         self.toggle()
                         game.tutorial.toggle()
