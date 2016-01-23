@@ -1170,7 +1170,7 @@ class RightDrawer(pygame.sprite.DirtySprite):
         self.drawer_visible = True
         self.layer = 10
         self.x = game.resolution[0] - 220
-        self.rect = pygame.Rect(self.x, 0, game.resolution[0] - self.x, game.resolution[1])
+        self.rect = pygame.Rect(self.x, 0, game.resolution[0] - self.x, 530)
         self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         self.right_buttons = []
         self.open = False
@@ -1419,13 +1419,13 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.rect = game.screen.get_rect()
         rect = game.images.quick_menu[0][1]
         self.innerxy = [(self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2]
-        self.rectsxy = [14, [17, 69, 121, 173]]
+        self.rectsxy = [16, [15, 67, 119, 171, 223, 275]]
         self.main_image = game.images.quick_menu[0][0]
         self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.main_image,
                                            self.innerxy, (0, 0), self.main_image.get_rect().size, 0, 0)
         self.h_image, h_rect = game.images.quick_menu[1]
         self.highlight_objs = []
-        for i in range(4):
+        for i in range(6):
             self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
                                                     (self.innerxy[0] + self.rectsxy[0],
                                                      self.innerxy[1] + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
@@ -1445,8 +1445,8 @@ class QuickMenu(pygame.sprite.DirtySprite):
                     visible = False
             else:
                 visible = False
-            if self.visible and obj == self.highlight_objs[0] and self.muted:
-                visible = True
+            # if self.visible and obj == self.highlight_objs[0] and self.muted:
+            #     visible = True
             obj.process_update(visible, 0, self.h_image, (0, 0))
 
     def mouse_click_check(self):
@@ -1460,12 +1460,16 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         else:
                             self.muted = True
                     elif obj == self.highlight_objs[1]:
-                        self.toggle()
-                        game.tutorial.toggle()
+                        pass  # todo space bar on
                     elif obj == self.highlight_objs[2]:
                         self.toggle()
-                        game.menu.toggle()
+                        game.tutorial.toggle()
                     elif obj == self.highlight_objs[3]:
+                        self.toggle()
+                    elif obj == self.highlight_objs[4]:
+                        self.toggle()
+                        game.menu.toggle()
+                    elif obj == self.highlight_objs[5]:
                         game.running = False
                     return True
 
