@@ -23,7 +23,7 @@ class Game:
             self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
-            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.fonts = None
+            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = self.fonts = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.interactables_visible = True
@@ -171,7 +171,7 @@ class Game:
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
-            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = None
+            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = None
 
     def run(self):
         pygame.mixer.pre_init(48000, -16, 2, 2048)
@@ -572,11 +572,35 @@ class MetroTrain(pygame.sprite.DirtySprite):
         pygame.time.set_timer(pygame.USEREVENT + 4, 0)
 
 
-class FiveGTower(pygame.sprite.DirtySprite):
+class LifiTower(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
         self.layer = 3
+        self.drawnout = False
+        self.image, rect = game.images.misc[8]
+        self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 13
+        self.rect = pygame.Rect((game.resolution[0] - rect.w) / 2, self.fixedy + rect.h, rect.w, rect.h)
+        self.source_rect = pygame.Rect(0, rect.h, rect.w, rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        if not self.drawnout:
+            if self.source_rect.y > 0:
+                self.source_rect.y -= 5
+                self.rect.y -= 5
+            else:
+                self.drawnout = True
+                self.source_rect.y = 0
+                self.rect.y = self.fixedy
+                self.dirty = 1
+
+
+class FiveGTower(pygame.sprite.DirtySprite):
+    def __init__(self):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 2
+        self.layer = 5
         self.drawnout = False
         self.image, rect = game.images.misc[7]
         self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 10
@@ -585,12 +609,6 @@ class FiveGTower(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        if game.allsprites.get_sprites_from_layer(self.layer)[-1] != self:
-            spriteslist = game.allsprites.remove_sprites_of_layer(self.layer)
-            spriteslist.remove(self)
-            spriteslist.append(self)
-            for sprite in spriteslist:
-                game.add_new_renderable(sprite, sprite.layer)
         if not self.drawnout:
             if self.source_rect.y > 0:
                 self.source_rect.y -= 5
@@ -606,7 +624,7 @@ class WifiTower(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = 4
+        self.layer = 7
         self.drawnout = False
         self.image, rect = game.images.misc[6]
         self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 12
@@ -615,12 +633,6 @@ class WifiTower(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        if game.allsprites.get_sprites_from_layer(self.layer)[-1] != self:
-            spriteslist = game.allsprites.remove_sprites_of_layer(self.layer)
-            spriteslist.remove(self)
-            spriteslist.append(self)
-            for sprite in spriteslist:
-                game.add_new_renderable(sprite, sprite.layer)
         if not self.drawnout:
             if self.source_rect.y > 0:
                 self.source_rect.y -= 5
@@ -733,7 +745,7 @@ class Power(pygame.sprite.DirtySprite):
     def __init__(self):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 2
-        self.layer = 6
+        self.layer = 9
         self.drawnout = False
         self.surface, rect = game.images.misc[4]
         self.fixedy = game.resolution[1] - rect.h - game.background.rect.h + 10
@@ -823,15 +835,19 @@ class House(pygame.sprite.DirtySprite):
     def __init__(self, sizetype, randtype, people):
         pygame.sprite.DirtySprite.__init__(self)
         self.sizetype = sizetype
-        if self.sizetype == 4:
-            self.layer = game.cloud.randomize_layers(sizetype)
-        elif self.sizetype == 0:
-            self.layer = randint(5, 6)
+        if self.sizetype == 0:
+            self.layer = randint(8, 9)
             if len(game.houses[sizetype]) > 1:
                 if self.layer == game.houses[sizetype][-1].layer == game.houses[sizetype][-2].layer:
-                    self.layer = randint(5, 6)
-        else:
-            self.layer = 5 - self.sizetype
+                    self.layer = randint(8, 9)
+        elif self.sizetype == 1:
+            self.layer = 6
+        elif self.sizetype == 2:
+            self.layer = 4
+        elif self.sizetype == 3:
+            self.layer = 2
+        elif self.sizetype == 4:
+            self.layer = game.cloud.randomize_layers(sizetype)
         self.dirty = 2
         self.visible = True
         self.drawnout = False
@@ -842,16 +858,13 @@ class House(pygame.sprite.DirtySprite):
         self.taxmax2 = randint(10, 60)
         self.taxmax3 = randint(20, 80)
         if randtype is None:
-            # ajutine randtype määramine
-            if self.sizetype == 0:  # 1 tüüpi on 4 maja
+            if self.sizetype == 0:
                 self.randtype = randint(0, 3)
             else:
                 self.randtype = randint(0, 2)
-            if len(game.houses[sizetype]) > 1:  # kiire fix erinevate t22pide genereerimisele
-                self.last_randtype = game.houses[sizetype][-1].randtype
-                self.last2_randtype = game.houses[sizetype][-2].randtype
-                if self.randtype == self.last_randtype == self.last2_randtype:
-                    if self.sizetype == 0:  # 1 tüüpi on 4 maja
+            if len(game.houses[sizetype]) > 1:
+                if self.randtype == game.houses[sizetype][-1].randtype == game.houses[sizetype][-2].randtype:
+                    if self.sizetype == 0:
                         self.randtype = randint(0, 3)
                     else:
                         self.randtype = randint(0, 2)
@@ -942,6 +955,8 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.wifi_tower = WifiTower()
         elif unlockname == "5G":
             game.fiveg_tower = FiveGTower()
+        elif unlockname == "Li-Fi":
+            game.lifi_tower = LifiTower()
 
     def process_upgrades(self):
         if self.startupcounter > 0:
@@ -1507,12 +1522,12 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.innerxy = ((self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2)
         self.rectsxy = (16, [15, 67, 119, 171, 223, 275])
         self.main_image, mainrect = game.images.quick_menu[0]
-        self.quick_menu_obj = RenderObject(self.layer + 3, self.visible, True, self.main_image,
+        self.quick_menu_obj = RenderObject(self.layer + 4, self.visible, True, self.main_image,
                                            self.innerxy, (0, 0), mainrect.size, 0, 0)
         self.h_image, h_rect = game.images.quick_menu[1]
         self.highlight_objs = []
         for i in range(6):
-            self.highlight_objs.append(RenderObject(self.layer + 4, self.visible, False, self.h_image,
+            self.highlight_objs.append(RenderObject(self.layer + 5, self.visible, False, self.h_image,
                                                     (self.innerxy[0] + self.rectsxy[0],
                                                      self.innerxy[1] + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
         self.sounds_obj = QuickSounds(self.layer + 1, self.innerxy, mainrect.w)
@@ -1677,7 +1692,7 @@ class Tutorial(pygame.sprite.DirtySprite):
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 127))
         self.rect = game.screen.get_rect()
-        self.guide_obj = TutorialGuide(self.layer)
+        self.guide_obj = TutorialGuide(self.layer + 3)
         self.buttonsimage, rect = game.images.tutorial[5]
         self.h_image, h_rect = game.images.tutorial[6]
         self.innerxy = ((game.resolution[0] - rect.w) / 2, game.resolution[1] - 320)
@@ -1732,7 +1747,7 @@ class TutorialGuide(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.visible = False
-        self.layer = layer + 3
+        self.layer = layer
         self.tutscreen = self.oldscreen = 0
         self.image = self.rect = None
         spaceimage, spacerect = game.images.tutorial[0]
