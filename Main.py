@@ -854,19 +854,18 @@ class House(pygame.sprite.DirtySprite):
                     self.dirty = 1
 
     def calculate_currentpeople(self):
-        if self.peoplecurrent > 0:
-            if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
-                self.peoplecurrent -= randint(0, 1) + game.difficulty
-            else:
-                if self.peoplecurrent < self.peoplemax:
-                    fillrate = randint(0, 3) - game.difficulty
-                    if fillrate < 0:
-                        fillrate = 0
-                    self.peoplecurrent += fillrate
-                else:
-                    self.peoplecurrent = self.peoplemax
+        if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
+            self.peoplecurrent -= randint(0, 1) + game.difficulty
+            if self.peoplecurrent < 0:
+                self.peoplecurrent = 0
         else:
-            self.peoplecurrent = 0
+            if self.peoplecurrent < self.peoplemax:
+                fillrate = randint(0, 3) - game.difficulty
+                if fillrate < 0:
+                    fillrate = 0
+                self.peoplecurrent += fillrate
+            else:
+                self.peoplecurrent = self.peoplemax
 
     def calculate_taxmax(self):
         self.taxmax1 = randint(15, 70)
