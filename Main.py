@@ -38,9 +38,9 @@ class Game:
                          ("Water Supply", 121500, 2400, 140),
                          ("Plumbing", 178000, 2400, 160),
                          ("Wi-Fi", 411000, 12000, 480),
-                         ("Metro", 2095000, 42000, 2440),
-                         ("Santa Claus", 3672500, 42000, 4280),
-                         ("Moogle Fiber", 5128000, 42000, 5980),
+                         ("Metro", 2095000, 50000, 2440),
+                         ("Santa Claus", 3672500, 50000, 4280),
+                         ("Moogle Fiber", 5128000, 50000, 5980),
                          ("Wireless electricity", 10890000, 100000, 12700),
                          ("5G", 17786500, 100000, 20720),
                          ("Li-Fi", 50120000, 225000, 57750),
@@ -51,17 +51,16 @@ class Game:
                               (2, 35000, 10000),
                               (3, 65000, 12000),
                               (4, 500000, 25000),
-                              (5, 1000000, 42000),
-                              (6, 2000000, 50000),
-                              (7, 4000000, 75000),
-                              (8, 8000000, 100000),
-                              (9, 12000000, 150000),
-                              (10, 20000000, 225000),
-                              (11, 22000000, 250000),
-                              (12, 45000000, 400000),
-                              (13, 55000000, 500000),
-                              (14, 90000000, 750000),
-                              (15, 100000000, 1000000)]
+                              (5, 2000000, 50000),
+                              (6, 4000000, 75000),
+                              (7, 8000000, 100000),
+                              (8, 12000000, 150000),
+                              (9, 20000000, 225000),
+                              (10, 22000000, 250000),
+                              (11, 45000000, 400000),
+                              (12, 55000000, 500000),
+                              (13, 90000000, 750000),
+                              (14, 100000000, 1000000)]
         self.bar_amounts = [0, 0]
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
@@ -103,12 +102,24 @@ class Game:
             ("Only few steps to Urbancity. Status update: Megacity.", 225000),
             ("Only one step left to Urbancity. Status update: Megapolis.", 400000),
             ("You have reached to the top. Status update: Urbancity.", 750000),
+            ("With great power comes great responsibility.", self.upgrades[0]),
+            ("How did we manage to live without water before?", self.upgrades[1]),
+            ("Does anybody know a good plumber? Couse I really need one from now on?", self.upgrades[2]),
+            ("Faster Internet means happier people.", self.upgrades[3]),
             ("Metro transports people faster through city.", self.upgrades[4]),
             ("Santa is real! I told you Santa was real!", self.upgrades[5]),
+            ("Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6]),
             ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7]),
-            ("Faster Internet means happier people.", self.upgrades[3]),
-            ("With great power comes great responsibility.", self.upgrades[0]),
-            ("Now you can surf at the speed of light.", self.upgrades[9])]
+            ("Looks like we are the first city to use 5G technology.", self.upgrades[8]),
+            ("Now you can surf at the speed of light.", self.upgrades[9]),
+            ("Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000),
+            ("Population update. You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000),
+            ("Population update. You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000),
+            ("Population update. You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000),
+            ("Population update. You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000),
+            ("Population update. You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000),
+            ("Population update. You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000),
+            ("Population update. You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000)]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -1578,18 +1589,19 @@ class QuickSounds(pygame.sprite.DirtySprite):
         self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
         self.speed = 6
         self.rectsxy = (19, [15, 67, 119, 171])
+        self.c_rectsxy = [27, [8, 60, 112, 164]]
         self.h_image, h_rect = game.images.quick_menu[3]
         self.c_image, c_rect = game.images.quick_menu[4]
         self.checked_objs = []
         self.checked_objs_visible = [True, True, True, True]
         self.highlight_objs = []
         for i in range(4):
-            self.checked_objs.append(RenderObject(self.layer + 1, self.visible, False, self.c_image,
-                                                  (self.rect.x + self.rectsxy[0] - self.source_rect.x,
-                                                   self.rect.y + self.rectsxy[1][i]), (0, 0), c_rect.size, 0, 0))
-            self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
+            self.highlight_objs.append(RenderObject(self.layer + 1, self.visible, False, self.h_image,
                                                     (self.maxx + self.rectsxy[0],
                                                      self.rect.y + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
+            self.checked_objs.append(RenderObject(self.layer + 2, self.visible, False, self.c_image,
+                                                  (self.rect.x + self.c_rectsxy[0] - self.source_rect.x,
+                                                   self.rect.y + self.c_rectsxy[1][i]), (0, 0), c_rect.size, 0, 0))
         game.add_new_renderable(self, self.layer)
 
     def mouse_hover_check(self):
@@ -1647,7 +1659,7 @@ class QuickSounds(pygame.sprite.DirtySprite):
         for i in range(4):
             self.checked_objs[i].process_update(
                 self.check_obj_visibility(i), 0, self.c_image,
-                (self.rect.x + self.rectsxy[0] - self.source_rect.x, self.rect.y + self.rectsxy[1][i]))
+                (self.rect.x + self.c_rectsxy[0] - self.source_rect.x, self.rect.y + self.c_rectsxy[1][i]))
 
     def check_obj_visibility(self, index):
         if self.visible and self.checked_objs_visible[index]:
