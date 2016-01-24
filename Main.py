@@ -328,7 +328,9 @@ class Images:
         self.menu = [[self.load_image("Urbancity_logo.png")],
                      [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
                       self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
-        self.quick_menu = [self.load_image("Quick_menu.png"), self.load_image("Quick_menu_highlighted.png")]
+        self.quick_menu = [self.load_image("Quick_menu.png"), self.load_image("Quick_menu_highlighted.png"),
+                           self.load_image("Quick_menu_sounds.png"), self.load_image("Quick_menu_sounds_hover.png"),
+                           self.load_image("Quick_menu_sounds_check.png")]
         self.tutorial = [self.load_image("Tutorial_space.png"), self.load_image("Tutorial_bar.png"),
                          self.load_image("Tutorial_right_button.png"), self.load_image("Tutorial_tax.png"),
                          self.load_image("Tutorial_upgrade.png"), self.load_image("Tutorial_buttons.png"),
@@ -358,12 +360,13 @@ class Fonts:
 class Sounds:
     def __init__(self):
         # Sounds.load_sound("house_lo.ogg", 0)
-        self.click = Sounds.load_sound("Mouse_press.ogg", 1)
-        self.space = [Sounds.load_sound("space_1.ogg", 1), Sounds.load_sound("space_2.ogg", 1),
-                      Sounds.load_sound("space_3.ogg", 1), Sounds.load_sound("space_4.ogg", 1),
-                      Sounds.load_sound("space_5.ogg", 1), Sounds.load_sound("space_6.ogg", 1),
-                      Sounds.load_sound("space_8.ogg", 1), Sounds.load_sound("space_9.ogg", 1),
-                      Sounds.load_sound("space_10.ogg", 1), Sounds.load_sound("space_11.ogg", 1)]
+        self.click = self.load_sound("Mouse.ogg", 1)
+        self.notification = self.load_sound("Notification.ogg", 1)
+        self.space = [self.load_sound("space_1.ogg", 1), self.load_sound("space_2.ogg", 1),
+                      self.load_sound("space_3.ogg", 1), self.load_sound("space_4.ogg", 1),
+                      self.load_sound("space_5.ogg", 1), self.load_sound("space_6.ogg", 1),
+                      self.load_sound("space_8.ogg", 1), self.load_sound("space_9.ogg", 1),
+                      self.load_sound("space_10.ogg", 1), self.load_sound("space_11.ogg", 1)]
 
     @staticmethod
     def toggle_mute():
@@ -1475,15 +1478,16 @@ class QuickMenu(pygame.sprite.DirtySprite):
         rect = game.images.quick_menu[0][1]
         self.innerxy = ((self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2)
         self.rectsxy = (16, [15, 67, 119, 171, 223, 275])
-        self.main_image = game.images.quick_menu[0][0]
-        self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.main_image,
-                                           self.innerxy, (0, 0), self.main_image.get_rect().size, 0, 0)
+        self.main_image, mainrect = game.images.quick_menu[0]
+        self.quick_menu_obj = RenderObject(self.layer + 2, self.visible, True, self.main_image,
+                                           self.innerxy, (0, 0), mainrect.size, 0, 0)
         self.h_image, h_rect = game.images.quick_menu[1]
         self.highlight_objs = []
         for i in range(6):
-            self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
+            self.highlight_objs.append(RenderObject(self.layer + 3, self.visible, False, self.h_image,
                                                     (self.innerxy[0] + self.rectsxy[0],
                                                      self.innerxy[1] + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
+        self.sounds_obj = QuickSounds(self.layer + 1, self.innerxy, mainrect.w)
         self.muted = False
         game.add_new_renderable(self, self.layer)
 
@@ -1494,7 +1498,8 @@ class QuickMenu(pygame.sprite.DirtySprite):
     def mouse_hover_check(self):
         for obj in self.highlight_objs:
             if self.visible:
-                if obj == self.highlight_objs[1] and game.right_drawer.tap_pad_global_visible:
+                if (obj == self.highlight_objs[0] and self.sounds_obj.global_visible) or \
+                        (obj == self.highlight_objs[1] and game.right_drawer.tap_pad_global_visible):
                     visible = True
                 else:
                     if obj.rect.collidepoint(pygame.mouse.get_pos()):
@@ -1510,6 +1515,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
             for obj in self.highlight_objs:
                 if obj.rect.collidepoint(pygame.mouse.get_pos()):
                     if obj == self.highlight_objs[0]:
+                        self.toggle_sounds()
                         game.sounds.toggle_mute()
                         if self.muted:
                             self.muted = False
@@ -1529,12 +1535,98 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         game.running = False
                     return True
 
+    def toggle_sounds(self):
+        if self.sounds_obj.global_visible:
+            self.sounds_obj.global_visible = False
+        else:
+            self.sounds_obj.global_visible = True
+
     def toggle(self):
         if self.visible:
             self.visible = False
+            # todo global visible = False if autoclose
+            self.sounds_obj.visible = False
         else:
             self.visible = True
+            if self.sounds_obj.global_visible:  # todo remove this then
+                self.sounds_obj.visible = True  # todo also
         game.toggle_interactables()
+
+
+class QuickSounds(pygame.sprite.DirtySprite):
+    def __init__(self, layer, mainxy, main_w):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 1
+        self.visible = False
+        self.global_visible = False
+        self.layer = layer
+        self.image, rect = game.images.quick_menu[2]
+        self.minx = mainxy[0] + main_w - 18
+        self.maxx = self.minx + 23
+        self.rect = pygame.Rect(self.minx, mainxy[1], rect.w, rect.h)
+        self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        if self.global_visible:
+            if self.rect.right < self.maxx + self.rect.w:
+                self.visible = True
+                if self.source_rect.x > 0:
+                    self.source_rect.x -= 5
+                    return
+                else:
+                    self.source_rect.x = 0
+                self.rect.x += 5
+            elif self.rect.x == self.maxx:
+                self.dirty = 0
+            else:
+                self.dirty = 1
+                self.rect.x = self.maxx
+        else:
+            if self.source_rect.x < self.source_rect.w:
+                self.dirty = 1
+                if self.rect.left > self.minx:
+                    self.rect.x -= 5
+                    return
+                else:
+                    self.rect.x = self.minx
+                self.source_rect.x += 5
+            elif self.source_rect == self.source_rect.w:
+                self.visible = False
+                self.global_visible = False
+            else:
+                self.dirty = 1
+                self.source_rect.x = self.source_rect.w
+
+
+"""    def update(self):
+        if self.global_visible:
+            self.visible = True
+            if self.rect.right < self.maxx + self.rect.w:
+                if self.source_rect.w < self.rect.w:
+                    self.source_rect.w += 5
+                    return
+                else:
+                    self.source_rect.w = self.rect.w
+                self.rect.x += 5
+            elif self.rect.x == self.maxx:
+                self.dirty = 0
+            else:
+                self.rect.x = self.maxx
+        else:
+            if self.source_rect.w > 0:
+                self.dirty = 1
+                if self.rect.left > self.minx:
+                    self.rect.x -= 5
+                    return
+                else:
+                    self.rect.x = self.minx
+                self.source_rect.w -= 5
+            elif self.source_rect == 0:
+                self.visible = False
+                self.global_visible = False
+            else:
+                self.source_rect.w = 0"""
 
 
 class Tutorial(pygame.sprite.DirtySprite):
@@ -1770,6 +1862,7 @@ class Bar(pygame.sprite.DirtySprite):
 
     def notify(self, notification):
         print("new notification:", notification)
+        game.sounds.notification.play()
         self.notification_txt = notification[0]
         self.used_notifications.append(notification)
         game.notifications.remove(notification)
