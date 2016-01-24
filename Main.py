@@ -113,6 +113,7 @@ class Game:
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
         pygame.time.set_timer(pygame.USEREVENT + 2, 100)
+        pygame.time.set_timer(pygame.USEREVENT + 3, 10000)
         self.images = Images()
         self.fonts = Fonts()
         self.sounds = Sounds()
@@ -182,14 +183,19 @@ class Game:
     def process_events(self):
         for event in pygame.event.get():
             if event.type == pygame.USEREVENT + 1:
+                # 10ms time
                 game.bar.process_income()
                 game.right_drawer.process_tap_pad()
-                # 10ms time
             elif event.type == pygame.USEREVENT + 2:
+                # 100ms time
                 game.bar.calculate_manual_income()
                 game.bar.process_money_bonuses()
                 game.bar.process_notifications()
-                # 100ms time
+            elif event.type == pygame.USEREVENT + 3:
+                # 10s time
+                for sizetype in self.houses:
+                    for house in sizetype:
+                        house.calculate_taxmax()
             elif event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
