@@ -1556,8 +1556,8 @@ class Tutorial(pygame.sprite.DirtySprite):
         self.highlight_objs = []
         for i in range(3):
             self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
-                                                      (self.innerxy[0] + self.rectsxy[0][i],
-                                                       self.innerxy[1] + self.rectsxy[1]), (0, 0), h_rect.size, 0, 0))
+                                                    (self.innerxy[0] + self.rectsxy[0][i],
+                                                     self.innerxy[1] + self.rectsxy[1]), (0, 0), h_rect.size, 0, 0))
         game.add_new_renderable(self, self.layer)
 
     def update(self):
