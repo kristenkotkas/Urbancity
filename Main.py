@@ -17,7 +17,7 @@ class Game:
         self.tutorial_mode = True
         self.difficulty = 1
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
-            self.notifications = []
+            self.notifications = self.news_statements = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
             self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
@@ -120,6 +120,9 @@ class Game:
             ("Population update. You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000),
             ("Population update. You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000),
             ("Population update. You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000)]
+        self.news_statements = ["Terrorists have blown up the city's money reserves!".upper(),
+                                "Santa Claus has been spotted by the local bank!".upper(),
+                                "A group of terrorists have hijacked the metro train!".upper()]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -166,7 +169,7 @@ class Game:
             for sprite in sprites:
                 sprite.kill()
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
-            self.notifications = []
+            self.notifications = self.news_statements = []
         self.cloud = self.metro = self.pipe = self.fiber = self.power = self.watersupply = self.bar = \
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
@@ -202,6 +205,7 @@ class Game:
                 game.bar.calculate_manual_income()
                 game.bar.process_money_bonuses()
                 game.bar.process_notifications()
+                game.left_drawer.news_obj.count()
             elif event.type == pygame.USEREVENT + 3:
                 # 10s time
                 for sizetype in self.houses:
@@ -223,8 +227,10 @@ class Game:
                     game.tutorial.guide_obj.switch_tutorial(1)
                 elif event.key == pygame.K_k:
                     game.bar.money += game.bar.money * 133700
+                    game.left_drawer.news_obj.present(0)
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
+                    game.left_drawer.news_obj.present(1)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 game.right_drawer.tap_pad_click_check()
@@ -936,6 +942,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             for upgrade in game.upgrades:
                 if upgrade[0] == name:
                     game.upgrades.remove(upgrade)
+        self.news_obj = News(self.layer + 2)
         game.add_new_renderable(self, self.layer)
 
     @staticmethod
@@ -999,6 +1006,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             self.drawer_visible = False
         else:
             self.drawer_visible = True
+        self.news_obj.global_visible = self.drawer_visible
         for button in self.tax_buttons + self.upgrade_buttons:
             button.visible = self.drawer_visible
 
@@ -1225,6 +1233,60 @@ class UpgradeButton(pygame.sprite.DirtySprite):
     def award_rewards(self):
         game.bar.incomereward += self.reward
         game.left_drawer.init_unlock(self.name)
+
+
+class News(pygame.sprite.DirtySprite):
+    def __init__(self, layer):
+        pygame.sprite.DirtySprite.__init__(self)
+        self.dirty = 0
+        self.visible = False
+        self.global_visible = False
+        self.layer = layer
+        self.drawing = False
+        self.counter = 0
+        self.drawdata = [(0, 0, 0), 20]
+        self.txt = ""
+        self.image, rect = game.images.misc[1]
+        self.rect = pygame.Rect(-rect.w, game.resolution[1] - game.resolution[1] / 3, rect.w, rect.h)
+        self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (105, 60), (670, 25),
+                                    self.drawdata, False)
+        game.add_new_renderable(self, self.layer)
+
+    def update(self):
+        self.txt_obj.process_update(self.check_obj_visibility(), 0, self.txt, self.rect.topleft)
+        if self.visible and self.global_visible:
+            if self.drawing:
+                if self.rect.x < -5:
+                    self.dirty = 1
+                    self.rect.x += 8
+                else:
+                    if self.counter > 50:
+                        self.counter = 0
+                        self.drawing = False
+            else:
+                if self.rect.x > -self.rect.w:
+                    self.dirty = 1
+                    self.rect.x -= 8
+        else:
+            if self.rect.x > -self.rect.w:
+                self.dirty = 1
+                self.visible = False
+                self.rect.x = -self.rect.w
+
+    def count(self):
+        if self.rect.x > -5:
+            self.counter += 1
+
+    def check_obj_visibility(self):
+        if self.visible and self.global_visible:
+            return True
+        else:
+            return False
+
+    def present(self, eventtype):
+        self.txt = game.news_statements[eventtype]
+        self.visible = True
+        self.drawing = True
 
 
 class RightDrawer(pygame.sprite.DirtySprite):
@@ -1898,10 +1960,10 @@ class Bar(pygame.sprite.DirtySprite):
         randomevent = randint(1, 800)
         if randomevent == 1:
             self.money /= 50
-            # todo news event
+            game.left_drawer.news_obj.present(1)
         elif randomevent == 800:
             self.money *= 10
-            # todo news event
+            game.left_drawer.news_obj.present(0)
 
     def process_notifications(self):
         for notification in game.notifications:
