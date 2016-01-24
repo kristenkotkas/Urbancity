@@ -162,7 +162,7 @@ class Game:
             self.right_button_amounts = self.wifi_tower = self.fiveg_tower = None
 
     def run(self):
-        pygame.mixer.pre_init(44100, -16, 2, 2048)
+        pygame.mixer.pre_init(48000, -16, 2, 2048)
         pygame.init()
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
@@ -387,7 +387,7 @@ class Sounds:
         else:
             try:
                 loaded_sound = pygame.mixer.Sound(file)
-                # loaded_sound.set_volume(0.5)
+                loaded_sound.set_volume(0.5)
             except pygame.error:
                 raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
             return loaded_sound
