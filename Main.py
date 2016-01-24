@@ -201,9 +201,9 @@ class Game:
                 elif event.key == pygame.K_SPACE:
                     game.bar.add_manual_money()
                 elif event.key == pygame.K_LEFT:
-                    game.tutorial.tutorial_guide.switch_tutorial(-1)
+                    game.tutorial.guide_obj.switch_tutorial(-1)
                 elif event.key == pygame.K_RIGHT:
-                    game.tutorial.tutorial_guide.switch_tutorial(1)
+                    game.tutorial.guide_obj.switch_tutorial(1)
                 elif event.key == pygame.K_k:
                     game.bar.money += game.bar.money * 133700
                 elif event.key == pygame.K_l:
@@ -211,13 +211,14 @@ class Game:
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 game.right_drawer.tap_pad_click_check()
+                if game.quick_menu.mouse_click_check() or game.tutorial.mouse_click_check() or \
+                        game.bar.mouse_click_check():
+                    self.sounds.click.play()
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
                         self.sounds.click.play()
                         break
-                if game.quick_menu.mouse_click_check() or game.bar.mouse_click_check():
-                    self.sounds.click.play()
 
     def toggle_interactables(self):
         if self.interactables_visible:
@@ -235,7 +236,7 @@ class Game:
 
     @staticmethod
     def toggle_tutorial_layer(obj, mylayer, mylayermod, tutscreen):
-        if game.tutorial.visible and game.tutorial.tutorial_guide.tutscreen == tutscreen:
+        if game.tutorial.visible and game.tutorial.guide_obj.tutscreen == tutscreen:
             layer = game.tutorial.layer + 1
             game.allsprites.remove(obj)
             game.add_new_renderable(obj, layer)
@@ -314,7 +315,8 @@ class Images:
         self.misc = [self.load_image("Cloud.png"), self.load_image("Breaking_news.png"),
                      self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
                      self.load_image("Electricity.png"), self.load_image("Water.png"),
-                     self.load_image("Wifi_tower.png"), self.load_image("5G_tower.png")]
+                     self.load_image("Wifi_tower.png"), self.load_image("5G_tower.png"),
+                     self.load_image("Lifi_tower.png")]
         self.houses = [
             [self.load_image("House_11.png"), self.load_image("House_12.png"), self.load_image("House_13.png"),
              self.load_image("House_14.png")],
@@ -329,7 +331,8 @@ class Images:
         self.quick_menu = [self.load_image("Quick_menu.png"), self.load_image("Quick_menu_highlighted.png")]
         self.tutorial = [self.load_image("Tutorial_space.png"), self.load_image("Tutorial_bar.png"),
                          self.load_image("Tutorial_right_button.png"), self.load_image("Tutorial_tax.png"),
-                         self.load_image("Tutorial_upgrade.png")]
+                         self.load_image("Tutorial_upgrade.png"), self.load_image("Tutorial_buttons.png"),
+                         self.load_image("Tutorial_buttons_hover.png")]
 
     @staticmethod
     def load_image(file):
@@ -928,8 +931,8 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
                 if not game.tutorial.visible:
                     game.tutorial.toggle()
-                game.tutorial.tutorial_guide.tutscreen = 4
-                game.tutorial.tutorial_guide.update_screen()
+                game.tutorial.guide_obj.tutscreen = 4
+                game.tutorial.guide_obj.update_screen()
                 game.tutorial_mode = False
 
     def update(self):
@@ -1470,8 +1473,8 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.image.fill((0, 0, 0, 127))
         self.rect = game.screen.get_rect()
         rect = game.images.quick_menu[0][1]
-        self.innerxy = [(self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2]
-        self.rectsxy = [16, [15, 67, 119, 171, 223, 275]]
+        self.innerxy = ((self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2)
+        self.rectsxy = (16, [15, 67, 119, 171, 223, 275])
         self.main_image = game.images.quick_menu[0][0]
         self.quick_menu_obj = RenderObject(self.layer + 1, self.visible, True, self.main_image,
                                            self.innerxy, (0, 0), self.main_image.get_rect().size, 0, 0)
@@ -1543,19 +1546,54 @@ class Tutorial(pygame.sprite.DirtySprite):
         self.image = pygame.Surface(game.resolution, pygame.SRCALPHA).convert_alpha()
         self.image.fill((0, 0, 0, 127))
         self.rect = game.screen.get_rect()
-        self.tutorial_guide = TutorialGuide(self.layer)
+        self.guide_obj = TutorialGuide(self.layer)
+        self.buttonsimage, rect = game.images.tutorial[5]
+        self.h_image, h_rect = game.images.tutorial[6]
+        self.innerxy = ((game.resolution[0] - rect.w) / 2, game.resolution[1] - 320)
+        self.buttons_obj = RenderObject(self.layer + 1, self.visible, False, self.buttonsimage,
+                                        self.innerxy, (0, 0), rect.size, 0, False)
+        self.rectsxy = ([9, 114, 219], 10)
+        self.highlight_objs = []
+        for i in range(3):
+            self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
+                                                      (self.innerxy[0] + self.rectsxy[0][i],
+                                                       self.innerxy[1] + self.rectsxy[1]), (0, 0), h_rect.size, 0, 0))
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        pass
+        self.buttons_obj.process_update(self.visible, 0, self.buttonsimage, (0, 0))
+        self.mouse_hover_check()
+
+    def mouse_hover_check(self):
+        for obj in self.highlight_objs:
+            if self.visible:
+                if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                    visible = True
+                else:
+                    visible = False
+            else:
+                visible = False
+            obj.process_update(visible, 0, self.h_image, (0, 0))
+
+    def mouse_click_check(self):
+        if self.visible:
+            for obj in self.highlight_objs:
+                if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                    if obj == self.highlight_objs[0]:
+                        self.guide_obj.switch_tutorial(-1)
+                    elif obj == self.highlight_objs[1]:
+                        self.guide_obj.switch_tutorial(1)
+                    elif obj == self.highlight_objs[2]:
+                        self.toggle()
+                    return True
 
     def toggle(self):
         if self.visible:  # todo not needed?
             self.visible = False
-            self.tutorial_guide.visible = False
+            self.guide_obj.visible = False
         else:
             self.visible = True
-            self.tutorial_guide.visible = True
+            self.guide_obj.visible = True
 
 
 class TutorialGuide(pygame.sprite.DirtySprite):
@@ -1576,7 +1614,6 @@ class TutorialGuide(pygame.sprite.DirtySprite):
                       ((game.resolution[0] - barrect.w) / 2 - 25, 35), (game.right_drawer.x - 318, 22),
                       (133, 108), (65, 127)]
         self.objwh = [spacerect.size, barrect.size, rightrect.size, taxrect.size, upgraderect.size]
-        #   self.tutorial_buttons_obj = RenderObject()
         self.update_screen()
         game.add_new_renderable(self, self.layer)
 
@@ -1800,7 +1837,7 @@ class Bar(pygame.sprite.DirtySprite):
                 visible = False
         else:
             visible = False
-        self.highlight_obj.process_update(visible, self.layer + 1, self.h_image, self.rect.topleft)
+        self.highlight_obj.process_update(visible, self.layer_mod, self.h_image, self.rect.topleft)
 
     def mouse_click_check(self):
         if self.visible:
