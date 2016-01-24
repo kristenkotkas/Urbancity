@@ -387,7 +387,7 @@ class Sounds:
         else:
             try:
                 loaded_sound = pygame.mixer.Sound(file)
-                loaded_sound.set_volume(0.5)
+                # loaded_sound.set_volume(0.5)
             except pygame.error:
                 raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
             return loaded_sound
@@ -1597,36 +1597,6 @@ class QuickSounds(pygame.sprite.DirtySprite):
             else:
                 self.dirty = 1
                 self.source_rect.x = self.source_rect.w
-
-
-"""    def update(self):
-        if self.global_visible:
-            self.visible = True
-            if self.rect.right < self.maxx + self.rect.w:
-                if self.source_rect.w < self.rect.w:
-                    self.source_rect.w += 5
-                    return
-                else:
-                    self.source_rect.w = self.rect.w
-                self.rect.x += 5
-            elif self.rect.x == self.maxx:
-                self.dirty = 0
-            else:
-                self.rect.x = self.maxx
-        else:
-            if self.source_rect.w > 0:
-                self.dirty = 1
-                if self.rect.left > self.minx:
-                    self.rect.x -= 5
-                    return
-                else:
-                    self.rect.x = self.minx
-                self.source_rect.w -= 5
-            elif self.source_rect == 0:
-                self.visible = False
-                self.global_visible = False
-            else:
-                self.source_rect.w = 0"""
 
 
 class Tutorial(pygame.sprite.DirtySprite):
