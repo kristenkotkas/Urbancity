@@ -217,13 +217,13 @@ class Game:
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 game.right_drawer.tap_pad_click_check()
-                if game.quick_menu.mouse_click_check() or game.tutorial.mouse_click_check() or \
-                        game.bar.mouse_click_check():
-                    self.sounds.click.play()
+                if game.quick_menu.mouse_click_check() or game.quick_menu.sounds_obj.mouse_click_check() or \
+                        game.tutorial.mouse_click_check() or game.bar.mouse_click_check():
+                    self.sounds.play("click")
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
-                        self.sounds.click.play()
+                        self.sounds.play("click")
                         break
 
     def toggle_interactables(self):
@@ -368,14 +368,26 @@ class Sounds:
         # Sounds.load_sound("house_lo.ogg", 0)
         self.click = self.load_sound("Mouse.ogg", 1)
         self.notification = self.load_sound("Notification.ogg", 1)
+        # self.unlock = self.load_sound("Unlock.ogg", 1)
         self.space = [self.load_sound("space_1.ogg", 1), self.load_sound("space_2.ogg", 1),
                       self.load_sound("space_3.ogg", 1), self.load_sound("space_4.ogg", 1),
                       self.load_sound("space_5.ogg", 1), self.load_sound("space_6.ogg", 1),
                       self.load_sound("space_8.ogg", 1), self.load_sound("space_9.ogg", 1),
                       self.load_sound("space_10.ogg", 1), self.load_sound("space_11.ogg", 1)]
 
+    def play(self, sound):
+        if sound == "space" and game.quick_menu.sounds_obj.checked_objs_visible[0]:
+            self.space[randint(1, 9)].play()
+        elif sound == "click" and game.quick_menu.sounds_obj.checked_objs_visible[1]:
+            self.click.play()
+        elif sound == "notification" and game.quick_menu.sounds_obj.checked_objs_visible[2]:
+            self.notification.play()
+        elif sound == "unlock" and game.quick_menu.sounds_obj.checked_objs_visible[3]:
+            # self.unlock.play()  # todo add
+            pass
+
     @staticmethod
-    def toggle_mute():
+    def toggle_mute():  # todo remove?
         if pygame.mixer.get_num_channels() > 0:
             pygame.mixer.set_num_channels(0)
             pygame.mixer.music.pause()
@@ -1484,16 +1496,15 @@ class QuickMenu(pygame.sprite.DirtySprite):
         self.innerxy = ((self.rect.w - rect.w) / 2, (self.rect.h - rect.h) / 2)
         self.rectsxy = (16, [15, 67, 119, 171, 223, 275])
         self.main_image, mainrect = game.images.quick_menu[0]
-        self.quick_menu_obj = RenderObject(self.layer + 2, self.visible, True, self.main_image,
+        self.quick_menu_obj = RenderObject(self.layer + 3, self.visible, True, self.main_image,
                                            self.innerxy, (0, 0), mainrect.size, 0, 0)
         self.h_image, h_rect = game.images.quick_menu[1]
         self.highlight_objs = []
         for i in range(6):
-            self.highlight_objs.append(RenderObject(self.layer + 3, self.visible, False, self.h_image,
+            self.highlight_objs.append(RenderObject(self.layer + 4, self.visible, False, self.h_image,
                                                     (self.innerxy[0] + self.rectsxy[0],
                                                      self.innerxy[1] + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
         self.sounds_obj = QuickSounds(self.layer + 1, self.innerxy, mainrect.w)
-        self.muted = False
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -1521,11 +1532,6 @@ class QuickMenu(pygame.sprite.DirtySprite):
                 if obj.rect.collidepoint(pygame.mouse.get_pos()):
                     if obj == self.highlight_objs[0]:
                         self.toggle_sounds()
-                        game.sounds.toggle_mute()
-                        if self.muted:
-                            self.muted = False
-                        else:
-                            self.muted = True
                     elif obj == self.highlight_objs[1]:
                         game.right_drawer.tap_pad_global_toggle()
                     elif obj == self.highlight_objs[2]:
@@ -1570,18 +1576,54 @@ class QuickSounds(pygame.sprite.DirtySprite):
         self.maxx = self.minx + 23
         self.rect = pygame.Rect(self.minx, mainxy[1], rect.w, rect.h)
         self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
+        self.speed = 6
+        self.rectsxy = (19, [15, 67, 119, 171])
+        self.h_image, h_rect = game.images.quick_menu[3]
+        self.c_image, c_rect = game.images.quick_menu[4]
+        self.checked_objs = []
+        self.checked_objs_visible = [True, True, True, True]
+        self.highlight_objs = []
+        for i in range(4):
+            self.checked_objs.append(RenderObject(self.layer + 1, self.visible, False, self.c_image,
+                                                  (self.rect.x + self.rectsxy[0] - self.source_rect.x,
+                                                   self.rect.y + self.rectsxy[1][i]), (0, 0), c_rect.size, 0, 0))
+            self.highlight_objs.append(RenderObject(self.layer + 2, self.visible, False, self.h_image,
+                                                    (self.maxx + self.rectsxy[0],
+                                                     self.rect.y + self.rectsxy[1][i]), (0, 0), h_rect.size, 0, 0))
         game.add_new_renderable(self, self.layer)
 
+    def mouse_hover_check(self):
+        for obj in self.highlight_objs:
+            if self.visible and self.rect.x == self.maxx:
+                if obj.rect.collidepoint(pygame.mouse.get_pos()):
+                    visible = True
+                else:
+                    visible = False
+            else:
+                visible = False
+            obj.process_update(visible, 0, self.h_image, (0, 0))
+
+    def mouse_click_check(self):
+        if self.visible and self.rect.x == self.maxx:
+            for i in range(4):
+                if self.checked_objs[i].rect.collidepoint(pygame.mouse.get_pos()):
+                    if self.checked_objs_visible[i]:
+                        self.checked_objs_visible[i] = False
+                    else:
+                        self.checked_objs_visible[i] = True
+                    return True
+
     def update(self):
+        self.mouse_hover_check()
         if self.global_visible:
             if self.rect.right < self.maxx + self.rect.w:
                 self.visible = True
                 if self.source_rect.x > 0:
-                    self.source_rect.x -= 5
+                    self.source_rect.x -= self.speed
                     return
                 else:
                     self.source_rect.x = 0
-                self.rect.x += 5
+                self.rect.x += self.speed
             elif self.rect.x == self.maxx:
                 self.dirty = 0
             else:
@@ -1591,17 +1633,27 @@ class QuickSounds(pygame.sprite.DirtySprite):
             if self.source_rect.x < self.source_rect.w:
                 self.dirty = 1
                 if self.rect.left > self.minx:
-                    self.rect.x -= 5
+                    self.rect.x -= self.speed
                     return
                 else:
                     self.rect.x = self.minx
-                self.source_rect.x += 5
-            elif self.source_rect == self.source_rect.w:
+                self.source_rect.x += self.speed
+            elif self.source_rect.x == self.source_rect.w:
                 self.visible = False
                 self.global_visible = False
             else:
                 self.dirty = 1
                 self.source_rect.x = self.source_rect.w
+        for i in range(4):
+            self.checked_objs[i].process_update(
+                self.check_obj_visibility(i), 0, self.c_image,
+                (self.rect.x + self.rectsxy[0] - self.source_rect.x, self.rect.y + self.rectsxy[1][i]))
+
+    def check_obj_visibility(self, index):
+        if self.visible and self.checked_objs_visible[index]:
+            return True
+        else:
+            return False
 
 
 class Tutorial(pygame.sprite.DirtySprite):
@@ -1812,7 +1864,7 @@ class Bar(pygame.sprite.DirtySprite):
             return str(format(self.get_people("current"), ",d")) + "/" + str(format(self.people_total, ",d"))
 
     def add_manual_money(self):
-        game.sounds.space[randint(0, 9)].play()
+        game.sounds.play("space")
         manual_income = 100 + (self.income + self.people_total) / 15
         self.money += manual_income
         self.income_manual_data.append((manual_income, self.income_manual_time))
@@ -1837,7 +1889,7 @@ class Bar(pygame.sprite.DirtySprite):
 
     def notify(self, notification):
         print("new notification:", notification)
-        game.sounds.notification.play()
+        game.sounds.play("notification")
         self.notification_txt = notification[0]
         self.used_notifications.append(notification)
         game.notifications.remove(notification)
