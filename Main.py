@@ -21,13 +21,13 @@ class Game:
         self.tutorial_mode = True
         self.difficulty = 1
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
-            self.notifications = self.news_statements = []
+            self.notifications = self.news_statements = self.unused_upgrades = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
-            self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
+            self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = self.fonts = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
-            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = self.fonts = None
+            self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = None
         self.allsprites = pygame.sprite.LayeredDirty()
         self.allsprites.set_timing_treshold(10000)
         self.interactables_visible = True
@@ -35,20 +35,21 @@ class Game:
     def init_loadconfig(self, difficulty):
         self.taxes = [0, 0, 0]
         self.used_upgrades = set()
+        self.unused_upgrades = []
         self.used_bonuses = []
         self.used_notifications = []
-        # upgrades = name{box}, cost amount{box}, unlock amount{priv}, income reward amount{box}
-        self.upgrades = [("Electricity", 84000, 2400, 84),
-                         ("Water Supply", 121500, 2400, 140),
-                         ("Plumbing", 178000, 2400, 160),
-                         ("Wi-Fi", 411000, 12000, 480),
-                         ("Metro", 2095000, 50000, 2440),
-                         ("Santa Claus", 3672500, 50000, 4280),
-                         ("Moogle Fiber", 5128000, 50000, 5980),
-                         ("Wireless electricity", 10890000, 100000, 12700),
-                         ("5G", 17786500, 100000, 20720),
-                         ("Li-Fi", 50120000, 225000, 57750),
-                         ("World Peace", 500000000, 750000, 583333)]
+        # upgrades = name{box}, type{priv}, cost amount{box}, unlock amount{priv}, income reward amount{box}
+        self.upgrades = [("Electricity", 1, 84000, 2400, 84),
+                         ("Water Supply", 1, 121500, 2400, 140),
+                         ("Plumbing", 1, 178000, 2400, 160),
+                         ("Wi-Fi", 1, 411000, 12000, 480),
+                         ("Metro", 1, 2095000, 50000, 2440),
+                         ("Santa Claus", 1, 3672500, 50000, 4280),
+                         ("Moogle Fiber", 1, 5128000, 50000, 5980),
+                         ("Wireless electricity", 1, 10890000, 100000, 12700),
+                         ("5G", 1, 17786500, 100000, 20720),
+                         ("Li-Fi", 1, 50120000, 225000, 57750),
+                         ("World Peace", 1, 500000000, 750000, 583333)]
         # money_bonus = (name{priv}, reward{box}, unlock amount{priv})
         self.money_bonuses = [(0, 4000, 1000),
                               (1, 15000, 2400),
@@ -173,7 +174,7 @@ class Game:
             for sprite in sprites:
                 sprite.kill()
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
-            self.notifications = self.news_statements = []
+            self.notifications = self.news_statements = self.unused_upgrades = []
         self.cloud = self.metro = self.pipe = self.fiber = self.power = self.watersupply = self.bar = \
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
@@ -291,6 +292,7 @@ class Game:
                 self.right_button_prices = d["right_button_prices"]
                 self.bar_amounts = [d["money"], d["incomereward"]]
                 self.used_upgrades = d["usedupgrades"]
+                self.unused_upgrades = d["unusedupgrades"]
                 self.used_bonuses = d["usedbonuses"]
                 self.used_notifications = d["usednotifications"]
                 self.taxes = d["taxes"]
@@ -305,6 +307,7 @@ class Game:
             d["incomereward"] = self.bar.incomereward
             d["difficulty"] = self.difficulty
             d["usedupgrades"] = game.left_drawer.used_upgrades
+            d["unusedupgrades"] = game.unused_upgrades
             d["usedbonuses"] = game.bar.used_bonuses
             d["usednotifications"] = game.bar.used_notifications
             d["taxes"] = self.taxes
@@ -313,6 +316,8 @@ class Game:
             pass
 
     def get_current_states(self):
+        for upgrade_button in self.left_drawer.upgrade_buttons:
+            self.unused_upgrades.append(upgrade_button.upgrade)
         for button in range(len(game.right_drawer.right_buttons)):
             self.right_button_amounts[button] = game.right_drawer.right_buttons[button].amount
             self.right_button_prices[button] = game.right_drawer.right_buttons[button].price
@@ -341,7 +346,7 @@ class Images:
                             self.load_image("Tax_hover_plus.png")]
         self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
                                self.load_image("Upgrade_available_hover.png"), self.load_image("Law_available.png"),
-                               self.load_image("Law_available_hover.png"), self.load_image("Law_unavailable.png")]
+                               self.load_image("Law_unavailable.png"), self.load_image("Law_available_hover.png")]
         self.bar = [self.load_image("Bar.png"), self.load_image("Bar_hover.png")]
         self.misc = [self.load_image("Cloud.png"), self.load_image("Breaking_news.png"),
                      self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
@@ -355,7 +360,8 @@ class Images:
             [self.load_image("House_31.png"), self.load_image("House_32.png"), self.load_image("House_33.png")],
             [self.load_image("House_41.png"), self.load_image("House_42.png"), self.load_image("House_43.png")],
             [self.load_image("House_51.png"), self.load_image("House_52.png"), self.load_image("House_53.png")]]
-        self.metro = [self.load_image("Metro.png"), self.load_image("Metro_train.png")]
+        self.metro = [self.load_image("Metro.png"), self.load_image("Metro_train.png"),
+                      self.load_image("Metro_terror.png")]
         self.menu = [[self.load_image("Urbancity_logo.png")],
                      [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
                       self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
@@ -501,7 +507,9 @@ class MetroTrain(pygame.sprite.DirtySprite):
         self.dirty = 2
         self.layer = layer
         self.xy = xy
-        self.image, rect = game.images.metro[1]
+        self.trainimage, rect = game.images.metro[1]
+        self.terrorimage = game.images.metro[2][0]
+        self.image = self.trainimage
         self.rect = pygame.Rect(xy[0], xy[1] - rect.h, rect.w, rect.h)
         self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
         self.speed = 3
@@ -521,20 +529,24 @@ class MetroTrain(pygame.sprite.DirtySprite):
                 self.counter = 0
                 if self.waiting == 1:
                     self.rect.x += self.speed
+                if self.waiting == 2:
+                    print(self.waiting, "check")
+                    if self.t_event:
+                        self.t_counter -= 1
+                        if self.t_counter < 0:
+                            self.t_counter = 0
+                            self.speed = 3
+                            self.image = self.trainimage
+                            self.t_event = False
+                    elif not self.t_override and not self.t_event:  # and randint(1, 10) == 6:  # todo
+                        for notification in game.bar.used_notifications:
+                            if notification[0] == self.t_notification:
+                                self.t_event = True
+                                self.speed = 8
+                                self.t_counter = randint(6, 20)
+                                game.left_drawer.news_obj.present(2)
+                                self.image = self.terrorimage
                 self.waiting = 0
-                if self.t_event:
-                    self.t_counter -= 1
-                    if self.t_counter < 0:
-                        self.t_counter = 0
-                        self.speed = 3
-                        self.t_event = False
-                elif not self.t_override and not self.t_event and randint(1, 10) == 10:
-                    for notification in game.bar.used_notifications:
-                        if notification[0] == self.t_notification:
-                            self.t_event = True
-                            self.speed = 8
-                            self.t_counter = randint(6, 20)
-                            game.left_drawer.news_obj.present(2)
 
     def update(self):
         if game.metro.drawnout:
@@ -956,7 +968,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         upgrade = first + second + third + fourth
         cost = round((60 * ((100 + (income + people_total) / 15) * 8.16 + income)) / 2)
         reward = round((cost / 1200) * 1.404)
-        upgrade_obj = (upgrade, cost, 0, reward)
+        upgrade_obj = (upgrade, 0, cost, 0, reward)
         if len(self.used_upgrades) == all_results + 11:
             return
         else:
@@ -1003,11 +1015,20 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             else:
                 button.process_location()
         if len(self.upgrade_buttons) < self.max_upgrade_buttons:
-            for upgrade in game.upgrades:
-                if game.bar.people_total >= upgrade[2]:
-                    self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
-                    game.upgrades.remove(upgrade)
+            if game.menu.visible:
+                for unused_upgrade in game.unused_upgrades:
+                    self.upgrade_buttons.append(UpgradeButton(unused_upgrade, len(self.upgrade_buttons)))
+                    game.unused_upgrades.remove(unused_upgrade)
+                    for upgrade in game.upgrades:
+                        if upgrade[0] == unused_upgrade[0]:
+                            game.upgrades.remove(upgrade)
                     break
+            else:
+                for upgrade in game.upgrades:
+                    if game.bar.people_total >= upgrade[3]:
+                        self.upgrade_buttons.append(UpgradeButton(upgrade, len(self.upgrade_buttons)))
+                        game.upgrades.remove(upgrade)
+                        break
             if self.auto_generate_laws:
                 self.create_new_law()
         elif not self.auto_generate_laws:
@@ -1137,8 +1158,9 @@ class TaxButton(pygame.sprite.DirtySprite):
 
 
 class UpgradeButton(pygame.sprite.DirtySprite):
-    def __init__(self, name, index):
+    def __init__(self, upgrade, index):
         pygame.sprite.DirtySprite.__init__(self)
+        print(upgrade)
         self.dirty = 1
         self.layer = 10
         self.layer_mod = self.layer + 1
@@ -1147,13 +1169,21 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         else:
             self.visible = False
         self.active = True
-        self.name = name
+        self.upgrade = upgrade
         self.index = index
+        self.name = self.upgrade[0]
+        multiplier = game.difficulty
+        if multiplier == 0:
+            multiplier = 0.5
+        self.cost = int(self.upgrade[2] * multiplier)
+        self.reward = self.upgrade[4]
         self.drawdata = [(255, 255, 255), 14, " €", " €/s"]
         self.image = self.old_image = self.rect = None
-        self.image_available, rect = game.images.upgrade_button[3]
-        self.image_unavailable = game.images.upgrade_button[5][0]
-        self.image_highlighted = game.images.upgrade_button[4][0]
+        rect = game.images.upgrade_button[0][1]
+        self.images = [[game.images.upgrade_button[3][0], game.images.upgrade_button[4][0],
+                        game.images.upgrade_button[5][0]],
+                       [game.images.upgrade_button[0][0], game.images.upgrade_button[1][0],
+                        game.images.upgrade_button[2][0]]][self.upgrade[1]]
         self.miny = 155 + 75 * index
         self.rect = pygame.Rect(-rect.w, self.miny, rect.w, rect.h)
         self.minx = 20 - self.rect.w
@@ -1162,19 +1192,12 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.animatemove = False
         self.animateout = False
         self.animatecounter = 150
-        for upgrade in game.upgrades:
-            if upgrade[0] == self.name:
-                multiplier = game.difficulty
-                if multiplier == 0:
-                    multiplier = 0.5
-                self.cost = int(upgrade[1] * multiplier)
-                self.reward = upgrade[3]
         self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.name, self.rect.topleft,
-                                     (10, 7), (192, 20), self.drawdata, False)
+                                     (12, 7), (252, 20), self.drawdata, False)
         self.cost_obj = RenderObject(self.layer_mod, self.visible, True, self.cost, self.rect.topleft,
-                                     (12, 35), (98, 20), self.drawdata, self.drawdata[2])
+                                     (12, 35), (118, 20), self.drawdata, self.drawdata[2])
         self.reward_obj = RenderObject(self.layer_mod, self.visible, True, self.reward, self.rect.topleft,
-                                       (117, 35), (87, 20), self.drawdata, self.drawdata[3])
+                                       (138, 35), (129, 20), self.drawdata, self.drawdata[3])
         game.add_new_renderable(self, self.layer)
         self.update()
 
@@ -1191,11 +1214,9 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 self.animatemove = False
         elif self.animatein:
             self.dirty = 1
-            if game.left_drawer.startupcounter > 0:
-                if self.rect.x < self.minx:
-                    self.rect.x += 2
-                else:
-                    self.animatein = False
+            if game.menu.visible:
+                self.rect.x = self.minx
+                self.animatein = False
             else:
                 if self.rect.x < self.maxx:
                     self.rect.x += 10
@@ -1213,17 +1234,17 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 self.kill()
         if game.bar.money >= self.cost:
             if self.rect.collidepoint(pygame.mouse.get_pos()):
-                self.image = self.image_highlighted
+                self.image = self.images[2]
             else:
-                self.image = self.image_available
+                self.image = self.images[0]
         else:
             breakpoint = self.rect.w / 100 * game.bar.calculate_percentage(self.cost)
             # todo optimize, with 2 layers?
             # noinspection PyArgumentList
             self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA).convert_alpha()
-            self.image.blit(self.image_available, pygame.Rect(0, 0, self.rect.w + breakpoint, self.rect.h),
+            self.image.blit(self.images[0], pygame.Rect(0, 0, self.rect.w + breakpoint, self.rect.h),
                             pygame.Rect(0, 0, breakpoint, self.rect.h))
-            self.image.blit(self.image_unavailable, pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
+            self.image.blit(self.images[1], pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
                             pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h))
         if self.old_image != self.image:
             self.old_image = self.image
@@ -2098,15 +2119,13 @@ class Bar(pygame.sprite.DirtySprite):
 
 
 class RenderObject(pygame.sprite.DirtySprite):
-    def __init__(self, layer, visible, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, end):
-        # layer, nähtavus, keskel, tekst/pilt,
-        # suure pildi xy, kasti xy pildi suhtes, kasti wh, teksti omadused, teksti lõpp
+    def __init__(self, layer, visible, middle, obj, main_obj_xy, inner_relative_xy, inner_obj_wh, drawdata, txt_end):
         pygame.sprite.DirtySprite.__init__(self)
         self.dirty = 1
         self.layer = layer
         self.visible = self.global_visible = visible
         self.middle = middle
-        self.end = end
+        self.txt_end = txt_end
         self.drawdata = drawdata
         if drawdata != 0:
             self.txt_font = game.fonts.load_font("GOTHICB.TTF", drawdata[1])
@@ -2123,8 +2142,8 @@ class RenderObject(pygame.sprite.DirtySprite):
 
     def process_integer(self, obj):
         obj = str(format(obj, ",d"))
-        if self.end:
-            obj += self.end
+        if self.txt_end:
+            obj += self.txt_end
         self.process_string(obj)
 
     def process_float(self, obj):
