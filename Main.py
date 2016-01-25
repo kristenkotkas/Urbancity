@@ -30,7 +30,7 @@ class Game:
 
     def init_loadconfig(self, difficulty):
         self.taxes = [0, 0, 0]
-        self.used_upgrades = []
+        self.used_upgrades = set()
         self.used_bonuses = []
         self.used_notifications = []
         # upgrades = name{box}, cost amount{box}, unlock amount{priv}, income reward amount{box}
@@ -919,8 +919,8 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
         self.tax_buttons = []
         self.upgrade_buttons = []
+        self.max_upgrade_buttons = round((game.resolution[1] - 155) / 75)
         self.used_upgrades = used_upgrades
-        self.unlocked_upgrades = []
         if len(self.used_upgrades) > 0:
             game.tutorial_mode = False
         for name in self.used_upgrades:
@@ -929,6 +929,42 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                     game.upgrades.remove(upgrade)
         self.news_obj = News(self.layer + 2)
         game.add_new_renderable(self, self.layer)
+
+    def create_law(self, income, people_total):
+        order = {"Ban", "Allow", "Open", "Close"}
+        f_quantity = {" some", " all", " many", " most of the"}
+        f_adjective = {" weird", " ugly", " old", " new", " self-made", " damaged", " lovely"}
+        f_noun = {" cars", " guns", " books", " boats"}
+        s_order = {"Open", "Close"}
+        s_quantity = {" some", " all", " many"}
+        s_adjective = {" ugly", " old", " new", " fancy"}
+        s_noun = {" hospitals", " schools", " factories", " cinemas", " banks", " supermarkets",
+                  " libraries", " cafes", " theaters", " gas stations", " parks", " shops"}
+        all_results = (len(order - s_order) * len(f_quantity) * len(f_adjective) * len(f_noun)) + \
+                      (len(s_order) * len(s_quantity) * len(s_adjective) * len(s_noun))
+        first = sample(order, 1)[0]
+        if first not in s_order:
+            second = sample(f_quantity, 1)[0]
+            third = sample(f_adjective, 1)[0]
+            fourth = sample(f_noun, 1)[0]
+        else:
+            second = sample(s_quantity, 1)[0]
+            third = sample(s_adjective, 1)[0]
+            fourth = sample(s_noun, 1)[0]
+        upgrade = first + second + third + fourth
+        cost = round((60 * ((100 + (income + people_total) / 15) * 8.16 + income)) / 2)
+        reward = round((cost / 1200) * 1.404)
+        upgrade_obj = (upgrade, cost, 0, reward)
+        if len(self.used_upgrades) == all_results + 11:
+            return
+        else:
+            if upgrade not in self.used_upgrades:
+                if len(upgrade) <= 27:
+                    return upgrade_obj
+                else:
+                    return self.create_law(income, people_total)
+            else:
+                return self.create_law(income, people_total)
 
     @staticmethod
     def init_unlock(unlockname):  # todo add all unlockable buildings
@@ -955,16 +991,19 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             self.startupcounter -= 1
         for button in self.upgrade_buttons:
             if not button.active:
-                self.used_upgrades.append(button.name)
+                self.used_upgrades.add(button.name)
                 self.upgrade_buttons.remove(button)
             else:
                 button.process_location()
         for upgrade in game.upgrades:
             if game.bar.people_total >= upgrade[2]:
                 self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
-                self.unlocked_upgrades.append(upgrade)
                 game.upgrades.remove(upgrade)
                 break
+        if len(self.upgrade_buttons) < self.max_upgrade_buttons:
+            new_law = self.create_law(game.bar.income, game.bar.people_total)
+            if new_law is not None:
+                game.upgrades.append(new_law)
         if game.tutorial_mode:
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
                 if not game.tutorial.visible:

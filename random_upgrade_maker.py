@@ -1,6 +1,8 @@
 import random
 
 used = set()
+
+
 def name(income, people_total):
     order = {"Ban", "Allow", "Open", "Close"}
     f_quantity = {" some", " all", " many", " most of the"}
@@ -10,12 +12,12 @@ def name(income, people_total):
     s_order = {"Open", "Close"}
     s_quantity = {" some", " all", " many"}
     s_adjective = {" ugly", " old", " new", " fancy"}
-    s_noun = {" hospitals", " schools", " factories", " cinemas", " banks", " supermarkets"
-                , " libraries", " cafes", " theaters", " gas stations", " parks", " shops"}
+    s_noun = {" hospitals", " schools", " factories", " cinemas", " banks", " supermarkets",
+              " libraries", " cafes", " theaters", " gas stations", " parks", " shops"}
 
-    #mitu erinevat seadust võimalik
-    all_results = len(order-s_order)*len(f_quantity)*len(f_adjective)*len(f_noun)+\
-                  len(s_order)*len(s_quantity)*len(s_adjective)*len(s_noun)
+    # mitu erinevat seadust võimalik
+    all_results = len(order - s_order) * len(f_quantity) * len(f_adjective) * len(f_noun) + \
+                  len(s_order) * len(s_quantity) * len(s_adjective) * len(s_noun)
 
     first = random.sample(order, 1)[0]
 
@@ -31,7 +33,7 @@ def name(income, people_total):
 
     upgrade = first + second + third + fourth
 
-    cost = round((60 * ((100 + (income + people_total) / 15) * 8.16 + income))/2)
+    cost = round((60 * ((100 + (income + people_total) / 15) * 8.16 + income)) / 2)
     reward = round((cost / 1200) * 1.404)
     ret_upgrade = (upgrade, cost, 0, reward)
 
