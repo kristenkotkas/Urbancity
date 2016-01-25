@@ -104,7 +104,7 @@ class Game:
             ("You have reached to the top. Status update: Urbancity.", 750000),
             ("With great power comes great responsibility.", self.upgrades[0]),
             ("How did we manage to live without water before?", self.upgrades[1]),
-            ("Does anybody know a good plumber? Couse I really need one from now on?", self.upgrades[2]),
+            ("Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2]),
             ("Faster Internet means happier people.", self.upgrades[3]),
             ("Metro transports people faster through city.", self.upgrades[4]),
             ("Santa is real! I told you Santa was real!", self.upgrades[5]),
@@ -995,12 +995,12 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                 self.upgrade_buttons.remove(button)
             else:
                 button.process_location()
-        for upgrade in game.upgrades:
-            if game.bar.people_total >= upgrade[2]:
-                self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
-                game.upgrades.remove(upgrade)
-                break
         if len(self.upgrade_buttons) < self.max_upgrade_buttons:
+            for upgrade in game.upgrades:
+                if game.bar.people_total >= upgrade[2]:
+                    self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
+                    game.upgrades.remove(upgrade)
+                    break
             new_law = self.create_law(game.bar.income + game.bar.calculate_incomereward(), game.bar.people_total)
             if new_law is not None:
                 game.upgrades.append(new_law)
@@ -2018,7 +2018,7 @@ class Bar(pygame.sprite.DirtySprite):
 
     def process_income(self):
         self.get_income("current")
-        self.money += self.income / 100
+        self.money += (self.income + self.calculate_incomereward()) / 100
 
     def calculate_manual_income(self):
         if len(self.income_manual_data) > 0:
