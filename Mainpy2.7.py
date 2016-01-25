@@ -36,17 +36,17 @@ class Game(object):
         self.used_bonuses = []
         self.used_notifications = []
         # upgrades = name{box}, cost amount{box}, unlock amount{priv}, income reward amount{box}
-        self.upgrades = [(u"Electricity", 84000, 2400, 84),
-                         (u"Water Supply", 121500, 2400, 140),
-                         (u"Plumbing", 178000, 2400, 160),
-                         (u"Wi-Fi", 411000, 12000, 480),
-                         (u"Metro", 2095000, 50000, 2440),
-                         (u"Santa Claus", 3672500, 50000, 4280),
-                         (u"Moogle Fiber", 5128000, 50000, 5980),
-                         (u"Wireless electricity", 10890000, 100000, 12700),
-                         (u"5G", 17786500, 100000, 20720),
-                         (u"Li-Fi", 50120000, 225000, 57750),
-                         (u"World Peace", 500000000, 750000, 583333)]
+        self.upgrades = [("Electricity", 84000, 2400, 84),
+                         ("Water Supply", 121500, 2400, 140),
+                         ("Plumbing", 178000, 2400, 160),
+                         ("Wi-Fi", 411000, 12000, 480),
+                         ("Metro", 2095000, 50000, 2440),
+                         ("Santa Claus", 3672500, 50000, 4280),
+                         ("Moogle Fiber", 5128000, 50000, 5980),
+                         ("Wireless electricity", 10890000, 100000, 12700),
+                         ("5G", 17786500, 100000, 20720),
+                         ("Li-Fi", 50120000, 225000, 57750),
+                         ("World Peace", 500000000, 750000, 583333)]
         # money_bonus = (name{priv}, reward{box}, unlock amount{priv})
         self.money_bonuses = [(0, 4000, 1000),
                               (1, 15000, 2400),
@@ -91,40 +91,40 @@ class Game(object):
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
         # notifications = (name{box}, unlock{priv})
         self.notifications = [
-            (u"First people are moving in.", 10),
-            (u"Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2]),
-            (u"Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2]),
-            (u"You are one step closer to Urbancity. Status update: Town.", 2400),
-            (u"Your city is growing. Luxury unlocked.", self.houses_properties[3][2]),
-            (u"You are one step closer to Urbancity. Status update: City.", 12000),
-            (u"Finally a skyscraper, let the world domination begin. Skyscrapers unlocked.",
+            ("First people are moving in.", 10),
+            ("Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2]),
+            ("Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2]),
+            ("You are one step closer to Urbancity. Status update: Town.", 2400),
+            ("Your city is growing. Luxury unlocked.", self.houses_properties[3][2]),
+            ("You are one step closer to Urbancity. Status update: City.", 12000),
+            ("Finally a skyscraper, let the world domination begin. Skyscrapers unlocked.",
              self.houses_properties[4][2]),
-            (u"You are one step closer to Urbancity. Status update: Urban area.", 42000),
-            (u"You are one step closer to Urbancity. Status update: Metropolis.", 100000),
-            (u"Only few steps to Urbancity. Status update: Megacity.", 225000),
-            (u"Only one step left to Urbancity. Status update: Megapolis.", 400000),
-            (u"You have reached to the top. Status update: Urbancity.", 750000),
-            (u"With great power comes great responsibility.", self.upgrades[0]),
-            (u"How did we manage to live without water before?", self.upgrades[1]),
-            (u"Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2]),
-            (u"Faster Internet means happier people.", self.upgrades[3]),
-            (u"Metro transports people faster through city.", self.upgrades[4]),
-            (u"Santa is real! I told you Santa was real!", self.upgrades[5]),
-            (u"Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6]),
-            (u"What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7]),
-            (u"Looks like we are the first city to use 5G technology.", self.upgrades[8]),
-            (u"Now you can surf at the speed of light.", self.upgrades[9]),
-            (u"Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000),
-            (u"Population update. You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000),
-            (u"Population update. You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000),
-            (u"Population update. You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000),
-            (u"Population update. You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000),
-            (u"Population update. You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000),
-            (u"Population update. You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000),
-            (u"Population update. You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000)]
-        self.news_statements = [u"Terrorists have blown up the city's money reserves!".upper(),
-                                u"Santa Claus has been spotted by the local bank!".upper(),
-                                u"A group of terrorists have hijacked the metro train!".upper()]
+            ("You are one step closer to Urbancity. Status update: Urban area.", 42000),
+            ("You are one step closer to Urbancity. Status update: Metropolis.", 100000),
+            ("Only few steps to Urbancity. Status update: Megacity.", 225000),
+            ("Only one step left to Urbancity. Status update: Megapolis.", 400000),
+            ("You have reached to the top. Status update: Urbancity.", 750000),
+            ("With great power comes great responsibility.", self.upgrades[0]),
+            ("How did we manage to live without water before?", self.upgrades[1]),
+            ("Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2]),
+            ("Faster Internet means happier people.", self.upgrades[3]),
+            ("Metro transports people faster through city.", self.upgrades[4]),
+            ("Santa is real! I told you Santa was real!", self.upgrades[5]),
+            ("Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6]),
+            ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7]),
+            ("Looks like we are the first city to use 5G technology.", self.upgrades[8]),
+            ("Now you can surf at the speed of light.", self.upgrades[9]),
+            ("Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000),
+            ("Population update. You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000),
+            ("Population update. You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000),
+            ("Population update. You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000),
+            ("Population update. You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000),
+            ("Population update. You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000),
+            ("Population update. You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000),
+            ("Population update. You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000)]
+        self.news_statements = ["Terrorists have blown up the city's money reserves!".upper(),
+                                "Santa Claus has been spotted by the local bank!".upper(),
+                                "A group of terrorists have hijacked the metro train!".upper()]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -137,10 +137,10 @@ class Game(object):
         self.cursor = Cursor()
         self.quick_menu = QuickMenu()
         self.menu = Menu()
-        self.init_load(u"load_state")
+        self.init_load("load_state")
 
     def init_new(self):
-        self.init_load(u"new_state")
+        self.init_load("new_state")
         game.toggle_interactables()
         if self.tutorial_mode:
             game.tutorial.toggle()
@@ -148,7 +148,7 @@ class Game(object):
     def init_load(self, state):
         self.init_purge()
         self.init_loadconfig(self.difficulty)
-        self.filesystem_do(state, self.difficulty)
+        # self.filesystem_do(state, self.difficulty)
         self.cloud = Cloud(10)
         self.left_drawer = LeftDrawer(self.used_upgrades)
         self.right_drawer = RightDrawer()
@@ -191,8 +191,8 @@ class Game(object):
             dirtyrects = self.allsprites.draw(self.screen)
             pygame.display.update(dirtyrects)
             pygame.display.set_caption(
-                u"FPS: " + unicode(round(self.clock.get_fps(), 2)) + u", Redrawing: " + unicode(len(dirtyrects)))
-        self.filesystem_do(u"save_state", self.difficulty)
+                "FPS: " + str(round(self.clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
+        self.filesystem_do("save_state", self.difficulty)
         pygame.time.wait(50)
         pygame.quit()
 
@@ -245,11 +245,11 @@ class Game(object):
                 game.right_drawer.tap_pad_click_check()
                 if game.quick_menu.mouse_click_check() or game.quick_menu.sounds_obj.mouse_click_check() or \
                         game.tutorial.mouse_click_check() or game.bar.mouse_click_check():
-                    self.sounds.play(u"click")
+                    self.sounds.play("click")
                 for button in game.right_drawer.right_buttons + game.left_drawer.tax_buttons + \
                         game.left_drawer.upgrade_buttons + game.menu.buttons:
                     if button.mouse_click_check():
-                        self.sounds.play(u"click")
+                        self.sounds.play("click")
                         break
 
     def toggle_interactables(self):
@@ -282,36 +282,36 @@ class Game(object):
                 return mylayermod
 
     def filesystem_do(self, action, savetype):
-        file = os.path.join(main_dir, u'data', u"save_game" + unicode(savetype))
-        if action == u"load_state":
+        file = os.path.join(main_dir, 'data', "save_game" + str(savetype))
+        if action == "load_state":
             d = shelve.open(file)
             keylist = d.keys()
             if len(keylist) != 0:
-                self.difficulty = d[u"difficulty"]
-                self.houses_states = d[u"houses_states"]
-                self.right_button_amounts = d[u"right_button_amounts"]
-                self.right_button_prices = d[u"right_button_prices"]
-                self.bar_amounts = [d[u"money"], d[u"incomereward"]]
-                self.used_upgrades = d[u"usedupgrades"]
-                self.used_bonuses = d[u"usedbonuses"]
-                self.used_notifications = d[u"usednotifications"]
-                self.taxes = d[u"taxes"]
+                self.difficulty = d["difficulty"]
+                self.houses_states = d["houses_states"]
+                self.right_button_amounts = d["right_button_amounts"]
+                self.right_button_prices = d["right_button_prices"]
+                self.bar_amounts = [d["money"], d["incomereward"]]
+                self.used_upgrades = d["usedupgrades"]
+                self.used_bonuses = d["usedbonuses"]
+                self.used_notifications = d["usednotifications"]
+                self.taxes = d["taxes"]
             d.close()
-        elif action == u"save_state":
+        elif action == "save_state":
             self.get_current_states()
             d = shelve.open(file)
-            d[u"houses_states"] = self.houses_states
-            d[u"right_button_amounts"] = self.right_button_amounts
-            d[u"right_button_prices"] = self.right_button_prices
-            d[u"money"] = self.bar.money
-            d[u"incomereward"] = self.bar.incomereward
-            d[u"difficulty"] = self.difficulty
-            d[u"usedupgrades"] = game.left_drawer.used_upgrades
-            d[u"usedbonuses"] = game.bar.used_bonuses
-            d[u"usednotifications"] = game.bar.used_notifications
-            d[u"taxes"] = self.taxes
+            d["houses_states"] = self.houses_states
+            d["right_button_amounts"] = self.right_button_amounts
+            d["right_button_prices"] = self.right_button_prices
+            d["money"] = self.bar.money
+            d["incomereward"] = self.bar.incomereward
+            d["difficulty"] = self.difficulty
+            d["usedupgrades"] = game.left_drawer.used_upgrades
+            d["usedbonuses"] = game.bar.used_bonuses
+            d["usednotifications"] = game.bar.used_notifications
+            d["taxes"] = self.taxes
             d.close()
-        elif action == u"new_state":
+        elif action == "new_state":
             pass
 
     def get_current_states(self):
@@ -331,84 +331,84 @@ class Game(object):
 
 class Images(object):
     def __init__(self):
-        self.background = self.load_image(u"Background.png")
-        self.cursor = self.load_image(u"Cursor.png")
-        self.right_button = [self.load_image(u"Button_available.png"), self.load_image(u"Button_available_hover.png"),
-                             self.load_image(u"Button_unavailable.png")]
-        self.right_button_logos = [self.load_image(u"House_1_logo.png"), self.load_image(u"House_2_logo.png"),
-                                   self.load_image(u"House_3_logo.png"), self.load_image(u"House_4_logo.png"),
-                                   self.load_image(u"House_5_logo.png")]
-        self.right_drawer = [self.load_image(u"Tap_pad.png")]
-        self.left_button = [self.load_image(u"Tax.png"), self.load_image(u"Tax_hover_minus.png"),
-                            self.load_image(u"Tax_hover_plus.png")]
-        self.upgrade_button = [self.load_image(u"Upgrade_available.png"), self.load_image(u"Upgrade_unavailable.png"),
-                               self.load_image(u"Upgrade_available_hover.png")]
-        self.bar = [self.load_image(u"Bar.png"), self.load_image(u"Bar_hover.png")]
-        self.misc = [self.load_image(u"Cloud.png"), self.load_image(u"Breaking_news.png"),
-                     self.load_image(u"Pipe.png"), self.load_image(u"Google_Fiber.png"),
-                     self.load_image(u"Electricity.png"), self.load_image(u"Water.png"),
-                     self.load_image(u"Wifi_tower.png"), self.load_image(u"5G_tower.png"),
-                     self.load_image(u"Lifi_tower.png")]
+        self.background = self.load_image("Background.png")
+        self.cursor = self.load_image("Cursor.png")
+        self.right_button = [self.load_image("Button_available.png"), self.load_image("Button_available_hover.png"),
+                             self.load_image("Button_unavailable.png")]
+        self.right_button_logos = [self.load_image("House_1_logo.png"), self.load_image("House_2_logo.png"),
+                                   self.load_image("House_3_logo.png"), self.load_image("House_4_logo.png"),
+                                   self.load_image("House_5_logo.png")]
+        self.right_drawer = [self.load_image("Tap_pad.png")]
+        self.left_button = [self.load_image("Tax.png"), self.load_image("Tax_hover_minus.png"),
+                            self.load_image("Tax_hover_plus.png")]
+        self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
+                               self.load_image("Upgrade_available_hover.png")]
+        self.bar = [self.load_image("Bar.png"), self.load_image("Bar_hover.png")]
+        self.misc = [self.load_image("Cloud.png"), self.load_image("Breaking_news.png"),
+                     self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
+                     self.load_image("Electricity.png"), self.load_image("Water.png"),
+                     self.load_image("Wifi_tower.png"), self.load_image("5G_tower.png"),
+                     self.load_image("Lifi_tower.png")]
         self.houses = [
-            [self.load_image(u"House_11.png"), self.load_image(u"House_12.png"), self.load_image(u"House_13.png"),
-             self.load_image(u"House_14.png")],
-            [self.load_image(u"House_21.png"), self.load_image(u"House_22.png"), self.load_image(u"House_23.png")],
-            [self.load_image(u"House_31.png"), self.load_image(u"House_32.png"), self.load_image(u"House_33.png")],
-            [self.load_image(u"House_41.png"), self.load_image(u"House_42.png"), self.load_image(u"House_43.png")],
-            [self.load_image(u"House_51.png"), self.load_image(u"House_52.png"), self.load_image(u"House_53.png")]]
-        self.metro = [self.load_image(u"Metro.png"), self.load_image(u"Metro_train.png")]
-        self.menu = [[self.load_image(u"Urbancity_logo.png")],
-                     [self.load_image(u"Menu_big_button.png"), self.load_image(u"Menu_big_button_hover.png"),
-                      self.load_image(u"Menu_small_button.png"), self.load_image(u"Menu_small_button_hover.png")]]
-        self.quick_menu = [self.load_image(u"Quick_menu.png"), self.load_image(u"Quick_menu_highlighted.png"),
-                           self.load_image(u"Quick_menu_sounds.png"), self.load_image(u"Quick_menu_sounds_hover.png"),
-                           self.load_image(u"Quick_menu_sounds_check.png")]
-        self.tutorial = [self.load_image(u"Tutorial_space.png"), self.load_image(u"Tutorial_bar.png"),
-                         self.load_image(u"Tutorial_right_button.png"), self.load_image(u"Tutorial_tax.png"),
-                         self.load_image(u"Tutorial_upgrade.png"), self.load_image(u"Tutorial_buttons.png"),
-                         self.load_image(u"Tutorial_buttons_hover.png")]
+            [self.load_image("House_11.png"), self.load_image("House_12.png"), self.load_image("House_13.png"),
+             self.load_image("House_14.png")],
+            [self.load_image("House_21.png"), self.load_image("House_22.png"), self.load_image("House_23.png")],
+            [self.load_image("House_31.png"), self.load_image("House_32.png"), self.load_image("House_33.png")],
+            [self.load_image("House_41.png"), self.load_image("House_42.png"), self.load_image("House_43.png")],
+            [self.load_image("House_51.png"), self.load_image("House_52.png"), self.load_image("House_53.png")]]
+        self.metro = [self.load_image("Metro.png"), self.load_image("Metro_train.png")]
+        self.menu = [[self.load_image("Urbancity_logo.png")],
+                     [self.load_image("Menu_big_button.png"), self.load_image("Menu_big_button_hover.png"),
+                      self.load_image("Menu_small_button.png"), self.load_image("Menu_small_button_hover.png")]]
+        self.quick_menu = [self.load_image("Quick_menu.png"), self.load_image("Quick_menu_highlighted.png"),
+                           self.load_image("Quick_menu_sounds.png"), self.load_image("Quick_menu_sounds_hover.png"),
+                           self.load_image("Quick_menu_sounds_check.png")]
+        self.tutorial = [self.load_image("Tutorial_space.png"), self.load_image("Tutorial_bar.png"),
+                         self.load_image("Tutorial_right_button.png"), self.load_image("Tutorial_tax.png"),
+                         self.load_image("Tutorial_upgrade.png"), self.load_image("Tutorial_buttons.png"),
+                         self.load_image("Tutorial_buttons_hover.png")]
 
     @staticmethod
     def load_image(file):
-        file = os.path.join(main_dir, u'data', file)
+        file = os.path.join(main_dir, 'data', file)
         try:
             loaded_image = pygame.image.load(file).convert_alpha()
         except:
-            raise SystemExit(u"Could not load image " + file + u", " + pygame.get_error())
+            raise SystemExit("Could not load image " + file + ", " + pygame.get_error())
         return loaded_image, loaded_image.get_rect()
 
 
 class Fonts(object):
     @staticmethod
     def load_font(file, size):
-        file = os.path.join(main_dir, u'data', file)
+        file = os.path.join(main_dir, 'data', file)
         try:
             loaded_font = pygame.font.Font(file, size)
         except:
-            raise SystemExit(u"Could not load font " + file + u", " + pygame.get_error())
+            raise SystemExit("Could not load font " + file + ", " + pygame.get_error())
         return loaded_font
 
 
 class Sounds(object):
     def __init__(self):
         # Sounds.load_sound("house_lo.ogg", 0)
-        self.click = self.load_sound(u"Mouse.ogg", 1)
-        self.notification = self.load_sound(u"Notification.ogg", 1)
+        self.click = self.load_sound("Mouse.ogg", 1)
+        self.notification = self.load_sound("Notification.ogg", 1)
         # self.unlock = self.load_sound("Unlock.ogg", 1)
-        self.space = [self.load_sound(u"space_1.ogg", 1), self.load_sound(u"space_2.ogg", 1),
-                      self.load_sound(u"space_3.ogg", 1), self.load_sound(u"space_4.ogg", 1),
-                      self.load_sound(u"space_5.ogg", 1), self.load_sound(u"space_6.ogg", 1),
-                      self.load_sound(u"space_8.ogg", 1), self.load_sound(u"space_9.ogg", 1),
-                      self.load_sound(u"space_10.ogg", 1), self.load_sound(u"space_11.ogg", 1)]
+        self.space = [self.load_sound("space_1.ogg", 1), self.load_sound("space_2.ogg", 1),
+                      self.load_sound("space_3.ogg", 1), self.load_sound("space_4.ogg", 1),
+                      self.load_sound("space_5.ogg", 1), self.load_sound("space_6.ogg", 1),
+                      self.load_sound("space_8.ogg", 1), self.load_sound("space_9.ogg", 1),
+                      self.load_sound("space_10.ogg", 1), self.load_sound("space_11.ogg", 1)]
 
     def play(self, sound):
-        if sound == u"space" and game.quick_menu.sounds_obj.checked_objs_visible[0]:
+        if sound == "space" and game.quick_menu.sounds_obj.checked_objs_visible[0]:
             self.space[randint(1, 9)].play()
-        elif sound == u"click" and game.quick_menu.sounds_obj.checked_objs_visible[1]:
+        elif sound == "click" and game.quick_menu.sounds_obj.checked_objs_visible[1]:
             self.click.play()
-        elif sound == u"notification" and game.quick_menu.sounds_obj.checked_objs_visible[2]:
+        elif sound == "notification" and game.quick_menu.sounds_obj.checked_objs_visible[2]:
             self.notification.play()
-        elif sound == u"unlock" and game.quick_menu.sounds_obj.checked_objs_visible[3]:
+        elif sound == "unlock" and game.quick_menu.sounds_obj.checked_objs_visible[3]:
             # self.unlock.play()  # todo add
             pass
 
@@ -423,7 +423,7 @@ class Sounds(object):
 
     @staticmethod
     def load_sound(file, soundtype):
-        file = os.path.join(main_dir, u'data\\sounds', file)
+        file = os.path.join(main_dir, 'data\\sounds', file)
         if soundtype == 0:
             pygame.mixer.music.load(file)
             # pygame.mixer.music.play(-1)
@@ -433,7 +433,7 @@ class Sounds(object):
                 loaded_sound = pygame.mixer.Sound(file)
                 loaded_sound.set_volume(0.5)
             except pygame.error:
-                raise SystemExit(u"Could not load sound " + file + u", " + pygame.get_error())
+                raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
             return loaded_sound
 
 
@@ -511,7 +511,7 @@ class MetroTrain(pygame.sprite.DirtySprite):
         self.counter = 0
         self.t_override = False
         self.t_event = False
-        self.t_notification = u"You have reached to the top. Status update: Urbancity."
+        self.t_notification = "You have reached to the top. Status update: Urbancity."
         self.t_counter = 0
         game.add_new_renderable(self, self.layer)
 
@@ -919,7 +919,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.auto_generate_laws = False
         self.rect = pygame.Rect(0, 0, 280, game.resolution[1])
         self.startupcounter = 0
-        self.taxnames = [u"Beard Tax", u"Luxury Tax", u"Window Tax"]
+        self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
         self.tax_buttons = []
         self.upgrade_buttons = []
         self.max_upgrade_buttons = round((game.resolution[1] - 155) / 75)
@@ -934,15 +934,15 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def create_random_law(self, income, people_total):
-        order = set([u"Ban", u"Allow", u"Open", u"Close"])
-        f_quantity = set([u" some", u" all", u" many", u" most of the"])
-        f_adjective = set([u" weird", u" ugly", u" old", u" new", u" self-made", u" damaged", u" lovely"])
-        f_noun = set([u" cars", u" guns", u" books", u" boats"])
-        s_order = set([u"Open", u"Close"])
-        s_quantity = set([u" some", u" all", u" many"])
-        s_adjective = set([u" ugly", u" old", u" new", u" fancy"])
-        s_noun = set([u" hospitals", u" schools", u" factories", u" cinemas", u" banks", u" supermarkets",
-                  u" libraries", u" cafes", u" theaters", u" gas stations", u" parks", u" shops"])
+        order = {"Ban", "Allow", "Open", "Close"}
+        f_quantity = {" some", " all", " many", " most of the"}
+        f_adjective = {" weird", " ugly", " old", " new", " self-made", " damaged", " lovely"}
+        f_noun = {" cars", " guns", " books", " boats"}
+        s_order = {"Open", "Close"}
+        s_quantity = {" some", " all", " many"}
+        s_adjective = {" ugly", " old", " new", " fancy"}
+        s_noun = {" hospitals", " schools", " factories", " cinemas", " banks", " supermarkets", " libraries",
+                  " cafes", " theaters", " gas stations", " parks", " shops"}
         all_results = (len(order - s_order) * len(f_quantity) * len(f_adjective) * len(f_noun)) + \
                       (len(s_order) * len(s_quantity) * len(s_adjective) * len(s_noun))
         first = sample(order, 1)[0]
@@ -976,22 +976,22 @@ class LeftDrawer(pygame.sprite.DirtySprite):
 
     @staticmethod
     def init_unlock(unlockname):  # todo add all unlockable buildings
-        if unlockname == u"Metro":
+        if unlockname == "Metro":
             game.metro = Metro()
-        elif unlockname == u"Plumbing":
+        elif unlockname == "Plumbing":
             game.pipe = Pipe()
-        elif unlockname == u"Moogle Fiber":
+        elif unlockname == "Moogle Fiber":
             game.fiber = Fiber()
-        elif unlockname == u"Electricity":
+        elif unlockname == "Electricity":
             game.power = Power()
             game.power.shuffle_layer()
-        elif unlockname == u"Water Supply":
+        elif unlockname == "Water Supply":
             game.watersupply = Watersupply()
-        elif unlockname == u"Wi-Fi":
+        elif unlockname == "Wi-Fi":
             game.wifi_tower = WifiTower()
-        elif unlockname == u"5G":
+        elif unlockname == "5G":
             game.fiveg_tower = FiveGTower()
-        elif unlockname == u"Li-Fi":
+        elif unlockname == "Li-Fi":
             game.lifi_tower = LifiTower()
 
     def process_upgrades(self):
@@ -1069,14 +1069,14 @@ class TaxButton(pygame.sprite.DirtySprite):
         self.animatecounter = 0
         self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.taxtxt, self.rect.topleft,
                                      (10, 7), (132, 20), self.drawdata, False)
-        self.tax_obj = RenderObject(self.layer_mod, self.visible, True, unicode(game.taxes[self.sizetype]) + u"%",
+        self.tax_obj = RenderObject(self.layer_mod, self.visible, True, str(game.taxes[self.sizetype]) + "%",
                                     self.rect.topleft, (149, 7), (52, 20), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
         self.check_layer_change()
         self.name_obj.process_update(self.visible, self.layer_mod, self.taxtxt, self.rect.topleft)
-        self.tax_obj.process_update(self.visible, self.layer_mod, unicode(game.taxes[self.sizetype]) + u"%",
+        self.tax_obj.process_update(self.visible, self.layer_mod, str(game.taxes[self.sizetype]) + "%",
                                     self.rect.topleft)
         if self.animatein:
             if self.rect.x < self.minx - 20:
@@ -1087,9 +1087,9 @@ class TaxButton(pygame.sprite.DirtySprite):
                 self.animatein = False
                 self.dirty = 1
         is_highlighted = self.mouse_hover_check()
-        if is_highlighted == u"minus":
+        if is_highlighted == "minus":
             self.image = self.image_minus
-        elif is_highlighted == u"plus":
+        elif is_highlighted == "plus":
             self.image = self.image_plus
         else:
             self.image = self.image_regular
@@ -1117,9 +1117,9 @@ class TaxButton(pygame.sprite.DirtySprite):
         for rect in self.clickable_rects:
             if rect.collidepoint(pygame.mouse.get_pos()):
                 if self.clickable_rects.index(rect) == 0:
-                    return u"minus"
+                    return "minus"
                 else:
-                    return u"plus"
+                    return "plus"
 
     def slide(self, amount):
         if not self.animatein:
@@ -1150,7 +1150,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.active = True
         self.name = name
         self.index = index
-        self.drawdata = [(255, 255, 255), 14, u" €", u" €/s"]
+        self.drawdata = [(255, 255, 255), 14, " €", " €/s"]
         self.image = self.old_image = self.rect = None
         self.image_available, rect = game.images.upgrade_button[0]
         self.image_unavailable = game.images.upgrade_button[1][0]
@@ -1278,7 +1278,7 @@ class News(pygame.sprite.DirtySprite):
         self.drawing = False
         self.counter = 0
         self.drawdata = [(0, 0, 0), 20]
-        self.txt = u""
+        self.txt = ""
         self.image, rect = game.images.misc[1]
         self.rect = pygame.Rect(-rect.w, game.resolution[1] - game.resolution[1] / 3, rect.w, rect.h)
         self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (105, 60), (670, 25),
@@ -1332,7 +1332,7 @@ class RightDrawer(pygame.sprite.DirtySprite):
         self.layer = 10
         self.x = game.resolution[0] - 220
         self.rect = pygame.Rect(self.x, 0, game.resolution[0] - self.x, game.resolution[1])
-        self.right_button_names = [u"Dwelling", u"Low-end", u"High-end", u"Luxury", u"Skyscraper"]
+        self.right_button_names = ["Dwelling", "Low-end", "High-end", "Luxury", "Skyscraper"]
         self.right_buttons = []
         self.open = False
         self.tapimage, rect = game.images.right_drawer[0]
@@ -1399,7 +1399,7 @@ class RightButton(pygame.sprite.DirtySprite):
         self.visible = self.global_visible = False
         self.sizetype = sizetype
         self.old_image = self.old_x = None
-        self.drawdata = [(255, 255, 255), 14, u" €"]
+        self.drawdata = [(255, 255, 255), 14, " €"]
         self.image_available, rect = game.images.right_button[0]
         self.image_available_highlighted = game.images.right_button[1][0]
         self.image_unavailable = game.images.right_button[2][0]
@@ -1512,7 +1512,7 @@ class Menu(pygame.sprite.DirtySprite):
         pygame.sprite.DirtySprite.__init__(self)
         self.visible = True
         self.layer = 25
-        self.names = [u"new game", u"continue", u"easy", u"normal", u"insane"]
+        self.names = ["new game", "continue", "easy", "normal", "insane"]
         self.xmod = [-20, 20, -92, 0, 92]
         self.ymod = [-65, -65, 15, 15, 15]
         self.sizetype = [0, 0, 2, 2, 2]
@@ -1593,10 +1593,10 @@ class MenuButton(pygame.sprite.DirtySprite):
                     else:
                         game.menu.toggle()
                 else:
-                    game.filesystem_do(u"save_state", game.difficulty)
+                    game.filesystem_do("save_state", game.difficulty)
                     game.difficulty = self.stype - 2
                     game.menu.is_highlighted_button = self.stype
-                    game.init_load(u"load_state")
+                    game.init_load("load_state")
                 return True
 
     def toggle(self):
@@ -1928,7 +1928,7 @@ class Bar(pygame.sprite.DirtySprite):
                 if item[0] == bonus[0]:
                     game.money_bonuses.remove(item)
         self.used_notifications = used_notifications
-        self.notification_txt = u""
+        self.notification_txt = ""
         if len(self.used_notifications) > 0:
             self.notification_txt = self.used_notifications[-1][0]
         for item in self.used_notifications:
@@ -1937,14 +1937,14 @@ class Bar(pygame.sprite.DirtySprite):
                     game.notifications.remove(item)
         self.objxy = ([7, 192, 456, 700], [7, 33])
         self.objwh = ([181, 261, 239, 733], 22)
-        self.drawdata = [(255, 255, 255), 14, [u" €", u" €/s"]]
+        self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
         self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.get_people(u"total"),
                                        self.rect.topleft, (self.objxy[0][0], self.objxy[1][0]),
                                        (self.objwh[0][0], self.objwh[1]), self.drawdata, False)
         self.money_obj = RenderObject(self.layer_mod, self.visible, True, self.money, self.rect.topleft,
                                       (self.objxy[0][1], self.objxy[1][0]), (self.objwh[0][1], self.objwh[1]),
                                       self.drawdata, self.drawdata[2][0])
-        self.income_obj = RenderObject(self.layer_mod, self.visible, True, self.get_income(u"total"),
+        self.income_obj = RenderObject(self.layer_mod, self.visible, True, self.get_income("total"),
                                        self.rect.topleft, (self.objxy[0][2], self.objxy[1][0]),
                                        (self.objwh[0][2], self.objwh[1]), self.drawdata, self.drawdata[2][1])
         self.highlight_obj = RenderObject(self.layer_mod, self.visible, False, self.h_image, self.rect.topleft,
@@ -1960,9 +1960,9 @@ class Bar(pygame.sprite.DirtySprite):
         self.income_manual_time += game.tick
         self.mouse_hover_check()
         self.check_layer_change()
-        self.people_obj.process_update(self.visible, self.layer_mod, self.get_people(u"total"), self.rect.topleft)
+        self.people_obj.process_update(self.visible, self.layer_mod, self.get_people("total"), self.rect.topleft)
         self.money_obj.process_update(self.visible, self.layer_mod, self.money, self.rect.topleft)
-        self.income_obj.process_update(self.visible, self.layer_mod, self.get_income(u"total"), self.rect.topleft)
+        self.income_obj.process_update(self.visible, self.layer_mod, self.get_income("total"), self.rect.topleft)
         self.notification_obj.process_update(self.visible, self.layer_mod, self.notification_txt, self.rect.topleft)
         self.fps_obj.process_update(self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft)
         if self.animatein:
@@ -1978,17 +1978,18 @@ class Bar(pygame.sprite.DirtySprite):
             self.layer_mod = game.toggle_tutorial_layer(self, self.layer, self.layer_mod, 1)
 
     def get_people(self, peopletype):
-        if peopletype == u"current":
+        if peopletype == "current":
             people = 0
             for sizetype in game.houses:
                 for house in sizetype:
                     people += house.peoplecurrent
             return people
-        elif peopletype == u"total":
-            return unicode(format(self.get_people(u"current"), u",d")) + u"/" + unicode(format(self.people_total, u",d"))
+        elif peopletype == "total":
+            return str(self.get_people("current")) + \
+                   "/" + str(self.people_total)
 
     def add_manual_money(self):
-        game.sounds.play(u"space")
+        game.sounds.play("space")
         manual_income = 100 + (self.income + self.people_total) / 15
         self.money += manual_income
         self.income_manual_data.append((manual_income, self.income_manual_time))
@@ -2012,8 +2013,8 @@ class Bar(pygame.sprite.DirtySprite):
                     break
 
     def notify(self, notification):
-        print u"new notification:", notification
-        game.sounds.play(u"notification")
+        print "new notification:", notification
+        game.sounds.play("notification")
         self.notification_txt = notification[0]
         self.used_notifications.append(notification)
         game.notifications.remove(notification)
@@ -2021,14 +2022,14 @@ class Bar(pygame.sprite.DirtySprite):
     def process_money_bonuses(self):
         for bonus in game.money_bonuses:
             if self.people_total >= bonus[2]:
-                print u"new bonus:", bonus
+                print "new bonus:", bonus
                 self.money += bonus[1]
                 self.used_bonuses.append(bonus)
                 game.money_bonuses.remove(bonus)
                 break
 
     def process_income(self):
-        self.get_income(u"current")
+        self.get_income("current")
         self.money += (self.income + self.calculate_incomereward()) / 100
 
     def calculate_manual_income(self):
@@ -2045,7 +2046,7 @@ class Bar(pygame.sprite.DirtySprite):
             self.income_manual = 0
 
     def get_income(self, incometype):
-        if incometype == u"current":
+        if incometype == "current":
             income = 0
             tax = 0
             for taxtype in game.taxes:
@@ -2055,14 +2056,14 @@ class Bar(pygame.sprite.DirtySprite):
                     income += house.peoplecurrent * self.house_multiplier * game.houses_properties[house.sizetype][1]
             taxed_income = income * (1 + tax / 100)
             self.income = taxed_income
-        elif incometype == u"total":
-            return unicode(format(round(self.income + self.income_manual + self.calculate_incomereward()), u",d")) + \
-                   u"/" + unicode(format(round(self.houses_income + self.calculate_incomereward()), u",d") + u" €/s")
+        elif incometype == "total":
+            return str(round(self.income + self.income_manual + self.calculate_incomereward())) + "/" + \
+                   str(round(self.houses_income + self.calculate_incomereward())) + " €/s"
 
     def calculate_incomereward(self):
         if self.people_total == 0:
             return 0
-        percent = self.get_people(u"current") / self.people_total * 100
+        percent = self.get_people("current") / self.people_total * 100
         if percent < 10:
             return self.incomereward * percent / 10
         else:
@@ -2110,7 +2111,7 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.end = end
         self.drawdata = drawdata
         if drawdata != 0:
-            self.txt_font = game.fonts.load_font(u"GOTHICB.TTF", drawdata[1])
+            self.txt_font = game.fonts.load_font("GOTHICB.TTF", drawdata[1])
         self.image = self.rect = self.new_obj = self.old_obj = self.main_obj_xy = self.old_main_obj_xy = \
             self.innerrect = None
         self.inner_relative_xy = inner_relative_xy
@@ -2123,9 +2124,9 @@ class RenderObject(pygame.sprite.DirtySprite):
         self.image = self.txt_font.render(obj, True, self.drawdata[0])
 
     def process_integer(self, obj):
-        obj = unicode(format(obj, u",d"))
-        if self.end:
-            obj += self.end
+        obj = str(obj)
+        # if self.end:
+        #     obj += self.end
         self.process_string(obj)
 
     def process_float(self, obj):
@@ -2155,7 +2156,7 @@ class RenderObject(pygame.sprite.DirtySprite):
                     self.inner_obj_wh[0], self.inner_obj_wh[1])
             if self.old_obj != self.new_obj:
                 self.old_obj = self.new_obj
-                if isinstance(self.new_obj, unicode):
+                if isinstance(self.new_obj, str):
                     self.process_string(self.new_obj)
                 elif isinstance(self.new_obj, int):
                     self.process_integer(self.new_obj)
@@ -2177,6 +2178,6 @@ class RenderObject(pygame.sprite.DirtySprite):
                     self.visible = True
 
 
-if __name__ == u'__main__':
+if __name__ == '__main__':
     game = Game()
     game.run()
