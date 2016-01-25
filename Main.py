@@ -914,6 +914,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.layer = 10
         self.drawer_visible = True
         self.open = False
+        self.auto_generate_laws = False
         self.rect = pygame.Rect(0, 0, 280, game.resolution[1])
         self.startupcounter = 0
         self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
@@ -930,7 +931,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.news_obj = News(self.layer + 2)
         game.add_new_renderable(self, self.layer)
 
-    def create_law(self, income, people_total):
+    def create_random_law(self, income, people_total):
         order = {"Ban", "Allow", "Open", "Close"}
         f_quantity = {" some", " all", " many", " most of the"}
         f_adjective = {" weird", " ugly", " old", " new", " self-made", " damaged", " lovely"}
@@ -959,12 +960,17 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             return
         else:
             if upgrade not in self.used_upgrades:
-                if len(upgrade) <= 25:
+                if len(upgrade) <= 23:
                     return upgrade_obj
                 else:
-                    return self.create_law(income, people_total)
+                    return self.create_random_law(income, people_total)
             else:
-                return self.create_law(income, people_total)
+                return self.create_random_law(income, people_total)
+
+    def create_new_law(self):
+        new_law = self.create_random_law(game.bar.income + game.bar.calculate_incomereward(), game.bar.people_total)
+        if new_law is not None:
+            game.upgrades.append(new_law)
 
     @staticmethod
     def init_unlock(unlockname):  # todo add all unlockable buildings
@@ -1001,9 +1007,10 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                     self.upgrade_buttons.append(UpgradeButton(upgrade[0], len(self.upgrade_buttons)))
                     game.upgrades.remove(upgrade)
                     break
-            new_law = self.create_law(game.bar.income + game.bar.calculate_incomereward(), game.bar.people_total)
-            if new_law is not None:
-                game.upgrades.append(new_law)
+            if self.auto_generate_laws:
+                self.create_new_law()
+        elif not self.auto_generate_laws:
+            self.auto_generate_laws = True
         if game.tutorial_mode:
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
                 if not game.tutorial.visible:
@@ -1482,6 +1489,8 @@ class RightButton(pygame.sprite.DirtySprite):
                                      self.sizetype] * game.bar.house_multiplier ** self.amount
                     game.houses[self.sizetype].append(
                         House(self.sizetype, None, game.houses_properties[self.sizetype][0]))
+                    if not game.left_drawer.auto_generate_laws:
+                        game.left_drawer.create_new_law()
                     return True
 
     def slide(self, amount):
