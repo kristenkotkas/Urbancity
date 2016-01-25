@@ -206,6 +206,8 @@ class Game:
                 game.bar.process_money_bonuses()
                 game.bar.process_notifications()
                 game.left_drawer.news_obj.count()
+                if game.metro is not None:
+                    game.metro.train_obj.count()
             elif event.type == pygame.USEREVENT + 3:
                 # 10s time
                 for sizetype in self.houses:
@@ -231,6 +233,11 @@ class Game:
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
                     game.left_drawer.news_obj.present(1)
+                elif event.key == pygame.K_j:
+                    game.metro.train_obj.t_event = True
+                    game.metro.train_obj.speed = 8
+                    game.metro.train_obj.t_counter = randint(6, 20)
+                    game.left_drawer.news_obj.present(2)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 game.right_drawer.tap_pad_click_check()
@@ -476,10 +483,7 @@ class Metro(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        if self.drawnout:
-            # self.train_obj.process_update()
-            pass
-        else:
+        if not self.drawnout:
             if self.source_rect.y > 0:
                 self.source_rect.y -= 5
                 self.rect.y -= 5
@@ -498,84 +502,64 @@ class MetroTrain(pygame.sprite.DirtySprite):
         self.xy = xy
         self.image, rect = game.images.metro[1]
         self.rect = pygame.Rect(xy[0], xy[1] - rect.h, rect.w, rect.h)
-
         self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
-
-        # self.trainstop = self.metrox + 20
-
-        self.speed = 4
-        self.time_from_beginning = 0
+        self.speed = 3
+        self.trainstop = xy[0] + 24
         self.waiting = False
-        self.trainstopwaiting = True
-        self.terroristevent = False
-        self.terroristcounter = 0
-
+        self.counter = 0
+        self.t_override = False
+        self.t_event = False
+        self.t_notification = "You have reached to the top. Status update: Urbancity."
+        self.t_counter = 0
         game.add_new_renderable(self, self.layer)
 
-        # if self.drawnout:
-        #     self.update_metro()
+    def count(self):
+        if self.waiting:
+            self.counter -= 1
+            if self.counter < 0:
+                self.counter = 0
+                self.rect.x += self.speed
+                self.waiting = False
+                if self.t_event:
+                    self.t_counter -= 1
+                    if self.t_counter < 0:
+                        self.t_counter = 0
+                        self.speed = 3
+                        self.t_event = False
+                if not self.t_override and not self.t_event and randint(1, 10) == 10:
+                    for notification in game.bar.used_notifications:
+                        if notification[0] == self.t_notification:
+                            self.t_event = True
+                            self.speed = 8
+                            self.t_counter = randint(6, 20)
+                            game.left_drawer.news_obj.present(2)
 
     def update(self):
         if game.metro.drawnout:
             if not self.waiting:
-                if self.rect.right < game.metro.rect.right:
-                    if self.source_rect.x > 0:
-                        self.source_rect.x -= 4
+                if not self.t_event and self.rect.x == self.trainstop:
+                    if randint(1, 10) < 5:
+                        self.counter = randint(20, 40)
+                        self.waiting = True
                     else:
-                        self.rect.x += 4
+                        self.rect.x += self.speed
+                elif self.rect.right < game.metro.rect.right:
+                    if self.source_rect.x > 0:
+                        self.source_rect.x -= self.speed
+                    else:
+                        self.rect.x += self.speed
                 elif self.source_rect.x > -self.source_rect.w:
                     if self.rect.right != game.metro.rect.right:
                         self.rect.right = game.metro.rect.right
-                    self.source_rect.x -= 4
+                    self.source_rect.x -= self.speed
                 else:
                     self.source_rect.x = self.source_rect.w
                     self.rect.x = self.xy[0]
-
-    def update_metro(self):
-        if self.terroristevent:
-            if self.terroristcounter == 0:
-                self.metrow -= 15
-                self.speed = 18
-            elif self.terroristcounter == 450:
-                pass
-                # game.news.present("metro")
-            elif self.terroristcounter == 1250:
-                self.metrow += 15
-                self.speed = 4
-                self.terroristcounter = -1
-                self.terroristevent = False
-            self.terroristcounter += 1
-        if not self.waiting:
-            if self.trainrect.x + self.trainrect.w < self.metrorect.x + self.metrow:
-                if self.arearect.x > 0:
-                    self.arearect.x -= self.speed
-                else:
-                    if self.trainrect.x > self.trainstop and self.trainstopwaiting and not self.terroristevent:
-                        pygame.time.set_timer(pygame.USEREVENT + 4, 4000)
-                        self.waiting = True
-                    self.trainrect.x += self.speed
-            elif self.arearect.x > -self.trainw:
-                self.arearect.x -= self.speed
-            else:
-                if self.terroristevent:
-                    pygame.time.set_timer(pygame.USEREVENT + 4, randint(100, 500))
-                else:
-                    pygame.time.set_timer(pygame.USEREVENT + 4, randint(6000, 9000))
-                self.waiting = True
-
-    def update_metro_counter(self):
-        if self.trainstopwaiting:
-            self.trainstopwaiting = False
-        else:
-            self.trainrect.x = self.metrox
-            self.arearect.x = self.trainw
-            self.arearect.w = self.trainw
-            if randint(1, 10) < 4:
-                self.trainstopwaiting = True
-            if randint(1, 3000) == 500:
-                self.terroristevent = True
-        self.waiting = False
-        pygame.time.set_timer(pygame.USEREVENT + 4, 0)
+                    self.waiting = True
+                    if not self.t_event:
+                        self.counter = randint(40, 80)
+                    else:
+                        self.counter = randint(4, 16)
 
 
 class LifiTower(pygame.sprite.DirtySprite):
