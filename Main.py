@@ -229,10 +229,10 @@ class Game:
                     game.tutorial.guide_obj.switch_tutorial(1)
                 elif event.key == pygame.K_k:
                     game.bar.money += game.bar.money * 133700
-                    game.left_drawer.news_obj.present(0)
+                    game.left_drawer.news_obj.present(1)
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
-                    game.left_drawer.news_obj.present(1)
+                    game.left_drawer.news_obj.present(0)
                 elif event.key == pygame.K_j:
                     game.metro.train_obj.t_event = True
                     game.metro.train_obj.speed = 8
@@ -505,7 +505,7 @@ class MetroTrain(pygame.sprite.DirtySprite):
         self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
         self.speed = 3
         self.trainstop = xy[0] + 24
-        self.waiting = False
+        self.waiting = 0
         self.counter = 0
         self.t_override = False
         self.t_event = False
@@ -514,19 +514,20 @@ class MetroTrain(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def count(self):
-        if self.waiting:
+        if self.waiting > 0:
             self.counter -= 1
             if self.counter < 0:
                 self.counter = 0
-                self.rect.x += self.speed
-                self.waiting = False
+                if self.waiting == 1:
+                    self.rect.x += self.speed
+                self.waiting = 0
                 if self.t_event:
                     self.t_counter -= 1
                     if self.t_counter < 0:
                         self.t_counter = 0
                         self.speed = 3
                         self.t_event = False
-                if not self.t_override and not self.t_event and randint(1, 10) == 10:
+                elif not self.t_override and not self.t_event and randint(1, 10) == 10:
                     for notification in game.bar.used_notifications:
                         if notification[0] == self.t_notification:
                             self.t_event = True
@@ -536,11 +537,11 @@ class MetroTrain(pygame.sprite.DirtySprite):
 
     def update(self):
         if game.metro.drawnout:
-            if not self.waiting:
+            if self.waiting == 0:
                 if not self.t_event and self.rect.x == self.trainstop:
                     if randint(1, 10) < 5:
                         self.counter = randint(20, 40)
-                        self.waiting = True
+                        self.waiting = 1
                     else:
                         self.rect.x += self.speed
                 elif self.rect.right < game.metro.rect.right:
@@ -555,7 +556,7 @@ class MetroTrain(pygame.sprite.DirtySprite):
                 else:
                     self.source_rect.x = self.source_rect.w
                     self.rect.x = self.xy[0]
-                    self.waiting = True
+                    self.waiting = 2
                     if not self.t_event:
                         self.counter = randint(40, 80)
                     else:
