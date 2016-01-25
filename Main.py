@@ -9,6 +9,10 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 class Game:
     def __init__(self):
+        pygame.mixer.pre_init(48000, -16, 2, 2048)
+        pygame.init()
+        pygame.mouse.set_visible(0)
+        self.clock = pygame.time.Clock()
         self.fps_cap = 120
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode((1366, 768))
@@ -20,7 +24,7 @@ class Game:
             self.notifications = self.news_statements = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
-            self.clock = self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
+            self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
             self.houses_types = self.right_button_prices = self.right_button_prices_fixed = self.used_notifications = \
             self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = self.fonts = None
@@ -177,10 +181,6 @@ class Game:
             self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = None
 
     def run(self):
-        pygame.mixer.pre_init(48000, -16, 2, 2048)
-        pygame.init()
-        pygame.mouse.set_visible(0)
-        self.clock = pygame.time.Clock()
         self.initialize()
         while self.running:
             self.tick = self.clock.tick(self.fps_cap)
@@ -340,7 +340,8 @@ class Images:
         self.left_button = [self.load_image("Tax.png"), self.load_image("Tax_hover_minus.png"),
                             self.load_image("Tax_hover_plus.png")]
         self.upgrade_button = [self.load_image("Upgrade_available.png"), self.load_image("Upgrade_unavailable.png"),
-                               self.load_image("Upgrade_available_hover.png")]
+                               self.load_image("Upgrade_available_hover.png"), self.load_image("Law_available.png"),
+                               self.load_image("Law_available_hover.png"), self.load_image("Law_unavailable.png")]
         self.bar = [self.load_image("Bar.png"), self.load_image("Bar_hover.png")]
         self.misc = [self.load_image("Cloud.png"), self.load_image("Breaking_news.png"),
                      self.load_image("Pipe.png"), self.load_image("Google_Fiber.png"),
@@ -1150,9 +1151,9 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.index = index
         self.drawdata = [(255, 255, 255), 14, " €", " €/s"]
         self.image = self.old_image = self.rect = None
-        self.image_available, rect = game.images.upgrade_button[0]
-        self.image_unavailable = game.images.upgrade_button[1][0]
-        self.image_highlighted = game.images.upgrade_button[2][0]
+        self.image_available, rect = game.images.upgrade_button[3]
+        self.image_unavailable = game.images.upgrade_button[5][0]
+        self.image_highlighted = game.images.upgrade_button[4][0]
         self.miny = 155 + 75 * index
         self.rect = pygame.Rect(-rect.w, self.miny, rect.w, rect.h)
         self.minx = 20 - self.rect.w

@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 from __future__ import absolute_import
-import pygame
 import os.path
 import shelve
 from random import randint, sample, shuffle
+try:
+    import pygame_sdl2 as pygame
+    pygame.import_as_pygame()
+except:
+    print("hei")
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
