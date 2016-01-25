@@ -959,7 +959,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             return
         else:
             if upgrade not in self.used_upgrades:
-                if len(upgrade) <= 27:
+                if len(upgrade) <= 25:
                     return upgrade_obj
                 else:
                     return self.create_law(income, people_total)
@@ -1001,7 +1001,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                 game.upgrades.remove(upgrade)
                 break
         if len(self.upgrade_buttons) < self.max_upgrade_buttons:
-            new_law = self.create_law(game.bar.income, game.bar.people_total)
+            new_law = self.create_law(game.bar.income + game.bar.calculate_incomereward(), game.bar.people_total)
             if new_law is not None:
                 game.upgrades.append(new_law)
         if game.tutorial_mode:
