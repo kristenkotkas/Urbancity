@@ -92,39 +92,39 @@ class Game:
             self.houses_properties = [
                 (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
-        # notifications = (name{box}, unlock{priv})
+        # notifications = (name{box}, unlock{priv}, city name{box})
         self.notifications = [
-            ("First people are moving in.", 10),
-            ("Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2]),
-            ("Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2]),
-            ("You are one step closer to Urbancity. Status update: Town.", 2400),
-            ("Your city is growing. Luxury unlocked.", self.houses_properties[3][2]),
-            ("You are one step closer to Urbancity. Status update: City.", 12000),
+            ("First people are moving in.", 10, 0),
+            ("Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2], 0),
+            ("Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2], 0),
+            ("You are one step closer to Urbancity. Status update: Town.", 2400, "Town"),
+            ("Your city is growing. Luxury unlocked.", self.houses_properties[3][2], 0),
+            ("You are one step closer to Urbancity. Status update: City.", 12000, "City"),
             ("Finally a skyscraper, let the world domination begin. Skyscrapers unlocked.",
-             self.houses_properties[4][2]),
-            ("You are one step closer to Urbancity. Status update: Urban area.", 42000),
-            ("You are one step closer to Urbancity. Status update: Metropolis.", 100000),
-            ("Only few steps to Urbancity. Status update: Megacity.", 225000),
-            ("Only one step left to Urbancity. Status update: Megapolis.", 400000),
-            ("You have reached to the top. Status update: Urbancity.", 750000),
-            ("With great power comes great responsibility.", self.upgrades[0]),
-            ("How did we manage to live without water before?", self.upgrades[1]),
-            ("Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2]),
-            ("Faster Internet means happier people.", self.upgrades[3]),
-            ("Metro transports people faster through city.", self.upgrades[4]),
-            ("Santa is real! I told you Santa was real!", self.upgrades[5]),
-            ("Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6]),
-            ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7]),
-            ("Looks like we are the first city to use 5G technology.", self.upgrades[8]),
-            ("Now you can surf at the speed of light.", self.upgrades[9]),
-            ("Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000),
-            ("Population update. You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000),
-            ("Population update. You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000),
-            ("Population update. You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000),
-            ("Population update. You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000),
-            ("Population update. You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000),
-            ("Population update. You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000),
-            ("Population update. You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000)]
+             self.houses_properties[4][2], 0),
+            ("You are one step closer to Urbancity. Status update: Urban area.", 42000, "Urban area"),
+            ("You are one step closer to Urbancity. Status update: Metropolis.", 100000, "Metropolis"),
+            ("Only few steps to Urbancity. Status update: Megacity.", 225000, "Megacity"),
+            ("Only one step left to Urbancity. Status update: Megapolis.", 400000, "Megapolis"),
+            ("You have reached to the top. Status update: Urbancity.", 750000, "Urbancity"),
+            ("With great power comes great responsibility.", self.upgrades[0], 0),
+            ("How did we manage to live without water before?", self.upgrades[1], 0),
+            ("Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2], 0),
+            ("Faster Internet means happier people.", self.upgrades[3], 0),
+            ("Metro transports people faster through city.", self.upgrades[4], 0),
+            ("Santa is real! I told you Santa was real!", self.upgrades[5], 0),
+            ("Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6], 0),
+            ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7], 0),
+            ("Looks like we are the first city to use 5G technology.", self.upgrades[8], 0),
+            ("Now you can surf at the speed of light.", self.upgrades[9], 0),
+            ("Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
+            ("You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000, 0),
+            ("You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000, 0),
+            ("You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000, 0),
+            ("You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000, 0),
+            ("You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000, 0),
+            ("You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000, 0),
+            ("You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000, 0)]
         self.news_statements = ["Terrorists have blown up the city's money reserves!".upper(),
                                 "Santa Claus has been spotted by the local bank!".upper(),
                                 "A group of terrorists have hijacked the metro train!".upper()]
@@ -1936,6 +1936,7 @@ class Bar(pygame.sprite.DirtySprite):
             for bonus in game.money_bonuses:
                 if item[0] == bonus[0]:
                     game.money_bonuses.remove(item)
+        self.city_txt = ""
         self.used_notifications = used_notifications
         self.notification_txt = ""
         if len(self.used_notifications) > 0:
@@ -1943,9 +1944,11 @@ class Bar(pygame.sprite.DirtySprite):
         for item in self.used_notifications:
             for notification in game.notifications:
                 if item[0] == notification[0]:
+                    if notification[2] != 0:
+                        self.city_txt = notification[2]
                     game.notifications.remove(item)
-        self.objxy = ([7, 192, 456, 700], [7, 33])
-        self.objwh = ([181, 261, 239, 733], 22)
+        self.objxy = ([7, 192, 456, 700, 593], [7, 33])
+        self.objwh = ([181, 261, 239, 583, 147], 22)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
         self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.get_people("total"),
                                        self.rect.topleft, (self.objxy[0][0], self.objxy[1][0]),
@@ -1961,6 +1964,9 @@ class Bar(pygame.sprite.DirtySprite):
         self.notification_obj = RenderObject(self.layer, self.visible, True, self.notification_txt, self.rect.topleft,
                                              (self.objxy[0][0], self.objxy[1][1]), (self.objwh[0][3], self.objwh[1]),
                                              self.drawdata, False)
+        self.city_obj = RenderObject(self.layer_mod, self.visible, True, self.city_txt, self.rect.topleft,
+                                     (self.objxy[0][4], self.objxy[1][1]), (self.objwh[0][4], self.objwh[1]),
+                                     self.drawdata, False)
         self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
                                     (660, self.objxy[1][0]), (44, self.objwh[1]), self.drawdata, False)
         game.add_new_renderable(self, self.layer)
@@ -1973,6 +1979,7 @@ class Bar(pygame.sprite.DirtySprite):
         self.money_obj.process_update(self.visible, self.layer_mod, self.money, self.rect.topleft)
         self.income_obj.process_update(self.visible, self.layer_mod, self.get_income("total"), self.rect.topleft)
         self.notification_obj.process_update(self.visible, self.layer_mod, self.notification_txt, self.rect.topleft)
+        self.city_obj.process_update(self.visible, self.layer_mod, self.city_txt, self.rect.topleft)
         self.fps_obj.process_update(self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft)
         if self.animatein:
             self.dirty = 1
@@ -2024,6 +2031,8 @@ class Bar(pygame.sprite.DirtySprite):
         print("new notification:", notification)
         game.sounds.play("notification")
         self.notification_txt = notification[0]
+        if notification[2] != 0:
+            self.city_txt = notification[2]
         self.used_notifications.append(notification)
         game.notifications.remove(notification)
 
