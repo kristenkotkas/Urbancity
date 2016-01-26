@@ -14,8 +14,8 @@ class Game:
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
         self.fps_cap = 120
-        # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode((1366, 768))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.tutorial_mode = True
@@ -530,7 +530,6 @@ class MetroTrain(pygame.sprite.DirtySprite):
                 if self.waiting == 1:
                     self.rect.x += self.speed
                 if self.waiting == 2:
-                    print(self.waiting, "check")
                     if self.t_event:
                         self.t_counter -= 1
                         if self.t_counter < 0:
@@ -538,7 +537,7 @@ class MetroTrain(pygame.sprite.DirtySprite):
                             self.speed = 3
                             self.image = self.trainimage
                             self.t_event = False
-                    elif not self.t_override and not self.t_event:  # and randint(1, 10) == 6:  # todo
+                    elif not self.t_override and not self.t_event and randint(1, 10) == 6:
                         for notification in game.bar.used_notifications:
                             if notification[0] == self.t_notification:
                                 self.t_event = True
@@ -858,6 +857,7 @@ class House(pygame.sprite.DirtySprite):
         self.peoplecurrent = self.peoplemax = people
         game.bar.people_total += people
         game.bar.houses_income += people * game.bar.house_multiplier * game.houses_properties[sizetype][1]
+        game.left_drawer.current_max_upgrade_buttons += 1
         self.taxmax1 = randint(15, 70)
         self.taxmax2 = randint(10, 60)
         self.taxmax3 = randint(20, 80)
@@ -927,13 +927,12 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.layer = 10
         self.drawer_visible = True
         self.open = False
-        self.auto_generate_laws = False
         self.rect = pygame.Rect(0, 0, 280, game.resolution[1])
-        self.startupcounter = 0
         self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
         self.tax_buttons = []
         self.upgrade_buttons = []
-        self.max_upgrade_buttons = round((game.resolution[1] - 155) / 75)
+        self.current_max_upgrade_buttons = 0
+        self.max_screen_upgrade_buttons = round((game.resolution[1] - 170) / 70)
         self.used_upgrades = used_upgrades
         if len(self.used_upgrades) > 0:
             game.tutorial_mode = False
@@ -1006,33 +1005,6 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.lifi_tower = LifiTower()
 
     def process_upgrades(self):
-        if self.startupcounter > 0:
-            self.startupcounter -= 1
-        for button in self.upgrade_buttons:
-            if not button.active:
-                self.used_upgrades.add(button.name)
-                self.upgrade_buttons.remove(button)
-            else:
-                button.process_location()
-        if len(self.upgrade_buttons) < self.max_upgrade_buttons:
-            if game.menu.visible:
-                for unused_upgrade in game.unused_upgrades:
-                    self.upgrade_buttons.append(UpgradeButton(unused_upgrade, len(self.upgrade_buttons)))
-                    game.unused_upgrades.remove(unused_upgrade)
-                    for upgrade in game.upgrades:
-                        if upgrade[0] == unused_upgrade[0]:
-                            game.upgrades.remove(upgrade)
-                    break
-            else:
-                for upgrade in game.upgrades:
-                    if game.bar.people_total >= upgrade[3]:
-                        self.upgrade_buttons.append(UpgradeButton(upgrade, len(self.upgrade_buttons)))
-                        game.upgrades.remove(upgrade)
-                        break
-            if self.auto_generate_laws:
-                self.create_new_law()
-        elif not self.auto_generate_laws:
-            self.auto_generate_laws = True
         if game.tutorial_mode:
             if not game.menu.visible and len(self.upgrade_buttons) > 0:
                 if not game.tutorial.visible:
@@ -1040,6 +1012,24 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                 game.tutorial.guide_obj.tutscreen = 4
                 game.tutorial.guide_obj.update_screen()
                 game.tutorial_mode = False
+        for button in self.upgrade_buttons:
+            button.process_location()
+        if self.current_max_upgrade_buttons > len(self.upgrade_buttons) < self.max_screen_upgrade_buttons:
+            if game.menu.visible:
+                for unused_upgrade in game.unused_upgrades:
+                    self.upgrade_buttons.append(UpgradeButton(unused_upgrade, len(self.upgrade_buttons)))
+                    game.unused_upgrades.remove(unused_upgrade)
+                    for upgrade in game.upgrades:
+                        if upgrade[0] == unused_upgrade[0]:
+                            game.upgrades.remove(upgrade)
+                    return
+            else:
+                for upgrade in game.upgrades:
+                    if game.bar.people_total >= upgrade[3]:
+                        self.upgrade_buttons.append(UpgradeButton(upgrade, len(self.upgrade_buttons)))
+                        game.upgrades.remove(upgrade)
+                        return
+            self.create_new_law()
 
     def update(self):
         self.process_upgrades()
@@ -1158,9 +1148,8 @@ class TaxButton(pygame.sprite.DirtySprite):
 
 
 class UpgradeButton(pygame.sprite.DirtySprite):
-    def __init__(self, upgrade, index):
+    def __init__(self, upgrade, position):
         pygame.sprite.DirtySprite.__init__(self)
-        print(upgrade)
         self.dirty = 1
         self.layer = 10
         self.layer_mod = self.layer + 1
@@ -1168,9 +1157,8 @@ class UpgradeButton(pygame.sprite.DirtySprite):
             self.visible = True
         else:
             self.visible = False
-        self.active = True
         self.upgrade = upgrade
-        self.index = index
+        self.position = position
         self.name = self.upgrade[0]
         multiplier = game.difficulty
         if multiplier == 0:
@@ -1184,14 +1172,14 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                         game.images.upgrade_button[5][0]],
                        [game.images.upgrade_button[0][0], game.images.upgrade_button[1][0],
                         game.images.upgrade_button[2][0]]][self.upgrade[1]]
-        self.miny = 155 + 75 * index
+        self.miny = 155 + (rect.h + 7) * self.position
         self.rect = pygame.Rect(-rect.w, self.miny, rect.w, rect.h)
         self.minx = 20 - self.rect.w
         self.maxx = 10
         self.animatein = True
         self.animatemove = False
         self.animateout = False
-        self.animatecounter = 150
+        self.animatecounter = 280
         self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.name, self.rect.topleft,
                                      (12, 7), (252, 20), self.drawdata, False)
         self.cost_obj = RenderObject(self.layer_mod, self.visible, True, self.cost, self.rect.topleft,
@@ -1230,8 +1218,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 self.rect.x -= 10
             else:
                 self.animateout = False
-                self.active = False
-                self.kill()
+                self.remove()
         if game.bar.money >= self.cost:
             if self.rect.collidepoint(pygame.mouse.get_pos()):
                 self.image = self.images[2]
@@ -1266,13 +1253,17 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                     self.rect.x += amount
                     self.dirty = 1
 
+    def remove(self):
+        game.left_drawer.used_upgrades.add(self.name)
+        game.left_drawer.upgrade_buttons.remove(self)
+        self.kill()
+
     def process_location(self):
-        for upgrade in game.left_drawer.upgrade_buttons:
-            if upgrade.name == self.name:
-                if game.left_drawer.upgrade_buttons.index(upgrade) < self.index:
-                    self.index -= 1
-                    self.miny = 155 + 75 * self.index
-                    self.animatemove = True
+        new_pos = game.left_drawer.upgrade_buttons.index(self)
+        if self.position != new_pos:
+            self.position = new_pos
+            self.miny = 155 + (self.rect.h + 7) * self.position
+            self.animatemove = True
 
     def mouse_click_check(self):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
@@ -1511,8 +1502,6 @@ class RightButton(pygame.sprite.DirtySprite):
                                      self.sizetype] * game.bar.house_multiplier ** self.amount
                     game.houses[self.sizetype].append(
                         House(self.sizetype, None, game.houses_properties[self.sizetype][0]))
-                    if not game.left_drawer.auto_generate_laws:
-                        game.left_drawer.create_new_law()
                     return True
 
     def slide(self, amount):
