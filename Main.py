@@ -14,8 +14,8 @@ class Game:
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
         self.fps_cap = 120
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # self.screen = pygame.display.set_mode((1366, 768))
+        # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.tutorial_mode = True
@@ -1291,7 +1291,7 @@ class News(pygame.sprite.DirtySprite):
         self.drawdata = [(0, 0, 0), 20]
         self.txt = ""
         self.image, rect = game.images.misc[1]
-        self.rect = pygame.Rect(-rect.w, game.resolution[1] - game.resolution[1] / 3, rect.w, rect.h)
+        self.rect = pygame.Rect(-rect.w, game.resolution[1] - 220, rect.w, rect.h)
         self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (105, 60), (670, 25),
                                     self.drawdata, False)
         game.add_new_renderable(self, self.layer)
@@ -1300,7 +1300,7 @@ class News(pygame.sprite.DirtySprite):
         self.txt_obj.process_update(self.check_obj_visibility(), 0, self.txt, self.rect.topleft)
         if self.visible and self.global_visible:
             if self.drawing:
-                if self.rect.x < -5:
+                if self.rect.x < -20:
                     self.dirty = 1
                     self.rect.x += 8
                 else:
@@ -1318,7 +1318,7 @@ class News(pygame.sprite.DirtySprite):
                 self.rect.x = -self.rect.w
 
     def count(self):
-        if self.rect.x > -5:
+        if self.rect.x > -20:
             self.counter += 1
 
     def check_obj_visibility(self):
@@ -2004,10 +2004,10 @@ class Bar(pygame.sprite.DirtySprite):
         randomevent = randint(1, 800)
         if randomevent == 1:
             self.money /= 50
-            game.left_drawer.news_obj.present(1)
+            game.left_drawer.news_obj.present(0)
         elif randomevent == 800:
             self.money *= 10
-            game.left_drawer.news_obj.present(0)
+            game.left_drawer.news_obj.present(1)
 
     def process_notifications(self):
         for notification in game.notifications:
