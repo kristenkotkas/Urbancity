@@ -198,11 +198,11 @@ class Game:
     def process_events(self):
         for event in pygame.event.get():
             if event.type == pygame.USEREVENT + 1:
-                # 10ms time
+                # 10ms timer
                 game.bar.process_income()
                 game.right_drawer.process_tap_pad()
             elif event.type == pygame.USEREVENT + 2:
-                # 100ms time
+                # 100ms timer
                 game.bar.calculate_manual_income()
                 game.bar.process_money_bonuses()
                 game.bar.process_notifications()
@@ -210,7 +210,7 @@ class Game:
                 if game.metro is not None:
                     game.metro.train_obj.count()
             elif event.type == pygame.USEREVENT + 3:
-                # 10s time
+                # 10s timer
                 for sizetype in self.houses:
                     for house in sizetype:
                         house.calculate_taxmax()
@@ -234,11 +234,6 @@ class Game:
                 elif event.key == pygame.K_l:
                     game.bar.money = 0
                     game.left_drawer.news_obj.present(0)
-                elif event.key == pygame.K_j:
-                    game.metro.train_obj.t_event = True
-                    game.metro.train_obj.speed = 8
-                    game.metro.train_obj.t_counter = randint(6, 20)
-                    game.left_drawer.news_obj.present(2)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 print(pygame.mouse.get_pos())
                 game.right_drawer.tap_pad_click_check()
@@ -1978,6 +1973,7 @@ class Bar(pygame.sprite.DirtySprite):
         self.city_txt = "Nowhere"
         self.used_notifications = used_notifications
         self.notification_txt = ""
+        self.notify_counter = 0
         if len(self.used_notifications) > 0:
             self.notification_txt = self.used_notifications[-1][0]
         for item in self.used_notifications:
@@ -2061,11 +2057,17 @@ class Bar(pygame.sprite.DirtySprite):
             if isinstance(notification[1], int):
                 if self.people_total >= notification[1]:
                     self.notify(notification)
-                    break
+                    self.notify_counter = 70
+                    return
             else:
                 if notification[1][0] in game.left_drawer.used_upgrades:
                     self.notify(notification)
-                    break
+                    self.notify_counter = 70
+                    return
+        if self.notify_counter < 0:
+            self.notification_txt = ""
+        else:
+            self.notify_counter -= 1
 
     def notify(self, notification):
         print("new notification:", notification)
