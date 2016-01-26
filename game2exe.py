@@ -15,9 +15,9 @@ options = {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
            }
 setup(
     name="Urbancity",
-    version="1.1",
+    version="2.0",
     author="Kristjan Küngas, Kristen Kotkas",
-    description="2015 Python Pygame project, https://bitbucket.org/kristjanhk/pygame-projekt",
+    description="2016 Python Pygame project, https://bitbucket.org/urbancity/urbancity",
     options={"build_exe": options},
     executables=[exe]
 )
