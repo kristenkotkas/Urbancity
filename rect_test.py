@@ -1,4 +1,5 @@
 # https://github.com/renpy/pygame_sdl2/issues/31
+# Fixed :)
 
 # Comment out these two lines to go back to old Pygame version
 import pygame_sdl2

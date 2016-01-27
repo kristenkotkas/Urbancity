@@ -4,17 +4,15 @@ from __future__ import absolute_import
 import os.path
 import shelve
 from random import randint, sample, shuffle
-try:
-    import pygame_sdl2 as pygame
-    pygame.import_as_pygame()
-except:
-    print("hei")
+import pygame
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
 class Game(object):
     def __init__(self):
+        pygame.mixer.pre_init(48000, -16, 2, 2048)
+        pygame.init()
         self.fps_cap = 120
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen = pygame.display.set_mode((1366, 768))
@@ -118,14 +116,14 @@ class Game(object):
             ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7]),
             ("Looks like we are the first city to use 5G technology.", self.upgrades[8]),
             ("Now you can surf at the speed of light.", self.upgrades[9]),
-            ("Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000),
-            ("Population update. You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000),
-            ("Population update. You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000),
-            ("Population update. You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000),
-            ("Population update. You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000),
-            ("Population update. You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000),
-            ("Population update. You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000),
-            ("Population update. You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000)]
+            ("Your city is taking shape. You receive 4,000 eur as speed-up boost.", 1000),
+            ("Population update. You have reached to 10,000 citizens and receive 35,000 eur bonus.", 10000),
+            ("Population update. You have reached to 25,000 citizens and receive 500,000 eur bonus.", 25000),
+            ("Population update. You have reached to 75,000 citizens and receive 4,000,000 eur bonus.", 75000),
+            ("Population update. You have reached to 150,000 citizens and receive 12,000,000 eur bonus.", 150000),
+            ("Population update. You have reached to 250,000 citizens and receive 22,000,000 eur bonus.", 250000),
+            ("Population update. You have reached to 500,000 citizens and receive 55,000,000 eur bonus.", 500000),
+            ("Population update. You have reached to 1,000,000 citizens and receive 100,000,000 eur bonus.", 1000000)]
         self.news_statements = ["Terrorists have blown up the city's money reserves!".upper(),
                                 "Santa Claus has been spotted by the local bank!".upper(),
                                 "A group of terrorists have hijacked the metro train!".upper()]
@@ -183,8 +181,6 @@ class Game(object):
             self.right_button_amounts = self.wifi_tower = self.fiveg_tower = self.lifi_tower = None
 
     def run(self):
-        pygame.mixer.pre_init(48000, -16, 2, 2048)
-        pygame.init()
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
         self.initialize()
@@ -395,23 +391,27 @@ class Fonts(object):
 
 class Sounds(object):
     def __init__(self):
+        pass
         # Sounds.load_sound("house_lo.ogg", 0)
-        self.click = self.load_sound("Mouse.ogg", 1)
-        self.notification = self.load_sound("Notification.ogg", 1)
+        # self.click = self.load_sound("Mouse.ogg", 1)
+        # self.notification = self.load_sound("Notification.ogg", 1)
         # self.unlock = self.load_sound("Unlock.ogg", 1)
-        self.space = [self.load_sound("space_1.ogg", 1), self.load_sound("space_2.ogg", 1),
-                      self.load_sound("space_3.ogg", 1), self.load_sound("space_4.ogg", 1),
-                      self.load_sound("space_5.ogg", 1), self.load_sound("space_6.ogg", 1),
-                      self.load_sound("space_8.ogg", 1), self.load_sound("space_9.ogg", 1),
-                      self.load_sound("space_10.ogg", 1), self.load_sound("space_11.ogg", 1)]
+        # self.space = [self.load_sound("space_1.ogg", 1), self.load_sound("space_2.ogg", 1),
+        #               self.load_sound("space_3.ogg", 1), self.load_sound("space_4.ogg", 1),
+        #               self.load_sound("space_5.ogg", 1), self.load_sound("space_6.ogg", 1),
+        #               self.load_sound("space_8.ogg", 1), self.load_sound("space_9.ogg", 1),
+        #               self.load_sound("space_10.ogg", 1), self.load_sound("space_11.ogg", 1)]
 
     def play(self, sound):
         if sound == "space" and game.quick_menu.sounds_obj.checked_objs_visible[0]:
-            self.space[randint(1, 9)].play()
+            # self.space[randint(1, 9)].play()
+            pass
         elif sound == "click" and game.quick_menu.sounds_obj.checked_objs_visible[1]:
-            self.click.play()
+            # self.click.play()
+            pass
         elif sound == "notification" and game.quick_menu.sounds_obj.checked_objs_visible[2]:
-            self.notification.play()
+            # self.notification.play()
+            pass
         elif sound == "unlock" and game.quick_menu.sounds_obj.checked_objs_visible[3]:
             # self.unlock.play()  # todo add
             pass
@@ -1154,7 +1154,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.active = True
         self.name = name
         self.index = index
-        self.drawdata = [(255, 255, 255), 14, " €", " €/s"]
+        self.drawdata = [(255, 255, 255), 14, " eur", " eur/s"]
         self.image = self.old_image = self.rect = None
         self.image_available, rect = game.images.upgrade_button[0]
         self.image_unavailable = game.images.upgrade_button[1][0]
@@ -1403,7 +1403,7 @@ class RightButton(pygame.sprite.DirtySprite):
         self.visible = self.global_visible = False
         self.sizetype = sizetype
         self.old_image = self.old_x = None
-        self.drawdata = [(255, 255, 255), 14, " €"]
+        self.drawdata = [(255, 255, 255), 14, " eur"]
         self.image_available, rect = game.images.right_button[0]
         self.image_available_highlighted = game.images.right_button[1][0]
         self.image_unavailable = game.images.right_button[2][0]
@@ -1941,7 +1941,7 @@ class Bar(pygame.sprite.DirtySprite):
                     game.notifications.remove(item)
         self.objxy = ([7, 192, 456, 700], [7, 33])
         self.objwh = ([181, 261, 239, 733], 22)
-        self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
+        self.drawdata = [(255, 255, 255), 14, [" eur", " eur/s"]]
         self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.get_people(u"total"),
                                        self.rect.topleft, (self.objxy[0][0], self.objxy[1][0]),
                                        (self.objwh[0][0], self.objwh[1]), self.drawdata, False)
@@ -2062,7 +2062,7 @@ class Bar(pygame.sprite.DirtySprite):
             self.income = taxed_income
         elif incometype == "total":
             return str(round(self.income + self.income_manual + self.calculate_incomereward())) + "/" + \
-                   str(round(self.houses_income + self.calculate_incomereward())) + " €/s"
+                   str(round(self.houses_income + self.calculate_incomereward())) + " eur/s"
 
     def calculate_incomereward(self):
         if self.people_total == 0:
