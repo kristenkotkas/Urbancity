@@ -201,6 +201,9 @@ class Game:
                 # 10ms timer
                 game.bar.process_income()
                 game.right_drawer.process_tap_pad()
+                for sizetype in game.houses:
+                    for house in sizetype:
+                        house.calculate_currentpeople()
             elif event.type == pygame.USEREVENT + 2:
                 # 100ms timer
                 game.bar.calculate_manual_income()
@@ -209,9 +212,6 @@ class Game:
                 game.left_drawer.news_obj.count()
                 if game.metro is not None:
                     game.metro.train_obj.count()
-                for sizetype in game.houses:
-                    for house in sizetype:
-                        house.calculate_currentpeople()
             elif event.type == pygame.USEREVENT + 3:
                 # 10s timer
                 for sizetype in self.houses:
@@ -896,8 +896,34 @@ class House(pygame.sprite.DirtySprite):
                     self.dirty = 1
 
     def calculate_currentpeople(self):
-        if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
-            self.peoplecurrent -= randint(1, 4) // 4 + game.difficulty
+        if game.taxes[0] > self.taxmax1:
+            self.move_people("out", game.taxes[0])
+        if game.taxes[1] > self.taxmax2:
+            self.move_people("out", game.taxes[0])
+        if game.taxes[2] > self.taxmax3:
+            self.move_people("out", game.taxes[0])
+        if game.taxes[0] < self.taxmax1 and game.taxes[1] < self.taxmax2 and game.taxes[2] < self.taxmax3:
+            self.move_people("in", False)
+        """if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
+            self.peoplecurrent -= (randint(1, 5) // 5 + game.difficulty) / 10
+            if self.peoplecurrent < 0:
+                self.peoplecurrent = 0
+        else:
+            if self.peoplecurrent < self.peoplemax:
+                fillrate = randint(0, 3) - game.difficulty
+                if fillrate < 0:
+                    fillrate = 0
+                self.peoplecurrent += fillrate
+            else:
+                self.peoplecurrent = self.peoplemax"""
+
+    def move_people(self, direction, tax):
+        if direction == "out":
+            if tax != 0:
+                tax_out = tax / 20
+            else:
+                tax_out = 0
+            self.peoplecurrent -= (randint(1, 5) // 5 + game.difficulty + tax_out) / 10
             if self.peoplecurrent < 0:
                 self.peoplecurrent = 0
         else:
@@ -1507,7 +1533,7 @@ class RightButton(pygame.sprite.DirtySprite):
         people = 0
         if len(game.houses) >= self.sizetype:
             for house in game.houses[self.sizetype]:
-                people += house.peoplecurrent
+                people += round(house.peoplecurrent)
         return people
 
     def mouse_click_check(self):
@@ -2027,7 +2053,7 @@ class Bar(pygame.sprite.DirtySprite):
             people = 0
             for sizetype in game.houses:
                 for house in sizetype:
-                    people += house.peoplecurrent
+                    people += round(house.peoplecurrent)
             return people
         elif peopletype == "total":
             return str(format(self.get_people("current"), ",d")) + "/" + str(format(self.people_total, ",d"))
@@ -2105,7 +2131,8 @@ class Bar(pygame.sprite.DirtySprite):
                 tax += taxtype
             for sizetype in game.houses:
                 for house in sizetype:
-                    income += house.peoplecurrent * self.house_multiplier * game.houses_properties[house.sizetype][1]
+                    income += round(house.peoplecurrent) * self.house_multiplier * \
+                              game.houses_properties[house.sizetype][1]
             taxed_income = income * (1 + tax / 100)
             self.income = taxed_income
         elif incometype == "total":
