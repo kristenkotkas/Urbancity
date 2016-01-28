@@ -152,7 +152,7 @@ class Game:
         self.init_purge()
         self.init_loadconfig(self.difficulty)
         self.filesystem_do(state, self.difficulty)
-        self.cloud = Cloud(10)
+        # self.cloud = Cloud(1)
         self.left_drawer = LeftDrawer(self.used_upgrades)
         self.right_drawer = RightDrawer()
         for upgrade in self.left_drawer.used_upgrades:
@@ -1161,14 +1161,13 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.cost = int(self.upgrade[2] * multiplier)
         self.reward = self.upgrade[4]
         self.drawdata = [(255, 255, 255), 14, " €", " €/s"]
-        self.image = self.old_image = self.rect = None
+        self.image = self.breakpoint = self.rect = None
         rect = game.images.upgrade_button[0][1]
         self.images = [[game.images.upgrade_button[3][0], game.images.upgrade_button[4][0],
                         game.images.upgrade_button[5][0]],
                        [game.images.upgrade_button[0][0], game.images.upgrade_button[1][0],
                         game.images.upgrade_button[2][0]]][self.upgrade[1]]
         self.miny = 155 + (rect.h + 7) * self.position
-        self.w = rect.w
         self.rect = pygame.Rect(-rect.w, self.miny, rect.w, rect.h)
         self.source_rect = pygame.Rect(0, 0, rect.w, rect.h)
         self.minx = 20 - rect.w
@@ -1177,8 +1176,8 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         self.animatemove = False
         self.animateout = False
         self.animatecounter = 280
-        # self.unavailable_obj = RenderObject(self.layer_mod, self.visible, False, self.images[1], self.rect.topleft,
-        #                                     (0, 0), (rect.w, rect.h), 0, False, False)
+        self.unavailable_obj = RenderObject(self.layer_mod, self.visible, False, self.images[1], self.rect.topleft,
+                                            (0, 0), (rect.w, rect.h), 0, False, False)
         self.name_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.name, self.rect.topleft,
                                      (12, 7), (252, 20), self.drawdata, False, False)
         self.cost_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.cost, self.rect.topleft,
@@ -1219,25 +1218,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 self.animateout = False
                 self.remove()
         if game.bar.money >= self.cost:
-            if self.rect.collidepoint(pygame.mouse.get_pos()):
-                self.image = self.images[2]
-            else:
-                self.image = self.images[0]
-        else:
-            breakpoint = self.w / 100 * game.bar.calculate_percentage(self.cost)
-            # todo optimize, with 2 layers?
-            # noinspection PyArgumentList
-            self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA).convert_alpha()
-            self.image.blit(self.images[0], pygame.Rect(0, 0, self.rect.w + breakpoint, self.rect.h),
-                            pygame.Rect(0, 0, breakpoint, self.rect.h))
-            self.image.blit(self.images[1], pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
-                            pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h))
-        if self.old_image != self.image:
-            self.old_image = self.image
-            self.dirty = 1
-        """if game.bar.money >= self.cost:
-            self.rect.w = self.w
-            self.source_rect.w = self.w
+            self.source_rect.w = self.rect.w
             if self.rect.collidepoint(pygame.mouse.get_pos()):
                 if self.image != self.images[2]:
                     self.image = self.images[2]
@@ -1246,26 +1227,21 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 if self.image != self.images[0]:
                     self.image = self.images[0]
                     self.dirty = 1
-            self.unavailable_obj.process_update(self.visible, self.layer_mod, self.images[1], self.rect.topleft,
-                                                pygame.Rect(0, 0, 0, self.rect.h))
+            self.unavailable_obj.process_update(False, self.layer_mod, self.images[1], self.rect.topleft, False)
         else:
-            breakpoint = self.w / 100 * game.bar.calculate_percentage(self.cost)
-            self.image = self.images[0]
-            self.rect.w = self.w + breakpoint
-            self.source_rect.w = breakpoint
-            self.unavailable_obj.process_update(self.visible, self.layer_mod, self.images[1], (breakpoint, self.rect.y),
-                                                pygame.Rect(breakpoint, 0, self.w, self.rect.h))"""
-        """
-            # todo optimize, with 2 layers?
-            # noinspection PyArgumentList
-            self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA).convert_alpha()
-            self.image.blit(self.images[0], pygame.Rect(0, 0, self.rect.w + breakpoint, self.rect.h),
-                            pygame.Rect(0, 0, breakpoint, self.rect.h))
-            self.image.blit(self.images[1], pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
-                            pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h))"""
-        """if self.old_rect_w != self.rect.w:
-            self.old_rect_w = self.rect.w
-            self.dirty = 1"""
+            if self.image != self.images[0]:
+                self.image = self.images[0]
+                self.dirty = 1
+            breakpoint = round(self.rect.w / 100 * game.bar.calculate_percentage(self.cost))
+            if self.breakpoint != breakpoint:
+                self.breakpoint = breakpoint
+                self.dirty = 1
+                self.source_rect.w = breakpoint
+                unavailable_obj_source_rect = pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h)
+            else:
+                unavailable_obj_source_rect = False
+            self.unavailable_obj.process_update(self.visible, self.layer_mod, self.images[1],
+                                                (self.rect.x + breakpoint, self.rect.y), unavailable_obj_source_rect)
 
     def check_layer_change(self):
         if game.tutorial is not None and (len(game.left_drawer.upgrade_buttons) > 0) and \
@@ -1286,6 +1262,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
     def remove(self):
         game.left_drawer.used_upgrades.add(self.name)
         game.left_drawer.upgrade_buttons.remove(self)
+        self.unavailable_obj.kill()
         self.kill()
 
     def process_location(self):
@@ -1439,7 +1416,7 @@ class RightButton(pygame.sprite.DirtySprite):
         self.layer_mod = self.layer + 1
         self.visible = self.global_visible = False
         self.sizetype = sizetype
-        self.old_image = self.old_x = None
+        self.breakpoint = None
         self.drawdata = [(255, 255, 255), 14, " €"]
         self.image_available, rect = game.images.right_button[0]
         self.image_available_highlighted = game.images.right_button[1][0]
@@ -1454,20 +1431,24 @@ class RightButton(pygame.sprite.DirtySprite):
         self.people = game.houses_properties[self.sizetype][0]
         self.image = self.image_available
         self.rect = pygame.Rect(game.resolution[0], 15 + 100 * self.sizetype, rect.w, rect.h)
+        self.source_rect = pygame.Rect(0, 0, rect.w, rect.h)
         self.minx = game.resolution[0] - 220
         self.maxx = game.resolution[0] - 20
         self.animatein = True
-        self.logo_obj = RenderObject(self.layer_mod, self.visible, True, self.logo, self.rect.topleft,
+        self.unavailable_obj = RenderObject(
+            self.layer_mod, self.visible, False, self.image_unavailable, self.rect.topleft,
+            (0, 0), (rect.w, rect.h), 0, False, False)
+        self.logo_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.logo, self.rect.topleft,
                                      (7, 7), (47, 48), self.drawdata, False, False)
-        self.amount_obj = RenderObject(self.layer_mod, self.visible, True, self.amount, self.rect.topleft,
+        self.amount_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.amount, self.rect.topleft,
                                        (7, 62), (47, 19), self.drawdata, False, False)
-        self.name_obj = RenderObject(self.layer_mod, self.visible, True, self.name, self.rect.topleft,
+        self.name_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.name, self.rect.topleft,
                                      (62, 7), (132, 19), self.drawdata, False, False)
-        self.people_obj = RenderObject(self.layer_mod, self.visible, True, self.people, self.rect.topleft,
+        self.people_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.people, self.rect.topleft,
                                        (77, 35), (44, 19), self.drawdata, False, False)
-        self.peopletotal_obj = RenderObject(self.layer_mod, self.visible, True, self.calculate_peopletotal(),
+        self.peopletotal_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.calculate_peopletotal(),
                                             self.rect.topleft, (132, 34), (63, 19), self.drawdata, False, False)
-        self.price_obj = RenderObject(self.layer_mod, self.visible, True, self.price, self.rect.topleft,
+        self.price_obj = RenderObject(self.layer_mod + 1, self.visible, True, self.price, self.rect.topleft,
                                       (62, 62), (132, 19), self.drawdata, self.drawdata[2], False)
         game.add_new_renderable(self, self.layer)
 
@@ -1489,22 +1470,32 @@ class RightButton(pygame.sprite.DirtySprite):
                     self.rect.x = self.maxx
                     self.animatein = False
             if game.bar.money >= self.price:
+                self.source_rect.w = self.rect.w
                 if self.rect.collidepoint(pygame.mouse.get_pos()):
-                    self.image = self.image_available_highlighted
+                    if self.image != self.image_available_highlighted:
+                        self.image = self.image_available_highlighted
+                        self.dirty = 1
                 else:
-                    self.image = self.image_available
+                    if self.image != self.image_available:
+                        self.image = self.image_available
+                        self.dirty = 1
+                self.unavailable_obj.process_update(
+                    False, self.layer_mod, self.image_unavailable, self.rect.topleft, False)
             else:
-                breakpoint = self.rect.w / 100 * game.bar.calculate_percentage(self.price)
-                # if not self.rect.x + breakpoint > game.resolution[0] + 10: todo optimize, with 2 layers?
-                # noinspection PyArgumentList
-                self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA).convert_alpha()
-                self.image.blit(self.image_available, pygame.Rect(0, 0, self.rect.w + breakpoint, self.rect.h),
-                                pygame.Rect(0, 0, breakpoint, self.rect.h))
-                self.image.blit(self.image_unavailable, pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h),
-                                pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h))
-            if self.old_image != self.image:
-                self.old_image = self.image
-                self.dirty = 1
+                if self.image != self.image_available:
+                    self.image = self.image_available
+                    self.dirty = 1
+                breakpoint = round(self.rect.w / 100 * game.bar.calculate_percentage(self.price))
+                if self.breakpoint != breakpoint:
+                    self.breakpoint = breakpoint
+                    self.dirty = 1
+                    self.source_rect.w = breakpoint
+                    unavailable_obj_source_rect = pygame.Rect(breakpoint, 0, self.rect.w, self.rect.h)
+                else:
+                    unavailable_obj_source_rect = False
+                self.unavailable_obj.process_update(self.visible, self.layer_mod, self.image_unavailable,
+                                                    (self.rect.x + breakpoint, self.rect.y),
+                                                    unavailable_obj_source_rect)
         elif not self.global_visible:
             if game.bar.people_total >= game.houses_properties[self.sizetype][2]:
                 self.global_visible = True
@@ -2203,6 +2194,7 @@ class RenderObject(pygame.sprite.DirtySprite):
             self.main_obj_xy = main_obj_xy
         if source_rect:
             self.source_rect = source_rect
+            self.dirty = 1
         if layer != 0 and self.layer != layer:
             game.allsprites.remove(self)
             game.add_new_renderable(self, layer)
