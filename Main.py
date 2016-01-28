@@ -132,7 +132,8 @@ class Game:
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
         pygame.time.set_timer(pygame.USEREVENT + 2, 100)
-        pygame.time.set_timer(pygame.USEREVENT + 3, 10000)
+        pygame.time.set_timer(pygame.USEREVENT + 3, 500)
+        pygame.time.set_timer(pygame.USEREVENT + 4, 10000)
         self.images = Images()
         self.fonts = Fonts()
         self.sounds = Sounds()
@@ -212,10 +213,12 @@ class Game:
                 game.left_drawer.news_obj.count()
                 if game.metro is not None:
                     game.metro.train_obj.count()
+            elif event.type == pygame.USEREVENT + 3:
+                # 500ms timer
                 for sizetype in game.houses:
                     for house in sizetype:
                         house.calculate_min_people()
-            elif event.type == pygame.USEREVENT + 3:
+            elif event.type == pygame.USEREVENT + 4:
                 # 10s timer
                 for sizetype in self.houses:
                     for house in sizetype:
