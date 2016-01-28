@@ -857,7 +857,7 @@ class House(pygame.sprite.DirtySprite):
         game.bar.people_total += people
         game.bar.houses_income += people * game.bar.house_multiplier * game.houses_properties[sizetype][1]
         game.left_drawer.current_max_upgrade_buttons += 1
-        self.taxmax1 = self.taxmax2 = self.taxmax3 = None
+        self.taxes = []
         self.calculate_taxmax()
         if randtype is None:
             if self.sizetype == 0:
@@ -897,26 +897,18 @@ class House(pygame.sprite.DirtySprite):
                     self.dirty = 1
 
     def calculate_currentpeople(self):
-        if game.taxes[0] > self.taxmax1:
-            self.move_people("out", game.taxes[0])
-        if game.taxes[1] > self.taxmax2:
-            self.move_people("out", game.taxes[0])
-        if game.taxes[2] > self.taxmax3:
-            self.move_people("out", game.taxes[0])
-        if game.taxes[0] < self.taxmax1 and game.taxes[1] < self.taxmax2 and game.taxes[2] < self.taxmax3:
+        min_people = self.peoplemax / 100 * randint(1, 4)
+        if self.peoplecurrent < min_people:
             self.move_people("in", False)
-        """if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
-            self.peoplecurrent -= (randint(1, 5) // 5 + game.difficulty) / 10
-            if self.peoplecurrent < 0:
-                self.peoplecurrent = 0
         else:
-            if self.peoplecurrent < self.peoplemax:
-                fillrate = randint(0, 3) - game.difficulty
-                if fillrate < 0:
-                    fillrate = 0
-                self.peoplecurrent += fillrate
-            else:
-                self.peoplecurrent = self.peoplemax"""
+            self.min_people = min_people
+            move_in = True
+            for i in range(len(self.taxes)):
+                if game.taxes[i] > self.taxes[i]:
+                    move_in = False
+                    self.move_people("out", game.taxes[i])
+            if move_in:
+                self.move_people("in", False)
 
     def move_people(self, direction, tax):
         if direction == "out":
@@ -937,9 +929,7 @@ class House(pygame.sprite.DirtySprite):
                 self.peoplecurrent = self.peoplemax
 
     def calculate_taxmax(self):
-        self.taxmax1 = 5 * randint(1, 16)
-        self.taxmax2 = 5 * randint(1, 14)
-        self.taxmax3 = 5 * randint(1, 19)
+        self.taxes = [5 * randint(1, 16), 5 * randint(1, 14), 5 * randint(1, 19)]
 
 
 class LeftDrawer(pygame.sprite.DirtySprite):
