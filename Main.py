@@ -152,7 +152,7 @@ class Game:
         self.init_purge()
         self.init_loadconfig(self.difficulty)
         self.filesystem_do(state, self.difficulty)
-        # self.cloud = Cloud(1)
+        self.cloud = Cloud(10)
         self.left_drawer = LeftDrawer(self.used_upgrades)
         self.right_drawer = RightDrawer()
         for upgrade in self.left_drawer.used_upgrades:
