@@ -79,7 +79,7 @@ class Game:
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
-        # houses_properties = sizetype(people, per people modifier, minpeople)
+        # houses_properties = sizetype(maxpeople, per people modifier, minpeople)
         if difficulty == 0:
             self.houses_properties = [
                 (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
@@ -212,6 +212,9 @@ class Game:
                 game.left_drawer.news_obj.count()
                 if game.metro is not None:
                     game.metro.train_obj.count()
+                for sizetype in game.houses:
+                    for house in sizetype:
+                        house.calculate_min_people()
             elif event.type == pygame.USEREVENT + 3:
                 # 10s timer
                 for sizetype in self.houses:
@@ -322,7 +325,7 @@ class Game:
         self.houses_states = [[], [], [], [], []]
         for sizetype in self.houses:
             for house in sizetype:
-                self.houses_states[house.sizetype].append([house.sizetype, house.randtype, house.peoplemax])
+                self.houses_states[house.sizetype].append([house.sizetype, house.randtype, house.peoplecurrent])
 
     def set_loaded_states(self):
         for sizetype in self.houses_states:
@@ -852,10 +855,11 @@ class House(pygame.sprite.DirtySprite):
         self.dirty = 2
         self.visible = True
         self.drawnout = False
-        self.peoplecurrent = self.peoplemax = people
+        self.peoplecurrent = people
+        self.peoplemax = game.houses_properties[sizetype][0]
         self.min_people = people / 100 * randint(1, 4)
-        game.bar.people_total += people
-        game.bar.houses_income += people * game.bar.house_multiplier * game.houses_properties[sizetype][1]
+        game.bar.people_total += self.peoplemax
+        game.bar.houses_income += self.peoplemax * game.bar.house_multiplier * game.houses_properties[sizetype][1]
         game.left_drawer.current_max_upgrade_buttons += 1
         self.taxes = []
         self.calculate_taxmax()
@@ -897,11 +901,9 @@ class House(pygame.sprite.DirtySprite):
                     self.dirty = 1
 
     def calculate_currentpeople(self):
-        min_people = self.peoplemax / 100 * randint(1, 4)
-        if self.peoplecurrent < min_people:
+        if self.peoplecurrent < self.min_people:
             self.move_people("in", False)
         else:
-            self.min_people = min_people
             move_in = True
             for i in range(len(self.taxes)):
                 if game.taxes[i] > self.taxes[i]:
@@ -927,6 +929,9 @@ class House(pygame.sprite.DirtySprite):
                 self.peoplecurrent += fillrate
             else:
                 self.peoplecurrent = self.peoplemax
+
+    def calculate_min_people(self):
+        self.min_people = self.peoplemax / 100 * randint(1, 4)
 
     def calculate_taxmax(self):
         self.taxes = [5 * randint(1, 16), 5 * randint(1, 14), 5 * randint(1, 19)]
@@ -2128,7 +2133,7 @@ class Bar(pygame.sprite.DirtySprite):
             self.income = taxed_income
         elif incometype == "total":
             return str(format(round(self.income + self.income_manual + self.calculate_incomereward()), ",d")) + \
-                   "/" + str(format(round(self.houses_income + self.calculate_incomereward()), ",d") + " €/s")
+                   "/" + str(format(round(self.houses_income + self.incomereward), ",d") + " €/s")
 
     def calculate_incomereward(self):
         if self.people_total == 0:
