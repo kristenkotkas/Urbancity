@@ -209,6 +209,9 @@ class Game:
                 game.left_drawer.news_obj.count()
                 if game.metro is not None:
                     game.metro.train_obj.count()
+                for sizetype in game.houses:
+                    for house in sizetype:
+                        house.calculate_currentpeople()
             elif event.type == pygame.USEREVENT + 3:
                 # 10s timer
                 for sizetype in self.houses:
@@ -853,9 +856,8 @@ class House(pygame.sprite.DirtySprite):
         game.bar.people_total += people
         game.bar.houses_income += people * game.bar.house_multiplier * game.houses_properties[sizetype][1]
         game.left_drawer.current_max_upgrade_buttons += 1
-        self.taxmax1 = randint(15, 70)
-        self.taxmax2 = randint(10, 60)
-        self.taxmax3 = randint(20, 80)
+        self.taxmax1 = self.taxmax2 = self.taxmax3 = None
+        self.calculate_taxmax()
         if randtype is None:
             if self.sizetype == 0:
                 self.randtype = randint(0, 3)
@@ -882,7 +884,6 @@ class House(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def update(self):
-        self.calculate_currentpeople()
         if self.visible:
             if not self.drawnout:
                 if self.source_rect.y > 0:
@@ -896,7 +897,7 @@ class House(pygame.sprite.DirtySprite):
 
     def calculate_currentpeople(self):
         if game.taxes[0] > self.taxmax1 or game.taxes[1] > self.taxmax2 or game.taxes[2] > self.taxmax3:
-            self.peoplecurrent -= randint(0, 1) + game.difficulty
+            self.peoplecurrent -= randint(1, 4) // 4 + game.difficulty
             if self.peoplecurrent < 0:
                 self.peoplecurrent = 0
         else:
@@ -909,9 +910,9 @@ class House(pygame.sprite.DirtySprite):
                 self.peoplecurrent = self.peoplemax
 
     def calculate_taxmax(self):
-        self.taxmax1 = randint(15, 70)
-        self.taxmax2 = randint(10, 60)
-        self.taxmax3 = randint(20, 80)
+        self.taxmax1 = 5 * randint(1, 16)
+        self.taxmax2 = 5 * randint(1, 14)
+        self.taxmax3 = 5 * randint(1, 19)
 
 
 class LeftDrawer(pygame.sprite.DirtySprite):
