@@ -853,6 +853,7 @@ class House(pygame.sprite.DirtySprite):
         self.visible = True
         self.drawnout = False
         self.peoplecurrent = self.peoplemax = people
+        self.min_people = people / 100 * randint(1, 4)
         game.bar.people_total += people
         game.bar.houses_income += people * game.bar.house_multiplier * game.houses_properties[sizetype][1]
         game.left_drawer.current_max_upgrade_buttons += 1
@@ -924,8 +925,8 @@ class House(pygame.sprite.DirtySprite):
             else:
                 tax_out = 0
             self.peoplecurrent -= (randint(1, 5) // 5 + game.difficulty + tax_out) / 10
-            if self.peoplecurrent < 0:
-                self.peoplecurrent = 0
+            if self.peoplecurrent < self.min_people:
+                self.peoplecurrent = self.min_people
         else:
             if self.peoplecurrent < self.peoplemax:
                 fillrate = randint(0, 3) - game.difficulty
@@ -1701,7 +1702,7 @@ class QuickMenu(pygame.sprite.DirtySprite):
                         visible = False
             else:
                 visible = False
-            obj.process_update(False, visible, 0, self.h_image, (0, 0), False)
+            obj.process_update(False, visible, 0, self.h_image, False, False)
 
     def mouse_click_check(self):
         if self.visible:
@@ -1873,7 +1874,7 @@ class Tutorial(pygame.sprite.DirtySprite):
                     visible = False
             else:
                 visible = False
-            obj.process_update(False, visible, 0, self.h_image, (0, 0), False)
+            obj.process_update(False, visible, 0, self.h_image, False, False)
 
     def mouse_click_check(self):
         if self.visible:
