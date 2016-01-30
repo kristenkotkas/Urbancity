@@ -1,6 +1,14 @@
-Urbancity Pygame projekt
+Urbancity
+=========
 
-Mäng toimib sarnaselt Cookie Clickerile, klikkimise asemel tuleb tühikut kasutada.
-Paremalt ekraani servast saab uusi maju osta ja vasakult makse muuta ning uuendusi soetada.
+lisa plakati link siia
 
-Allalaadimiste all on pakendatud exe.
+lisa sissejuhatus siia
+
+Allalaadimised
+--------------
+
+Allalaadimiste alt leiab pakendatud exe Windowsile (Microsoft Visual C runtime ka vaja?) 
+ning pooliku testiversiooni Androidile.
+
+Teistel platvormidel jooksutamiseks on vajalik Python 3.x (2.7 on poolik?) ja Pygame-i olemasolu.
