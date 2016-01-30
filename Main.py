@@ -400,15 +400,13 @@ class Fonts:
 
 class Sounds:
     def __init__(self):
-        # Sounds.load_sound("house_lo.ogg", 0)
-        self.click = self.load_sound("Mouse.ogg", 1)
-        self.notification = self.load_sound("Notification.ogg", 1)
-        # self.unlock = self.load_sound("Unlock.ogg", 1)
-        self.space = [self.load_sound("space_1.ogg", 1), self.load_sound("space_2.ogg", 1),
-                      self.load_sound("space_3.ogg", 1), self.load_sound("space_4.ogg", 1),
-                      self.load_sound("space_5.ogg", 1), self.load_sound("space_6.ogg", 1),
-                      self.load_sound("space_8.ogg", 1), self.load_sound("space_9.ogg", 1),
-                      self.load_sound("space_10.ogg", 1), self.load_sound("space_11.ogg", 1)]
+        self.click = self.load_sound("Mouse.ogg")
+        self.notification = self.load_sound("Notification.ogg")
+        self.space = [self.load_sound("space_1.ogg"), self.load_sound("space_2.ogg"),
+                      self.load_sound("space_3.ogg"), self.load_sound("space_4.ogg"),
+                      self.load_sound("space_5.ogg"), self.load_sound("space_6.ogg"),
+                      self.load_sound("space_8.ogg"), self.load_sound("space_9.ogg"),
+                      self.load_sound("space_10.ogg"), self.load_sound("space_11.ogg")]
 
     def play(self, sound):
         if sound == "space" and game.quick_menu.sounds_obj.checked_objs_visible[0]:
@@ -417,33 +415,16 @@ class Sounds:
             self.click.play()
         elif sound == "notification" and game.quick_menu.sounds_obj.checked_objs_visible[2]:
             self.notification.play()
-        elif sound == "unlock" and game.quick_menu.sounds_obj.checked_objs_visible[3]:
-            # self.unlock.play()  # todo add
-            pass
 
     @staticmethod
-    def toggle_mute():  # todo remove?
-        if pygame.mixer.get_num_channels() > 0:
-            pygame.mixer.set_num_channels(0)
-            pygame.mixer.music.pause()
-        else:
-            pygame.mixer.set_num_channels(8)
-            pygame.mixer.music.unpause()
-
-    @staticmethod
-    def load_sound(file, soundtype):
+    def load_sound(file):
         file = os.path.join(main_dir, 'data\\sounds', file)
-        if soundtype == 0:
-            pygame.mixer.music.load(file)
-            # pygame.mixer.music.play(-1)
-            # pygame.mixer.music.set_volume(0.1)
-        else:
-            try:
-                loaded_sound = pygame.mixer.Sound(file)
-                loaded_sound.set_volume(0.5)
-            except pygame.error:
-                raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
-            return loaded_sound
+        try:
+            loaded_sound = pygame.mixer.Sound(file)
+            loaded_sound.set_volume(0.5)
+        except pygame.error:
+            raise SystemExit("Could not load sound " + file + ", " + pygame.get_error())
+        return loaded_sound
 
 
 class Background:
@@ -833,7 +814,7 @@ class Cloud(pygame.sprite.DirtySprite):
             for sprite in sample(spriteslist, len(spriteslist)):
                 if isinstance(sprite, Cloud):
                     sprite.rect.x = sprite.minx
-                    sprite.speed = randint(1, 2) ** 1.15  # todo speed algorithm
+                    sprite.speed = randint(1, 2) ** 1.15
                     game.activeclouds.append(sprite)
                 game.add_new_renderable(sprite, sample(value, len(value))[0])
 
@@ -1006,7 +987,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.upgrades.append(new_law)
 
     @staticmethod
-    def init_unlock(unlockname):  # todo add all unlockable buildings
+    def init_unlock(unlockname):
         if unlockname == "Metro":
             game.metro = Metro()
         elif unlockname == "Plumbing":
@@ -1728,12 +1709,10 @@ class QuickMenu(pygame.sprite.DirtySprite):
     def toggle(self):
         if self.visible:
             self.visible = False
-            # todo global visible = False if autoclose
+            self.sounds_obj.global_visible = False
             self.sounds_obj.visible = False
         else:
             self.visible = True
-            if self.sounds_obj.global_visible:  # todo remove this then
-                self.sounds_obj.visible = True  # todo also
         game.toggle_interactables()
 
 
@@ -1750,14 +1729,14 @@ class QuickSounds(pygame.sprite.DirtySprite):
         self.rect = pygame.Rect(self.minx, mainxy[1], rect.w, rect.h)
         self.source_rect = pygame.Rect(rect.w, 0, rect.w, rect.h)
         self.speed = 6
-        self.rectsxy = (19, [15, 67, 119, 171])
-        self.c_rectsxy = [27, [8, 60, 112, 164]]
+        self.rectsxy = (19, [15, 67, 119])
+        self.c_rectsxy = [27, [8, 60, 112]]
         self.h_image, h_rect = game.images.quick_menu[3]
         self.c_image, c_rect = game.images.quick_menu[4]
         self.checked_objs = []
-        self.checked_objs_visible = [True, True, True, True]
+        self.checked_objs_visible = [True, True, True]
         self.highlight_objs = []
-        for i in range(4):
+        for i in range(3):
             self.highlight_objs.append(RenderObject(self.layer + 1, self.visible, False, self.h_image,
                                                     (self.maxx + self.rectsxy[0],
                                                      self.rect.y + self.rectsxy[1][i]),
@@ -1777,12 +1756,12 @@ class QuickSounds(pygame.sprite.DirtySprite):
                     visible = False
             else:
                 visible = False
-            obj.process_update(False, visible, 0, self.h_image, (0, 0), False)
+            obj.process_update(False, visible, 0, self.h_image, False, False)
 
     def mouse_click_check(self):
         if self.visible and self.rect.x == self.maxx:
-            for i in range(4):
-                if self.checked_objs[i].rect.collidepoint(pygame.mouse.get_pos()):
+            for i in range(3):
+                if self.highlight_objs[i].rect.collidepoint(pygame.mouse.get_pos()):
                     if self.checked_objs_visible[i]:
                         self.checked_objs_visible[i] = False
                     else:
@@ -1820,7 +1799,7 @@ class QuickSounds(pygame.sprite.DirtySprite):
             else:
                 self.dirty = 1
                 self.source_rect.x = self.source_rect.w
-        for i in range(4):
+        for i in range(3):
             self.checked_objs[i].process_update(
                 False, self.check_obj_visibility(i), 0, self.c_image,
                 (self.rect.x + self.c_rectsxy[0] - self.source_rect.x, self.rect.y + self.c_rectsxy[1][i]), False)
@@ -1884,7 +1863,7 @@ class Tutorial(pygame.sprite.DirtySprite):
                     return True
 
     def toggle(self):
-        if self.visible:  # todo not needed?
+        if self.visible:
             self.visible = False
             self.guide_obj.visible = False
         else:
