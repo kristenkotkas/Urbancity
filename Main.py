@@ -70,7 +70,7 @@ class Game:
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
         self.houses_properties = [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)]
-        # houses_types = sizetype(randtype[xbase, randtype[x laius/+vahe]], randtype[y from bottom])
+        # houses_types = sizetype(randtype[x base, randtype[x width + gap]], randtype[y from bottom])
         self.houses_types = [([-15, [190, 125, 240, 125]], [432, 347, 427, 347]),
                              ([5, [90, 96, 242]], [340, 335, 328]),
                              ([-30, [103, 96, 170]], [255, 255, 250]),
@@ -79,7 +79,7 @@ class Game:
         self.right_button_prices_fixed = [0, 0, 0, 0, 0]
         self.right_button_prices = [0, 0, 0, 0, 0]
         self.right_button_amounts = [0, 0, 0, 0, 0]
-        # houses_properties = sizetype(maxpeople, per people modifier, minpeople)
+        # houses_properties = sizetype(maxpeople in type, per people modifier, minpeople for type unlock)
         if difficulty == 0:
             self.houses_properties = [
                 (200, 0.2, 0), (900, 0.4, 600), (2560, 1, 3500), (7200, 1.8, 10800), (13500, 6, 27000)]
@@ -952,10 +952,10 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         self.taxnames = ["Beard Tax", "Luxury Tax", "Window Tax"]
         self.tax_buttons = []
         self.upgrade_buttons = []
-        self.current_max_upgrade_buttons = 0
+        self.current_max_upgrade_buttons = 1
         self.max_screen_upgrade_buttons = round((game.resolution[1] - 170) / 70)
         self.used_upgrades = used_upgrades
-        if len(self.used_upgrades) > 0:
+        if game.bar_amounts[0] > 10:
             game.tutorial_mode = False
         for name in self.used_upgrades:
             for upgrade in game.upgrades:
@@ -1026,13 +1026,10 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.lifi_tower = LifiTower()
 
     def process_upgrades(self):
-        if game.tutorial_mode:
-            if not game.menu.visible and len(self.upgrade_buttons) > 0:
-                if not game.tutorial.visible:
-                    game.tutorial.toggle()
-                game.tutorial.guide_obj.tutscreen = 4
-                game.tutorial.guide_obj.update_screen()
-                game.tutorial_mode = False
+        if game.tutorial_mode and not game.menu.visible:
+            if not game.tutorial.visible:
+                game.tutorial.toggle()
+            game.tutorial_mode = False
         for button in self.upgrade_buttons:
             button.process_location()
         if self.current_max_upgrade_buttons > len(self.upgrade_buttons) < self.max_screen_upgrade_buttons:
@@ -1479,13 +1476,13 @@ class RightButton(pygame.sprite.DirtySprite):
 
     def update(self):
         self.check_layer_change()
-        self.logo_obj.process_update(False, self.visible, self.layer_mod, self.logo, self.rect.topleft, False)
-        self.amount_obj.process_update(False, self.visible, self.layer_mod, self.amount, self.rect.topleft, False)
-        self.name_obj.process_update(False, self.visible, self.layer_mod, self.name, self.rect.topleft, False)
-        self.people_obj.process_update(False, self.visible, self.layer_mod, self.people, self.rect.topleft, False)
-        self.peopletotal_obj.process_update(False, self.visible, self.layer_mod, self.calculate_peopletotal(),
+        self.logo_obj.process_update(False, self.visible, self.layer_mod + 1, self.logo, self.rect.topleft, False)
+        self.amount_obj.process_update(False, self.visible, self.layer_mod + 1, self.amount, self.rect.topleft, False)
+        self.name_obj.process_update(False, self.visible, self.layer_mod + 1, self.name, self.rect.topleft, False)
+        self.people_obj.process_update(False, self.visible, self.layer_mod + 1, self.people, self.rect.topleft, False)
+        self.peopletotal_obj.process_update(False, self.visible, self.layer_mod + 1, self.calculate_peopletotal(),
                                             self.rect.topleft, False)
-        self.price_obj.process_update(False, self.visible, self.layer_mod, self.price, self.rect.topleft, False)
+        self.price_obj.process_update(False, self.visible, self.layer_mod + 1, self.price, self.rect.topleft, False)
         if self.visible:
             if self.animatein:
                 self.dirty = 1
