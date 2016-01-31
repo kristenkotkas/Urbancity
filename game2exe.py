@@ -8,10 +8,9 @@ exe = Executable(
     compress= True
 )
 options = {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
-           "include_files": ["data/"],
+           "include_files": ["data/", "README.md", "License.md"],
            "optimize": 2,
            "compressed": True,
-           "include_msvcr": True
            }
 setup(
     name="Urbancity",

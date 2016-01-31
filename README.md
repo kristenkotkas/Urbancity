@@ -1,14 +1,17 @@
 Urbancity
 =========
 
-lisa plakati link siia
-
-lisa sissejuhatus siia
+Tegemist on mänguga, mis töötab sarnaselt enamikuga rahakogumismängudest. Mängu eesmärgiks on ehitada linn, kus on võimalikult palju elanikke. Selleks saab tühikut vajutades raha koguda. Saadud raha eest tuleb osta maju, mille elanikud hakkavad maksutulust linna rahakotti kasvatama. Teenitud raha eest saab juurde osta uusi maju, et elanike arv muudkui kasvaks. Lisaks paljudele erinevatele võimalustele on mäng väga huvitav ja kaasahaarav.
 
 Allalaadimised
 --------------
 
-Allalaadimiste alt leiab pakendatud exe Windowsile (Microsoft Visual C runtime ka vaja?) 
-ning pooliku testiversiooni Androidile.
+Allalaadimiste alt leiab pakendatud exe Windowsile ning testiversiooni Androidile.
+Teistel platvormidel jooksutamiseks on vajalik Pygame'i olemasolu ja soovitatavalt Python 3.x. 
+Python 2.7.x jaoks on olemas eraldi versioon, mis võib olla aeglasem.
 
-Teistel platvormidel jooksutamiseks on vajalik Python 3.x (2.7 on poolik?) ja Pygame-i olemasolu.
+Appi, see ei tööta!
+--------------
+
+* Pygame'i saab tirida siit: http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame
+* Pakendatud Windowsi versioonil võib vaja minna Microsoft Visual C++ Redistributable Pakki. Rohkem infot leiab siit: http://cx-freeze.readthedocs.org/en/latest/faq.html#microsoft-visual-c-redistributable-package
