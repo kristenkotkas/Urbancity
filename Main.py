@@ -121,14 +121,22 @@ class Game:
             (21, "Now you can surf at the speed of light.", self.upgrades[9], 0),
             (22, "You have conquered the terrorists. Now, try to build your city as big as possible.",
              self.upgrades[10], 0),
-            (23, "Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
-            (24, "Your colonies overseas have generated 35,000 € profit.", 10000, 0),
-            (25, "The " + self.generate_name() + " association awards you with a 500,000 € bonus.", 25000, 0),
-            (26, "The United States of " + self.generate_name() + " have donated you 4,000,000 €.", 75000, 0),
-            (27, "The people from the planet of " + self.generate_name() + " have sent you 12,000,000 €.", 150000, 0),
-            (28, "The " + self.generate_name() + " company has donated you 22,000,000 €.", 250000, 0),
-            (29, "The Kingdom of " + self.generate_name() + " have donated you 55,000,000 €.", 500000, 0),
-            (30, "The " + self.generate_name() + " Union have donated you 100,000,000 €.", 1000000, 0)]
+            (23, "Your people have found a pot of gold worth " + str(format(self.money_bonuses[0][1], ",d")) +
+             " €.", 1000, 0),
+            (24, "Your colonies overseas have generated " + str(format(self.money_bonuses[2][1], ",d")) +
+             " € profit.", 10000, 0),
+            (25, "The " + self.generate_name() + " association awards you with a " +
+             str(format(self.money_bonuses[4][1], ",d")) + " € bonus.", 25000, 0),
+            (26, "The United States of " + self.generate_name() + " have donated you " +
+             str(format(self.money_bonuses[7][1], ",d")) + " €.", 75000, 0),
+            (27, "The people from the planet of " + self.generate_name() + " have sent you " +
+             str(format(self.money_bonuses[9][1], ",d")) + " €.", 150000, 0),
+            (28, "The " + self.generate_name() + " company has donated you " +
+             str(format(self.money_bonuses[11][1], ",d")) + " €.", 250000, 0),
+            (29, "The Kingdom of " + self.generate_name() + " have donated you " +
+             str(format(self.money_bonuses[13][1], ",d")) + " €.", 500000, 0),
+            (30, "The " + self.generate_name() + " Union have donated you " +
+             str(format(self.money_bonuses[15][1], ",d")) + " €.", 1000000, 0)]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
