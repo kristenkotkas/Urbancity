@@ -52,21 +52,22 @@ class Game:
                          ("Li-Fi", 1, 50120000, 225000, 57750),
                          ("World Peace", 1, 500000000, 750000, 583333)]
         # money_bonus = (name{private}, reward{public}, unlock amount{private})
-        self.money_bonuses = [(0, 4000, 1000),
-                              (1, 15000, 2400),
-                              (2, 35000, 10000),
-                              (3, 65000, 12000),
-                              (4, 500000, 25000),
-                              (5, 2000000, 50000),
-                              (6, 4000000, 75000),
-                              (7, 8000000, 100000),
-                              (8, 12000000, 150000),
-                              (9, 20000000, 225000),
-                              (10, 22000000, 250000),
-                              (11, 45000000, 400000),
-                              (12, 55000000, 500000),
-                              (13, 90000000, 750000),
-                              (14, 100000000, 1000000)]
+        self.money_bonuses = [(0, 20000, 1000),
+                              (1, 75000, 2400),
+                              (2, 175000, 10000),
+                              (3, 325000, 12000),
+                              (4, 2500000, 25000),
+                              (5, 5000000, 42000),
+                              (6, 12000000, 50000),
+                              (7, 24000000, 75000),
+                              (8, 48000000, 100000),
+                              (9, 84000000, 150000),
+                              (10, 140000000, 225000),
+                              (11, 176000000, 250000),
+                              (12, 360000000, 400000),
+                              (13, 495000000, 500000),
+                              (14, 810000000, 750000),
+                              (15, 1000000000, 1000000)]
         self.bar_amounts = [0, 0]
         self.houses = [[], [], [], [], []]
         self.houses_states = [[], [], [], [], []]
@@ -118,14 +119,16 @@ class Game:
             (19, "What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7], 0),
             (20, "Looks like we are the first city to use 5G technology.", self.upgrades[8], 0),
             (21, "Now you can surf at the speed of light.", self.upgrades[9], 0),
-            (22, "Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
-            (23, "Your colonies overseas have generated 35,000 € profit.", 10000, 0),
-            (24, "The " + self.generate_name() + " association awards you with a 500,000 € bonus.", 25000, 0),
-            (25, "The United States of " + self.generate_name() + " have donated you 4,000,000 €.", 75000, 0),
-            (26, "The people from the planet of " + self.generate_name() + " have sent you 12,000,000 €.", 150000, 0),
-            (27, "The " + self.generate_name() + " company has donated you 22,000,000 €.", 250000, 0),
-            (28, "The kingdom of " + self.generate_name() + " have donated you 55,000,000 €.", 500000, 0),
-            (29, "The " + self.generate_name() + " Union have donated you 100,000,000 €.", 1000000, 0)]
+            (22, "You have conquered the terrorists. Now, try to build your city as big as possible.",
+             self.upgrades[10], 0),
+            (23, "Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
+            (24, "Your colonies overseas have generated 35,000 € profit.", 10000, 0),
+            (25, "The " + self.generate_name() + " association awards you with a 500,000 € bonus.", 25000, 0),
+            (26, "The United States of " + self.generate_name() + " have donated you 4,000,000 €.", 75000, 0),
+            (27, "The people from the planet of " + self.generate_name() + " have sent you 12,000,000 €.", 150000, 0),
+            (28, "The " + self.generate_name() + " company has donated you 22,000,000 €.", 250000, 0),
+            (29, "The Kingdom of " + self.generate_name() + " have donated you 55,000,000 €.", 500000, 0),
+            (30, "The " + self.generate_name() + " Union have donated you 100,000,000 €.", 1000000, 0)]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -563,6 +566,8 @@ class MetroTrain(pygame.sprite.DirtySprite):
                             self.speed = 3
                             self.image = self.trainimage
                             self.t_event = False
+                            if "World Peace" in game.left_drawer.used_upgrades:
+                                self.t_override = True
                     elif not self.t_override and not self.t_event and randint(1, 10) == 6:
                         for notification in game.bar.used_notifications:
                             if notification[1] == self.t_notification:
@@ -1051,18 +1056,26 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             game.tutorial_mode = False
         for button in self.upgrade_buttons:
             button.process_location()
-        if self.current_max_upgrade_buttons > len(self.upgrade_buttons) < self.max_screen_upgrade_buttons:
-            if game.menu.visible:
-                for unused_upgrade in game.unused_upgrades:
-                    self.upgrade_buttons.append(UpgradeButton(unused_upgrade, len(self.upgrade_buttons)))
-                    game.unused_upgrades.remove(unused_upgrade)
-                    for upgrade in game.upgrades:
-                        if upgrade[0] == unused_upgrade[0]:
-                            game.upgrades.remove(upgrade)
-                    return
-            else:
+        if len(game.unused_upgrades) > 0:
+            for unused_upgrade in game.unused_upgrades:
+                self.upgrade_buttons.append(UpgradeButton(unused_upgrade, len(self.upgrade_buttons)))
+                game.unused_upgrades.remove(unused_upgrade)
                 for upgrade in game.upgrades:
-                    if game.bar.people_total >= upgrade[3]:
+                    if upgrade[0] == unused_upgrade[0]:
+                        game.upgrades.remove(upgrade)
+                        return
+        else:
+            for upgrade in game.upgrades:
+                if game.bar.people_total >= upgrade[3]:
+                    if upgrade[1] == 1:
+                        priority_index = 0
+                        for upgrade_button in self.upgrade_buttons:
+                            if upgrade_button.upgrade[1] == 1:
+                                priority_index += 1
+                        self.upgrade_buttons.insert(priority_index, UpgradeButton(upgrade, priority_index))
+                        game.upgrades.remove(upgrade)
+                        return
+                    elif self.current_max_upgrade_buttons > len(self.upgrade_buttons) < self.max_screen_upgrade_buttons:
                         self.upgrade_buttons.append(UpgradeButton(upgrade, len(self.upgrade_buttons)))
                         game.upgrades.remove(upgrade)
                         return
@@ -1237,7 +1250,21 @@ class UpgradeButton(pygame.sprite.DirtySprite):
         if self.animatemove:
             self.dirty = 1
             if self.rect.y > self.miny:
-                self.rect.y -= 10
+                if self.rect.y - self.miny < 10:
+                    if self.rect.y - self.miny < 3:
+                        self.rect.y = self.miny
+                    else:
+                        self.rect.y -= 3
+                else:
+                    self.rect.y -= 10
+            elif self.miny > self.rect.y:
+                if self.miny - self.rect.y < 10:
+                    if self.miny - self.rect.y < 3:
+                        self.rect.y = self.miny
+                    else:
+                        self.rect.y += 3
+                else:
+                    self.rect.y += 10
             else:
                 self.animatemove = False
         elif self.animatein:
