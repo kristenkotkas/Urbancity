@@ -1015,10 +1015,7 @@ class LeftDrawer(pygame.sprite.DirtySprite):
             return
         else:
             if upgrade not in self.used_upgrades:
-                if len(upgrade) <= 23:
-                    return upgrade_obj
-                else:
-                    return self.create_random_law(income, people_total)
+                return upgrade_obj
             else:
                 return self.create_random_law(income, people_total)
 
@@ -1413,8 +1410,12 @@ class RightDrawer(pygame.sprite.DirtySprite):
         game.add_new_renderable(self, self.layer)
 
     def update(self):
+        if self.tapcounter > 0:
+            tap_dirty = True
+        else:
+            tap_dirty = False
         self.tap_pad_obj.process_update(
-            False, self.tap_pad_visible, self.layer, self.tapimage, self.taprect.topleft, False)
+            tap_dirty, self.tap_pad_visible, self.layer, self.tapimage, self.taprect.topleft, False)
         if self.rect.collidepoint(pygame.mouse.get_pos()) or self.open:
             for button in self.right_buttons:
                 button.slide(-5)
@@ -1424,15 +1425,14 @@ class RightDrawer(pygame.sprite.DirtySprite):
 
     def process_tap_pad(self):
         if self.taprect.y == self.tapy[1]:
-            self.tapcounter += 1
-            if self.tapcounter >= 10:
+            self.tapcounter -= 1
+            if self.tapcounter < 0:
                 self.taprect.y = self.tapy[0]
-                self.tapcounter = 0
+                self.tapcounter = 10
 
     def tap_pad_click_check(self):
         if self.tap_pad_visible and self.taprect.collidepoint(pygame.mouse.get_pos()):
             game.bar.add_manual_money()
-            self.tapcounter = 0
             if self.taprect.y != self.tapy[1]:
                 self.taprect.y = self.tapy[1]
             return True
