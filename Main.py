@@ -119,13 +119,13 @@ class Game:
             (20, "Looks like we are the first city to use 5G technology.", self.upgrades[8], 0),
             (21, "Now you can surf at the speed of light.", self.upgrades[9], 0),
             (22, "Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
-            (23, "You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000, 0),
-            (24, "You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000, 0),
-            (25, "You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000, 0),
-            (26, "You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000, 0),
-            (27, "You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000, 0),
-            (28, "You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000, 0),
-            (29, "You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000, 0)]
+            (23, "Your colonies overseas have generated 35,000 € profit.", 10000, 0),
+            (24, "The " + self.generate_name() + " association awards you with a 500,000 € bonus.", 25000, 0),
+            (25, "The United States of " + self.generate_name() + " have donated you 4,000,000 €.", 75000, 0),
+            (26, "The people from the planet of " + self.generate_name() + " have sent you 12,000,000 €.", 150000, 0),
+            (27, "The " + self.generate_name() + " company has donated you 22,000,000 €.", 250000, 0),
+            (28, "The kingdom of " + self.generate_name() + " have donated you 55,000,000 €.", 500000, 0),
+            (29, "The " + self.generate_name() + " Union have donated you 100,000,000 €.", 1000000, 0)]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -1338,11 +1338,11 @@ class News(pygame.sprite.DirtySprite):
         self.layer = layer
         self.drawing = False
         self.counter = 0
-        self.drawdata = [(0, 0, 0), 18]
+        self.drawdata = [(0, 0, 0), 20]
         self.txt = ""
         self.image, rect = game.images.misc[1]
         self.rect = pygame.Rect(-rect.w, game.resolution[1] - 220, rect.w, rect.h)
-        self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (40, 60), (670, 25),
+        self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (70, 60), (670, 25),
                                     self.drawdata, False, False)
         game.add_new_renderable(self, self.layer)
 
@@ -1379,10 +1379,9 @@ class News(pygame.sprite.DirtySprite):
 
     @staticmethod
     def generate_news_statements(eventtype):
-        news_statements = [("A terrorist group from " + game.generate_name() +
-                           " have sabotaged the city's money reserves!").upper(),
+        news_statements = [(game.generate_name() + " terrorists have sabotaged the city's money reserves!").upper(),
                            "Santa Claus has been spotted by the local bank!".upper(),
-                           "A group of terrorists have hijacked the metro train!".upper()]
+                           (game.generate_name() + " terrorists have hijacked the metro train!").upper()]
         return news_statements[eventtype]
 
     def present(self, eventtype):
@@ -2019,7 +2018,7 @@ class Bar(pygame.sprite.DirtySprite):
                 if item[0] == notification[0]:
                     if notification[3] != 0:
                         self.city_txt = notification[3]
-                    game.notifications.remove(item)
+                    game.notifications.remove(notification)
         self.objxy = ([7, 192, 456, 700, 593], [7, 33])
         self.objwh = ([181, 261, 239, 583, 147], 22)
         self.drawdata = [(255, 255, 255), 14, [" €", " €/s"]]
