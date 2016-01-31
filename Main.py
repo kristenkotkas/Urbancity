@@ -21,7 +21,7 @@ class Game:
         self.tutorial_mode = True
         self.difficulty = 1
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
-            self.notifications = self.news_statements = self.unused_upgrades = []
+            self.notifications = self.unused_upgrades = []
         self.images = self.sounds = self.background = self.cursor = self.cloud = self.metro = self.pipe = self.fiber = \
             self.power = self.watersupply = self.bar = self.right_drawer = self.left_drawer = self.quick_menu = \
             self.tick = self.menu = self.houses_properties = self.right_button_prices_fixed = self.fonts = \
@@ -38,7 +38,8 @@ class Game:
         self.unused_upgrades = []
         self.used_bonuses = []
         self.used_notifications = []
-        # upgrades = name{box}, type{priv}, cost amount{box}, unlock amount{priv}, income reward amount{box}
+        # upgrades = (name{public}, type{private}, cost amount{public},
+        #            unlock amount{private}, income reward amount{public})
         self.upgrades = [("Electricity", 1, 84000, 2400, 84),
                          ("Water Supply", 1, 121500, 2400, 140),
                          ("Plumbing", 1, 178000, 2400, 160),
@@ -50,7 +51,7 @@ class Game:
                          ("5G", 1, 17786500, 100000, 20720),
                          ("Li-Fi", 1, 50120000, 225000, 57750),
                          ("World Peace", 1, 500000000, 750000, 583333)]
-        # money_bonus = (name{priv}, reward{box}, unlock amount{priv})
+        # money_bonus = (name{private}, reward{public}, unlock amount{private})
         self.money_bonuses = [(0, 4000, 1000),
                               (1, 15000, 2400),
                               (2, 35000, 10000),
@@ -92,42 +93,39 @@ class Game:
             self.houses_properties = [
                 (50, 0.1, 0), (220, 0.2, 1000), (640, 0.3, 6000), (1800, 0.5, 24000), (3300, 1.5, 54000)]
             self.right_button_prices_fixed = [3000, 36000, 160000, 1944000, 10125000]
-        # notifications = (name{box}, unlock{priv}, city name{box})
+        # notifications = (index{private}, name{public}, unlock{private}, city name{public})
         self.notifications = [
-            ("First people are moving in.", 10, "Village"),
-            ("Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2], 0),
-            ("Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2], 0),
-            ("You are one step closer to Urbancity. Status update: Town.", 2400, "Town"),
-            ("Your city is growing. Luxury unlocked.", self.houses_properties[3][2], 0),
-            ("You are one step closer to Urbancity. Status update: City.", 12000, "City"),
-            ("Finally a skyscraper, let the world domination begin. Skyscrapers unlocked.",
+            (0, "First people are moving in.", 10, "Village"),
+            (1, "Bigger houses means more people. Low-end unlocked.", self.houses_properties[1][2], 0),
+            (2, "Let’s make it even bigger. High-end unlocked.", self.houses_properties[2][2], 0),
+            (3, "You are one step closer to Urbancity. Status update: Town.", 2400, "Town"),
+            (4, "Your city is growing. Luxury unlocked.", self.houses_properties[3][2], 0),
+            (5, "You are one step closer to Urbancity. Status update: City.", 12000, "City"),
+            (6, "Finally a skyscraper, let the world domination begin. Skyscrapers unlocked.",
              self.houses_properties[4][2], 0),
-            ("You are one step closer to Urbancity. Status update: Urban area.", 42000, "Urban area"),
-            ("You are one step closer to Urbancity. Status update: Metropolis.", 100000, "Metropolis"),
-            ("Only few steps to Urbancity. Status update: Megacity.", 225000, "Megacity"),
-            ("Only one step left to Urbancity. Status update: Megapolis.", 400000, "Megapolis"),
-            ("You have reached to the top. Status update: Urbancity.", 750000, "Urbancity"),
-            ("With great power comes great responsibility.", self.upgrades[0], 0),
-            ("How did we manage to live without water before?", self.upgrades[1], 0),
-            ("Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2], 0),
-            ("Faster Internet means happier people.", self.upgrades[3], 0),
-            ("Metro transports people faster through city.", self.upgrades[4], 0),
-            ("Santa is real! I told you Santa was real!", self.upgrades[5], 0),
-            ("Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6], 0),
-            ("What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7], 0),
-            ("Looks like we are the first city to use 5G technology.", self.upgrades[8], 0),
-            ("Now you can surf at the speed of light.", self.upgrades[9], 0),
-            ("Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
-            ("You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000, 0),
-            ("You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000, 0),
-            ("You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000, 0),
-            ("You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000, 0),
-            ("You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000, 0),
-            ("You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000, 0),
-            ("You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000, 0)]
-        self.news_statements = ["Terrorists have blown up the city's money reserves!".upper(),
-                                "Santa Claus has been spotted by the local bank!".upper(),
-                                "A group of terrorists have hijacked the metro train!".upper()]
+            (7, "You are one step closer to Urbancity. Status update: Urban area.", 42000, "Urban area"),
+            (8, "You are one step closer to Urbancity. Status update: Metropolis.", 100000, "Metropolis"),
+            (9, "Only few steps to Urbancity. Status update: Megacity.", 225000, "Megacity"),
+            (10, "Only one step left to Urbancity. Status update: Megapolis.", 400000, "Megapolis"),
+            (11, "You have reached to the top. Status update: Urbancity.", 750000, "Urbancity"),
+            (12, "With great power comes great responsibility.", self.upgrades[0], 0),
+            (13, "How did we manage to live without water before?", self.upgrades[1], 0),
+            (14, "Does anybody know a good plumber? Cause I really need one from now on?", self.upgrades[2], 0),
+            (15, "Faster Internet means happier people.", self.upgrades[3], 0),
+            (16, "Metro transports people faster through city.", self.upgrades[4], 0),
+            (17, "Santa is real! I told you Santa was real!", self.upgrades[5], 0),
+            (18, "Now we can finally get rid of the dial-up. Thanks Moogle.", self.upgrades[6], 0),
+            (19, "What’s better than wireless Internet? Wireless electricity of course.", self.upgrades[7], 0),
+            (20, "Looks like we are the first city to use 5G technology.", self.upgrades[8], 0),
+            (21, "Now you can surf at the speed of light.", self.upgrades[9], 0),
+            (22, "Your city is taking shape. You receive 4,000 € as speed-up boost.", 1000, 0),
+            (23, "You have reached to 10,000 citizens and receive 35,000 € bonus.", 10000, 0),
+            (24, "You have reached to 25,000 citizens and receive 500,000 € bonus.", 25000, 0),
+            (25, "You have reached to 75,000 citizens and receive 4,000,000 € bonus.", 75000, 0),
+            (26, "You have reached to 150,000 citizens and receive 12,000,000 € bonus.", 150000, 0),
+            (27, "You have reached to 250,000 citizens and receive 22,000,000 € bonus.", 250000, 0),
+            (28, "You have reached to 500,000 citizens and receive 55,000,000 € bonus.", 500000, 0),
+            (29, "You have reached to 1,000,000 citizens and receive 100,000,000 € bonus.", 1000000, 0)]
 
     def initialize(self):
         pygame.time.set_timer(pygame.USEREVENT + 1, 10)
@@ -175,7 +173,7 @@ class Game:
             for sprite in sprites:
                 sprite.kill()
         self.activeclouds = self.houses = self.houses_states = self.upgrades = self.money_bonuses = self.taxes = \
-            self.notifications = self.news_statements = self.unused_upgrades = []
+            self.notifications = self.unused_upgrades = []
         self.cloud = self.metro = self.pipe = self.fiber = self.power = self.watersupply = self.bar = \
             self.right_drawer = self.left_drawer = self.houses_properties = self.right_button_prices_fixed = \
             self.tutorial = self.used_upgrades = self.bar_amounts = self.houses_properties = self.used_bonuses = \
@@ -334,6 +332,49 @@ class Game:
         for sizetype in self.houses_states:
             for house in sizetype:
                 game.houses[house[0]].append(House(house[0], house[1], house[2]))
+
+    @staticmethod
+    def generate_name():
+        letters = "aeioubdgkpthlmnrsv"
+
+        def forbidden(x, y):
+            forbidden_set = {(letters[5:11], "xvml"),
+                             ("x", letters[5:11] + "xhsm"),
+                             ("hpsdlxkrvs", "r"),
+                             (letters[5:], letters[5:11]),
+                             ("lhmvsrk", "x"),
+                             ("e", "au"),
+                             ("dms", "h"),
+                             ("uia", "o"),
+                             ("m", "lnv"),
+                             ("kptgbdhnvlr", "hnm")}
+            for element in forbidden_set:
+                if x in element[0] and y in element[1]:
+                    return True
+
+        name = ""
+        name += letters[randint(0, 17)]
+        if name[-1] in letters[5:]:
+            name += letters[randint(0, 4)]
+        else:
+            name += letters[5:][randint(0, 12)]
+        while len(name) != 7:
+            letter = letters[randint(0, 17)]
+            if name[-1] == name[-2] == letter:
+                letter = ""
+            if name[-1] in letters[5:] and name[-2] in letters[5:] and letter in letters[5:]:
+                letter = ""
+            if name[-1] in letters[0:5] and name[-2] in letters[0:5]:
+                if name[-1] == name[-2]:
+                    letter = ""
+                if letter in letters[0:5]:
+                    letter = letters[randint(5, 17)]
+            if forbidden(name[-1], letter):
+                letter = ""
+            name += letter
+        if not name[-1] in letters[0:4]:
+            name += letters[randint(0, 4)]
+        return name.title()
 
 
 class Images:
@@ -524,7 +565,7 @@ class MetroTrain(pygame.sprite.DirtySprite):
                             self.t_event = False
                     elif not self.t_override and not self.t_event and randint(1, 10) == 6:
                         for notification in game.bar.used_notifications:
-                            if notification[0] == self.t_notification:
+                            if notification[1] == self.t_notification:
                                 self.t_event = True
                                 self.speed = 8
                                 self.t_counter = randint(6, 20)
@@ -1297,11 +1338,11 @@ class News(pygame.sprite.DirtySprite):
         self.layer = layer
         self.drawing = False
         self.counter = 0
-        self.drawdata = [(0, 0, 0), 20]
+        self.drawdata = [(0, 0, 0), 18]
         self.txt = ""
         self.image, rect = game.images.misc[1]
         self.rect = pygame.Rect(-rect.w, game.resolution[1] - 220, rect.w, rect.h)
-        self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (105, 60), (670, 25),
+        self.txt_obj = RenderObject(self.layer + 1, False, False, self.txt, self.rect.topleft, (40, 60), (670, 25),
                                     self.drawdata, False, False)
         game.add_new_renderable(self, self.layer)
 
@@ -1336,8 +1377,16 @@ class News(pygame.sprite.DirtySprite):
         else:
             return False
 
+    @staticmethod
+    def generate_news_statements(eventtype):
+        news_statements = [("A terrorist group from " + game.generate_name() +
+                           " have sabotaged the city's money reserves!").upper(),
+                           "Santa Claus has been spotted by the local bank!".upper(),
+                           "A group of terrorists have hijacked the metro train!".upper()]
+        return news_statements[eventtype]
+
     def present(self, eventtype):
-        self.txt = game.news_statements[eventtype]
+        self.txt = self.generate_news_statements(eventtype)
         self.visible = True
         self.drawing = True
 
@@ -1964,12 +2013,12 @@ class Bar(pygame.sprite.DirtySprite):
         self.notification_txt = ""
         self.notify_counter = 0
         if len(self.used_notifications) > 0:
-            self.notification_txt = self.used_notifications[-1][0]
+            self.notification_txt = self.used_notifications[-1][1]
         for item in self.used_notifications:
             for notification in game.notifications:
                 if item[0] == notification[0]:
-                    if notification[2] != 0:
-                        self.city_txt = notification[2]
+                    if notification[3] != 0:
+                        self.city_txt = notification[3]
                     game.notifications.remove(item)
         self.objxy = ([7, 192, 456, 700, 593], [7, 33])
         self.objwh = ([181, 261, 239, 583, 147], 22)
@@ -2048,13 +2097,13 @@ class Bar(pygame.sprite.DirtySprite):
 
     def process_notifications(self):
         for notification in game.notifications:
-            if isinstance(notification[1], int):
-                if self.people_total >= notification[1]:
+            if isinstance(notification[2], int):
+                if self.people_total >= notification[2]:
                     self.notify(notification)
                     self.notify_counter = 70
                     return
             else:
-                if notification[1][0] in game.left_drawer.used_upgrades:
+                if notification[2][0] in game.left_drawer.used_upgrades:
                     self.notify(notification)
                     self.notify_counter = 70
                     return
@@ -2066,9 +2115,9 @@ class Bar(pygame.sprite.DirtySprite):
     def notify(self, notification):
         print("new notification:", notification)
         game.sounds.play("notification")
-        self.notification_txt = notification[0]
-        if notification[2] != 0:
-            self.city_txt = notification[2]
+        self.notification_txt = notification[1]
+        if notification[3] != 0:
+            self.city_txt = notification[3]
         self.used_notifications.append(notification)
         game.notifications.remove(notification)
 
