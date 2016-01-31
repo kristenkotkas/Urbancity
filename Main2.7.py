@@ -200,8 +200,8 @@ class Game(object):
             self.allsprites.update()
             dirtyrects = self.allsprites.draw(self.screen)
             pygame.display.update(dirtyrects)
-            pygame.display.set_caption(
-                u"FPS: " + unicode(round(self.clock.get_fps(), 2)) + u", Redrawing: " + unicode(len(dirtyrects)))
+            # pygame.display.set_caption(
+            #     u"FPS: " + unicode(round(self.clock.get_fps(), 2)) + u", Redrawing: " + unicode(len(dirtyrects)))
         self.filesystem_do(u"save_state", self.difficulty)
         pygame.time.wait(50)
         pygame.quit()
@@ -2061,8 +2061,8 @@ class Bar(pygame.sprite.DirtySprite):
         self.city_obj = RenderObject(self.layer_mod, self.visible, True, self.city_txt, self.rect.topleft,
                                      (self.objxy[0][4], self.objxy[1][1]), (self.objwh[0][4], self.objwh[1]),
                                      self.drawdata, False, False)
-        self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
-                                    (660, self.objxy[1][0]), (44, self.objwh[1]), self.drawdata, False, False)
+        # self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
+        #                             (660, self.objxy[1][0]), (44, self.objwh[1]), self.drawdata, False, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -2079,8 +2079,8 @@ class Bar(pygame.sprite.DirtySprite):
             False, self.visible, self.layer_mod, self.notification_txt, self.rect.topleft, False)
         self.city_obj.process_update(
             False, self.visible, self.layer_mod, self.city_txt, self.rect.topleft, False)
-        self.fps_obj.process_update(
-            False, self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft, False)
+        # self.fps_obj.process_update(
+        #     False, self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft, False)
         if self.animatein:
             self.dirty = 1
             if self.rect.y < self.maxy:

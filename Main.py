@@ -2,9 +2,13 @@
 import pygame
 import os.path
 import shelve
+import sys
 from random import randint, sample, shuffle
 
-main_dir = os.path.split(os.path.abspath(__file__))[0]
+if getattr(sys, 'frozen', False):
+    main_dir = os.path.split(os.path.abspath(sys.executable))[0]
+else:
+    main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 
 class Game:
@@ -14,8 +18,8 @@ class Game:
         pygame.mouse.set_visible(0)
         self.clock = pygame.time.Clock()
         self.fps_cap = 120
-        # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        self.screen = pygame.display.set_mode((1366, 768))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # self.screen = pygame.display.set_mode((1366, 768))
         self.resolution = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.running = True
         self.tutorial_mode = True
@@ -199,8 +203,8 @@ class Game:
             self.allsprites.update()
             dirtyrects = self.allsprites.draw(self.screen)
             pygame.display.update(dirtyrects)
-            pygame.display.set_caption(
-                "FPS: " + str(round(self.clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
+            # pygame.display.set_caption(
+            #     "FPS: " + str(round(self.clock.get_fps(), 2)) + ", Redrawing: " + str(len(dirtyrects)))
         self.filesystem_do("save_state", self.difficulty)
         pygame.time.wait(50)
         pygame.quit()
@@ -246,14 +250,7 @@ class Game:
                     game.tutorial.guide_obj.switch_tutorial(-1)
                 elif event.key == pygame.K_RIGHT:
                     game.tutorial.guide_obj.switch_tutorial(1)
-                elif event.key == pygame.K_k:
-                    game.bar.money += game.bar.money * 133700
-                    game.left_drawer.news_obj.present(1)
-                elif event.key == pygame.K_l:
-                    game.bar.money = 0
-                    game.left_drawer.news_obj.present(0)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                print(pygame.mouse.get_pos())
                 game.right_drawer.tap_pad_click_check()
                 if game.quick_menu.mouse_click_check() or game.quick_menu.sounds_obj.mouse_click_check() or \
                         game.tutorial.mouse_click_check() or game.bar.mouse_click_check():
@@ -2074,8 +2071,8 @@ class Bar(pygame.sprite.DirtySprite):
         self.city_obj = RenderObject(self.layer_mod, self.visible, True, self.city_txt, self.rect.topleft,
                                      (self.objxy[0][4], self.objxy[1][1]), (self.objwh[0][4], self.objwh[1]),
                                      self.drawdata, False, False)
-        self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
-                                    (660, self.objxy[1][0]), (44, self.objwh[1]), self.drawdata, False, False)
+        # self.fps_obj = RenderObject(self.layer_mod, self.visible, True, game.clock.get_fps(), self.rect.topleft,
+        #                             (660, self.objxy[1][0]), (44, self.objwh[1]), self.drawdata, False, False)
         game.add_new_renderable(self, self.layer)
 
     def update(self):
@@ -2092,8 +2089,8 @@ class Bar(pygame.sprite.DirtySprite):
             False, self.visible, self.layer_mod, self.notification_txt, self.rect.topleft, False)
         self.city_obj.process_update(
             False, self.visible, self.layer_mod, self.city_txt, self.rect.topleft, False)
-        self.fps_obj.process_update(
-            False, self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft, False)
+        # self.fps_obj.process_update(
+        #     False, self.visible, self.layer_mod, game.clock.get_fps(), self.rect.topleft, False)
         if self.animatein:
             self.dirty = 1
             if self.rect.y < self.maxy:
@@ -2147,7 +2144,6 @@ class Bar(pygame.sprite.DirtySprite):
             self.notify_counter -= 1
 
     def notify(self, notification):
-        print("new notification:", notification)
         game.sounds.play("notification")
         self.notification_txt = notification[1]
         if notification[3] != 0:
@@ -2158,7 +2154,6 @@ class Bar(pygame.sprite.DirtySprite):
     def process_money_bonuses(self):
         for bonus in game.money_bonuses:
             if self.people_total >= bonus[2]:
-                print("new bonus:", bonus)
                 self.money += bonus[1]
                 self.used_bonuses.append(bonus)
                 game.money_bonuses.remove(bonus)

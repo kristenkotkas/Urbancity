@@ -7,8 +7,9 @@ exe = Executable(
     targetName="Urbancity.exe",
     compress= True
 )
-options = {"packages": ["pygame", "dbm"], "excludes": ["tkinter"],
-           "include_files": ["data/", "README.md", "License.md"],
+options = {"packages": ["pygame", "dbm"],
+           "excludes": ["tkinter"],
+           "include_files": ["data/", "README.md", "License.md", "libogg.dll", "libvorbis.dll", "libvorbisfile.dll"],
            "optimize": 2,
            "compressed": True,
            }
