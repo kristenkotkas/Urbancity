@@ -895,7 +895,7 @@ class House(pygame.sprite.DirtySprite):
         self.min_people = people / 100 * randint(1, 4)
         game.bar.people_total += self.peoplemax
         game.bar.houses_income += self.peoplemax * game.bar.house_multiplier * game.houses_properties[sizetype][1]
-        game.left_drawer.current_max_upgrade_buttons += 1
+        game.left_drawer.increase_max_buttons()
         self.taxes = []
         self.calculate_taxmax()
         if randtype is None:
@@ -1034,6 +1034,11 @@ class LeftDrawer(pygame.sprite.DirtySprite):
         if new_law is not None:
             game.upgrades.append(new_law)
 
+    def increase_max_buttons(self):
+        if self.current_max_upgrade_buttons < self.max_screen_upgrade_buttons:
+            self.current_max_upgrade_buttons += 1
+            self.create_new_law()
+
     @staticmethod
     def init_unlock(unlockname):
         if unlockname == "Metro":
@@ -1084,7 +1089,6 @@ class LeftDrawer(pygame.sprite.DirtySprite):
                         self.upgrade_buttons.append(UpgradeButton(upgrade, len(self.upgrade_buttons)))
                         game.upgrades.remove(upgrade)
                         return
-            self.create_new_law()
 
     def update(self):
         self.process_upgrades()
@@ -1354,6 +1358,7 @@ class UpgradeButton(pygame.sprite.DirtySprite):
                 return True
 
     def award_rewards(self):
+        game.left_drawer.create_new_law()
         game.bar.incomereward += self.reward
         game.left_drawer.init_unlock(self.name)
 
@@ -2118,8 +2123,8 @@ class Bar(pygame.sprite.DirtySprite):
         manual_income = 100 + (self.income + self.people_total) / 15
         self.money += manual_income
         self.income_manual_data.append((manual_income, self.income_manual_time))
-        randomevent = randint(1, 800)
-        if randomevent == 1:
+        randomevent = randint(1, 1500)
+        if randomevent == 300:
             self.money /= 50
             game.left_drawer.news_obj.present(0)
         elif randomevent == 800:
