@@ -14,4 +14,4 @@ Appi, see ei tööta!
 --------------
 
 * Pygame'i saab tirida siit: http://www.lfd.uci.edu/~gohlke/pythonlibs/#pygame
-* Pakendatud Windowsi versioonil võib vaja minna Microsoft Visual C++ Redistributable Pakki. Rohkem infot leiab siit: http://cx-freeze.readthedocs.org/en/latest/faq.html#microsoft-visual-c-redistributable-package
+* Windowsi versioon on pakendatud Python 3.4.3-ga ning sellel võib vaja minna Microsoft Visual C++ Redistributable Pakki. Rohkem infot leiab siit: http://cx-freeze.readthedocs.org/en/latest/faq.html#microsoft-visual-c-redistributable-package
